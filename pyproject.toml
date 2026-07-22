@@ -39,3 +39,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+filterwarnings = [
+    # Benign: starlette's TestClient warns about httpx; not our code.
+    "ignore:Using `httpx` with `starlette.testclient`",
+]

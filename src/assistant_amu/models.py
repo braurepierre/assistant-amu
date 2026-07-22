@@ -25,7 +25,7 @@ class SourceDoc:
     """One entry from ``corpus/sources.yaml`` (PRD §7.1)."""
 
     title: str
-    category: str
+    category: str | None  # required in sources.yaml; may be None for /ingest uploads
     type: str  # "pdf" | "html"
     url: str | None = None
     path: str | None = None

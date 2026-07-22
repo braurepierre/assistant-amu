@@ -119,3 +119,25 @@ non disponibles ici. (2) Validation *chiffrée* des itérations de prompt sur le
 jeu d'éval : nécessite un backend LLM + un corpus figé. Le code et les tests
 mockés sont prêts ; ces deux points sont des vérifications à faire côté
 utilisateur, documentées ici et au CHANGELOG.
+
+## 2026-07-22 — Phase 4 : API FastAPI (F7)
+
+**Fait.** `schemas.py` (Pydantic v2, contrats §7.5), `main.py` (`POST /ask`,
+`POST /ingest`, `GET /health`, `/docs`). Store et backend en dépendances
+(singletons `lru_cache`) surchargeables en test. 12 tests via `TestClient` :
+`/ask` (réponse sourcée, refus sans sources, 422 de validation, 503 sur
+`LLMBackendError`), `/health`, `/ingest` (succès + manifeste, 409 doublon, 422
+type non géré). Total : 74 tests.
+
+**Décisions.**
+- *Validation au démarrage* : `get_settings()` est appelé à l'import de `main.py`
+  → un `LLM_BACKEND` invalide fait échouer le lancement uvicorn, pas la première
+  requête (F5, vérifié).
+- *Tests hermétiques* : `/ask` utilise un backend mocké ; `/ingest` monkeypatche
+  `default_token_counter` (compteur de mots, aucun modèle chargé) et
+  `INGESTED_MANIFEST` (fichier temporaire, le manifeste du dépôt n'est pas touché).
+- *503* : `LLMBackendError` → `503 {"detail": "LLM backend unavailable: <cause>"}`
+  conforme au §7.5.
+
+**En attente utilisateur.** Latences `/ask` par backend (F7) : à mesurer et
+consigner au README avec un vrai backend (Ollama local / API Mistral).
