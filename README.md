@@ -151,11 +151,40 @@ chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
 > attendent le corpus AMU réel (`corpus/sources.yaml`) et un backend LLM (clé
 > Mistral et/ou Ollama). Voir `JOURNAL.md`.
 
-## Port LangChain (branche `langchain-port`)
+## Port LangChain (cette branche)
 
-Le pipeline de requête est réimplémenté avec LangChain sur la branche dédiée
-`langchain-port`, à des fins de comparaison. Le README de cette branche détaille
-« ce que LangChain abstrait » — et ce que l'on perd en lisibilité/contrôle.
+> Vous êtes sur la branche **`langchain-port`**. Le pipeline de requête single-turn
+> est réimplémenté avec **LangChain (LCEL)** dans
+> `src/assistant_amu/langchain_port/pipeline.py`, à des fins de comparaison. Il
+> réutilise **la même collection ChromaDB** et **le même prompt système** que la
+> version écrite à la main, donc les réponses sont comparables.
+>
+> Installation : `uv pip install -e ".[dev,langchain]"`.
+
+### Ce que LangChain abstrait
+
+- **L'orchestration** : `{"context": retriever | format_docs, "question": passthrough}
+  | prompt | llm | StrOutputParser()` remplace l'assemblage explicite du message
+  et l'appel backend. Concis, mais le flux de données devient implicite.
+- **Le vectorstore et le retriever** : `Chroma(...).as_retriever(k=...)` masque
+  la requête ChromaDB, la conversion distance→similarité et la sélection top-k.
+- **Le modèle de chat** : `ChatOllama` / `ChatMistralAI` unifient les deux
+  backends (l'équivalent de notre `LLMBackend`), mais avec une surface d'API et
+  un graphe de dépendances bien plus larges.
+
+### Ce que LangChain n'abstrait **pas** (et qu'il faut toujours écrire)
+
+- **Les préfixes E5** (piège n°1) : `HuggingFaceEmbeddings` par défaut n'ajoute pas
+  `query:`/`passage:` → il faut quand même une classe `Embeddings` maison
+  (`E5Embeddings`) pour réutiliser correctement la collection.
+- **La logique produit** : citations `[S1]` fiabilisées, **détection de refus** et
+  mise à zéro des sources, mapping d'erreurs backend → **503**, `condensed_question`.
+  La chaîne LCEL renvoie une chaîne de caractères ; tout le contrat de `/ask`
+  (`api/schemas.py`) reste à notre charge.
+
+**Bilan** : LangChain fait gagner quelques lignes d'orchestration au prix d'une
+grosse dépendance et d'un contrôle moindre sur les pièges (préfixes, métrique
+cosinus, `num_ctx`) — précisément les points que ce projet veut savoir expliquer.
 
 ## Références (état de l'art)
 

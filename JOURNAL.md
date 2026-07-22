@@ -181,3 +181,12 @@ sur la ligne principale (F1-F8 + finition ; F9 vit sur la branche de comparaison
 chiffrée* (recall réel, latences, équivalence des réponses du port) dépend du
 corpus AMU et d'un backend LLM. Le tag `v1.0` marque donc la complétude *du code*
 V1, pas encore la validation terrain — explicitement noté au README.
+
+**Dépendances LangChain (branche uniquement, §11.7).** `langchain-core`,
+`langchain-chroma`, `langchain-ollama`, `langchain-mistralai`,
+`langchain-huggingface` sont déclarées dans l'extra **optionnel** `[langchain]`,
+installées seulement sur cette branche. Elles n'existent pas sur `main` : le port
+est un exercice de comparaison isolé (§3, §5.1.9). Constat clé documenté au README
+de la branche : LangChain n'ajoute pas les préfixes E5 (piège n°1) → une classe
+`Embeddings` maison reste nécessaire, et tout le contrat produit de `/ask`
+(citations, refus, 503) reste à écrire à la main.
