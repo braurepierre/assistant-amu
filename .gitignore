@@ -1,0 +1,29 @@
+# Secrets — never commit (PRD §9 : fuite de secrets rédhibitoire)
+.env
+
+# Local vector store (regenerated from the corpus)
+chroma_db/
+
+# Downloaded corpus binaries — reproducibility via sources.yaml + scripts (PRD §7.1)
+corpus/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

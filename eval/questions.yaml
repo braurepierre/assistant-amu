@@ -1,0 +1,21 @@
+# eval/questions.yaml — annotated single-turn evaluation set (PRD §7.6).
+#
+# 15-20 answerable questions + 3-4 deliberately non-answerable, mixing both
+# retrieval regimes: exact acronyms/terms (CVEC, MCC, "article N") AND paraphrase
+# ("interrompre mes études un an" -> césure). Best written while reading the
+# corpus in Phase 1.
+#
+# Each entry:
+#   - id: q01
+#     question: "Quelles sont les modalités de césure à AMU ?"
+#     answerable: true
+#     expected_source: "Règlement des études 2025-2026"   # document title
+#     expected_keywords: ["césure", "suspension"]          # must appear in the right chunk
+#
+#   - id: q20
+#     question: "Quelle est la capitale de l'Australie ?"
+#     answerable: false        # non-answerable -> expects the refusal sentence
+#
+# [À_PRÉCISER]: to be authored by the user in Phase 1 (PRD §11.2).
+
+questions: []

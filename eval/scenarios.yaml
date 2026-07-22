@@ -1,0 +1,18 @@
+# eval/scenarios.yaml — V2 conversational evaluation (PRD §7.7 / Phase 7).
+#
+# 5-8 scenarios of 3 turns each; every turn annotated like a V1 question.
+# Placeholder only — NOT authored until V2 (F1-F9 validated first, PRD §11.3).
+#
+# Example shape:
+# scenarios:
+#   - id: s1
+#     turns:
+#       - question: "Quelles sont les modalités de césure à AMU ?"
+#         answerable: true
+#         expected_source: "Règlement des études 2025-2026"
+#         expected_keywords: ["césure"]
+#       - question: "Et pour un étudiant en droit ?"
+#         answerable: true
+#         expected_keywords: ["césure", "droit"]
+
+scenarios: []

@@ -1,0 +1,21 @@
+# corpus/sources.yaml — versioned list of source documents (PRD §7.1).
+#
+# Each entry under `documents:`:
+#   - title:    human-readable document title            (required)
+#     category: reglement-scolarite | guide-etudiant | composante   (required)
+#     type:     pdf | html                                (required)
+#     url:      "https://www.amu.fr/..."   # provide either `url:` (download) ...
+#     path:     "corpus/raw/local-file.pdf"  # ... or `path:` for a local file
+#     extractor: docling                     # optional — per-document PDF escalation (§7.2)
+#
+# The URL list is [À_PRÉCISER]: to be filled by the user in Phase 1 (15-30 docs,
+# balanced across the three categories). Do NOT invent URLs (PRD §11.2).
+#
+# Example entry (commented — replace with real AMU documents):
+# documents:
+#   - title: "Règlement des études 2025-2026"
+#     category: reglement-scolarite
+#     type: pdf
+#     url: "https://www.amu.fr/system/files/..."
+
+documents: []
