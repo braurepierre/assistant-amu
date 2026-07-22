@@ -72,3 +72,24 @@ rencontré : `multi_cell` de fpdf2 2.8 laisse le curseur à la marge droite —
 
 **En attente utilisateur.** F1/F4 ne seront *validés* qu'avec de vraies URLs dans
 `corpus/sources.yaml` (`[À_PRÉCISER]`, §11.2). Le code et les tests sont prêts.
+
+## 2026-07-22 — Phase 2 : indexation et retrieval (F3, F4)
+
+**Fait.** `embedder.py` (préfixes E5 par famille, modèle injectable),
+`vector_store.py` (ChromaDB persistant, espace cosinus, dédoublonnage par
+`chunk_id` + `doc_id`, score = 1 − distance ∈ [0, 1]), commandes CLI `index` /
+`search`. 12 tests supplémentaires (faux embedder déterministe, aucun
+téléchargement de modèle). Total : 45 tests au vert.
+
+**Smoke test réel** (e5-small téléchargé une fois, corpus synthétique local de
+2 documents) : la requête paraphrasée « comment interrompre mes etudes pendant un
+an » (sans le mot « césure ») ramène le chunk césure en tête (score 0.841) —
+exactement le régime sémantique visé. Réindexation → +0 chunk (dédoublonnage F2
+vérifié). Métadonnée `section` (chemin de titres) correctement capturée.
+
+**Décisions.**
+- *Embeddings gérés à la main* (pas d'`embedding_function` Chroma) : c'est le seul
+  moyen d'appliquer `query: ` aux questions et `passage: ` aux chunks (piège n°1).
+- *Sanitisation des métadonnées* : Chroma refuse les valeurs `None` → les clés
+  nulles (page HTML, section absente) sont retirées avant insertion.
+- *Vecteurs normalisés* (`normalize_embeddings=True`) pour un cosinus propre.

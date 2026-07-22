@@ -71,3 +71,18 @@ class Chunk:
     text: str
     metadata: dict[str, object] = field(default_factory=dict)
     # metadata keys: source_title, source_url, page, chunk_index, category, section
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievedChunk:
+    """A chunk returned by retrieval, with its relevance score.
+
+    ``score`` is cosine similarity (= 1 - distance), in [0, 1], higher = more
+    relevant (PRD §7.5). ChromaDB returns distances; the store converts them.
+    """
+
+    chunk_id: str
+    doc_id: str
+    text: str
+    metadata: dict[str, object]
+    score: float
