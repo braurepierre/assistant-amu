@@ -93,3 +93,29 @@ vérifié). Métadonnée `section` (chemin de titres) correctement capturée.
 - *Sanitisation des métadonnées* : Chroma refuse les valeurs `None` → les clés
   nulles (page HTML, section absente) sont retirées avant insertion.
 - *Vecteurs normalisés* (`normalize_embeddings=True`) pour un cosinus propre.
+
+## 2026-07-22 — Phase 3 : génération (F5, F6)
+
+**Fait.** `llm.py` (Protocol `LLMBackend`, `OllamaBackend`/`MistralBackend`,
+`LLMBackendError` à cause normalisée, `build_backend`), `rag.py` (assemblage du
+prompt — sources XML puis question, détection de refus par comparaison
+normalisée, pipeline `RagPipeline`), CLI `generation ask`. 17 tests (backends via
+`httpx.MockTransport`, pipeline avec faux store/backend). Total : 62 tests.
+
+**Itérations de prompt (F6).** `prompts/rag_system.md` porté de v0 à v3, trois
+entrées motivées au `CHANGELOG` :
+- v1 : **bug empirique** — la phrase de refus était coupée sur deux lignes ; le
+  « mot pour mot » demandé au modèle devenait ambigu (repéré en écrivant le test
+  de refus). Mise sur une seule ligne + hors-sujet explicite.
+- v2 : ambiguïté entre composantes + discipline de citation.
+- v3 : *quotes-first* léger (fidélité) + concision.
+
+**Décision.** Sur refus détecté, le pipeline renvoie `sources=[]` (F6 : 0 source
+citée) ; sur retrieval vide, refus immédiat sans appel LLM (économie + robustesse).
+
+**En attente utilisateur / environnement.** (1) Test d'intégration manuel des
+deux backends (F5) : nécessite un Ollama lancé en local et/ou une clé Mistral —
+non disponibles ici. (2) Validation *chiffrée* des itérations de prompt sur le
+jeu d'éval : nécessite un backend LLM + un corpus figé. Le code et les tests
+mockés sont prêts ; ces deux points sont des vérifications à faire côté
+utilisateur, documentées ici et au CHANGELOG.
