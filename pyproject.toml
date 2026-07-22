@@ -32,6 +32,7 @@ dependencies = [
 # fpdf2 is test-only: generates tiny PDF fixtures for ingestion tests (JOURNAL §11.7).
 dev = ["pytest", "fpdf2"]
 docling = ["docling"]  # PDF layout/table escalation (PRD §7.2)
+demo = ["gradio"]  # PRD §5.4 bonus — Gradio UI (demo.py)
 
 [tool.setuptools.packages.find]
 where = ["src"]

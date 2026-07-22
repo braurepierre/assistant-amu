@@ -269,3 +269,12 @@ tour depuis `result.sources` ; or un refus vide `sources` (F6). Sur un tour où 
 retrieval réussit mais la réponse refuse (cas s1 tour 2), le recall par tour peut
 donc afficher un « miss » alors que le retrieval a ramené les bons chunks —
 limite connue, à affiner (mesurer le recall avant le drop de refus) si besoin.
+
+## 2026-07-23 — Bonus : interface Gradio (demo.py, §5.4)
+
+**Fait.** `demo.py` (**55 lignes** ≤ 60), pur client HTTP de l'API : champ question
++ slider k → appelle `POST /ask` → rend réponse + sources en Markdown. Zéro logique
+métier (le RAG reste dans l'API). Réalisé après validation V1 (contrainte §5.4).
+
+**Dépendance hors §6.1 (justif. §11.7).** `gradio` en extra **optionnel** `[demo]`
+(uniquement pour le bonus). Non requis par le cœur du produit.
