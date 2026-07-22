@@ -59,8 +59,9 @@ def get_pipeline(
 
 @app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest, pipeline: RagPipeline = Depends(get_pipeline)) -> AskResponse:
+    history = [{"role": m.role, "content": m.content} for m in request.history] if request.history else None
     try:
-        result = pipeline.answer(request.question, k=request.k)
+        result = pipeline.answer(request.question, k=request.k, history=history)
     except LLMBackendError as exc:
         raise HTTPException(status_code=503, detail=f"LLM backend unavailable: {exc.cause}")
     return AskResponse(

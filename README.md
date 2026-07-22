@@ -144,12 +144,14 @@ chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
 - [x] **Phase 4** — API FastAPI (F7)
 - [x] **Phase 5** — Harnais d'évaluation (F8)
 - [x] **Phase 6** — Port LangChain (branche `langchain-port`, F9)
-- [ ] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12)
+- [x] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12)
 
-> **Statut** : code V1 (phases 0-6) implémenté et testé. La *validation chiffrée*
-> de F1/F4/F7-latence/F8-baseline et le test d'intégration des deux backends
-> attendent le corpus AMU réel (`corpus/sources.yaml`) et un backend LLM (clé
-> Mistral et/ou Ollama). Voir `JOURNAL.md`.
+> **Statut** : code des phases 0-7 implémenté et testé. La *validation chiffrée*
+> de F1/F4/F7-latence/F8-baseline, le test d'intégration des deux backends et
+> l'évaluation conversationnelle (F12) attendent le corpus AMU réel
+> (`corpus/sources.yaml`) et un backend LLM (clé Mistral et/ou Ollama). La V2 est
+> rétrocompatible : sans `history`, `/ask` reproduit exactement la V1. Voir
+> `JOURNAL.md`.
 
 ## Port LangChain (branche `langchain-port`)
 

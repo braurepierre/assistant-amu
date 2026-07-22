@@ -57,5 +57,6 @@ viennent l'enrichir.
 
 ### v0 — 2026-07-22 — version initiale (V2)
 - Contenu repris tel quel du PRD §7.7 (prompt de condensation v0).
-- Fichier posé dès le squelette (structure §6.3) ; **non branché** au code tant
-  que la V1 n'est pas validée (F1-F9, PRD §11.3). Sera activé en Phase 7.
+- Fichier posé dès le squelette (structure §6.3), **branché en Phase 7** :
+  `RagPipeline._condense` l'utilise comme message système quand `history` est
+  fourni. Non modifié depuis v0 ; toute itération future viendra ici (§11.10).

@@ -235,3 +235,91 @@ def render_end_to_end_report(rows: list[E2ERow], *, date: str, backend: str, k: 
 def _truncate(text: str, width: int = 70) -> str:
     text = text.replace("\n", " ").replace("|", "\\|")
     return text if len(text) <= width else text[: width - 1] + "…"
+
+
+# --- V2 conversational evaluation (§7.7, F12) -----------------------------
+
+@dataclass(frozen=True, slots=True)
+class Turn:
+    question: str
+    answerable: bool
+    expected_source: str | None = None
+    expected_keywords: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
+class Scenario:
+    id: str
+    turns: list[Turn]
+
+
+def load_scenarios(path: Path | str) -> list[Scenario]:
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    scenarios: list[Scenario] = []
+    for entry in data.get("scenarios", []):
+        turns = [
+            Turn(
+                question=str(t["question"]),
+                answerable=bool(t["answerable"]),
+                expected_source=t.get("expected_source"),
+                expected_keywords=list(t.get("expected_keywords", []) or []),
+            )
+            for t in entry.get("turns", [])
+        ]
+        scenarios.append(Scenario(id=str(entry["id"]), turns=turns))
+    return scenarios
+
+
+@dataclass
+class ConversationRow:
+    scenario_id: str
+    turn: int
+    question: str
+    condensed_question: str | None
+    recall_hit: bool
+    refusal_correct: bool | None
+    answer: str
+
+
+def evaluate_conversation(scenarios: list[Scenario], pipeline: Pipeline, k: int) -> list[ConversationRow]:
+    """Replay each scenario, threading history, measuring recall per turn (§7.7)."""
+    rows: list[ConversationRow] = []
+    for scenario in scenarios:
+        history: list[dict] = []
+        for index, turn in enumerate(scenario.turns, start=1):
+            result = pipeline.answer(turn.question, k=k, history=history or None)
+            hit = turn.answerable and any(
+                chunk_matches(s.text, s.metadata, turn.expected_source, turn.expected_keywords)
+                for s in result.sources
+            )
+            refusal_correct = is_refusal(result.answer) if not turn.answerable else None
+            rows.append(
+                ConversationRow(scenario.id, index, turn.question, result.condensed_question,
+                                hit, refusal_correct, result.answer)
+            )
+            history.append({"role": "user", "content": turn.question})
+            history.append({"role": "assistant", "content": result.answer})
+    return rows
+
+
+def render_conversation_report(rows: list[ConversationRow], *, date: str, backend: str, k: int) -> str:
+    answerable = [r for r in rows if r.refusal_correct is None]
+    hits = sum(1 for r in answerable if r.recall_hit)
+    lines = [
+        f"# Rapport d'évaluation — conversation (V2) — {date}",
+        "",
+        f"- Backend LLM : `{backend}` | k = {k}",
+        f"- Recall des tours answerable : {hits}/{len(answerable)}",
+        "",
+        "| scénario | tour | question | question condensée | recall | refus | condensation OK (man.) | fidélité (man.) |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        recall = "—" if r.refusal_correct is not None else ("✅" if r.recall_hit else "❌")
+        refusal = "—" if r.refusal_correct is None else ("✅" if r.refusal_correct else "❌")
+        lines.append(
+            f"| {r.scenario_id} | {r.turn} | {_truncate(r.question, 40)} | "
+            f"{_truncate(r.condensed_question or '—', 40)} | {recall} | {refusal} |  |  |"
+        )
+    lines += ["", "> Colonnes *condensation OK* et *fidélité* : jugement manuel (§7.7)."]
+    return "\n".join(lines) + "\n"

@@ -21,6 +21,9 @@ from .llm import LLMBackend, build_backend
 
 PROMPTS_DIR = PROJECT_ROOT / "prompts"
 REFUSAL = "Je ne trouve pas cette information dans les documents disponibles."
+# Keep the last ~6 turns (user+assistant) of history before condensation (§7.7).
+MAX_HISTORY_MESSAGES = 12
+_ROLE_LABEL = {"user": "Utilisateur", "assistant": "Assistant"}
 
 _PUNCT = re.compile(r"[^\w\s]", flags=re.UNICODE)
 _SPACES = re.compile(r"\s+")
@@ -50,8 +53,14 @@ def load_system_prompt(name: str = "rag_system.md") -> str:
     return (PROMPTS_DIR / name).read_text(encoding="utf-8").strip()
 
 
-def build_user_message(question: str, sources: list[RetrievedChunk]) -> str:
-    """Assemble the user message: <sources> block first, question last (§7.4)."""
+def build_user_message(
+    question: str, sources: list[RetrievedChunk], condensed_question: str | None = None
+) -> str:
+    """Assemble the user message: <sources> block first, question last (§7.4).
+
+    In V2, when a condensed question is available it is shown alongside the
+    original one (§7.7) so the model sees both the resolved and the raw intent.
+    """
     lines = ["<sources>"]
     for i, source in enumerate(sources, start=1):
         meta = source.metadata
@@ -64,16 +73,43 @@ def build_user_message(question: str, sources: list[RetrievedChunk]) -> str:
         lines.append(source.text)
         lines.append("</source>")
     lines.append("</sources>")
-    return "\n".join(lines) + f"\n\nQuestion : {question}"
+    body = "\n".join(lines)
+    if condensed_question and condensed_question != question:
+        return (
+            f"{body}\n\nQuestion d'origine : {question}"
+            f"\nQuestion reformulée (autonome) : {condensed_question}"
+        )
+    return f"{body}\n\nQuestion : {question}"
+
+
+def format_history(history: list) -> str:
+    """Render a chat history into a plain-text transcript for condensation."""
+    lines = []
+    for message in history:
+        role = message["role"] if isinstance(message, dict) else message.role
+        content = message["content"] if isinstance(message, dict) else message.content
+        lines.append(f"{_ROLE_LABEL.get(role, role)} : {content}")
+    return "\n".join(lines)
 
 
 class RagPipeline:
     """Single-turn RAG: retrieve top-k, generate a sourced answer."""
 
-    def __init__(self, *, store: VectorStore, backend: LLMBackend, system_prompt: str | None = None):
+    def __init__(
+        self,
+        *,
+        store: VectorStore,
+        backend: LLMBackend,
+        system_prompt: str | None = None,
+        condense_prompt: str | None = None,
+    ):
         self._store = store
         self._backend = backend
         self._system = system_prompt if system_prompt is not None else load_system_prompt()
+        self._condense_system = (
+            condense_prompt if condense_prompt is not None
+            else load_system_prompt("condense_system.md")
+        )
 
     @classmethod
     def from_settings(
@@ -89,14 +125,27 @@ class RagPipeline:
             backend=backend or build_backend(settings),
         )
 
-    def answer(self, question: str, k: int = 5) -> RagResult:
-        sources = self._store.query(question, k=k)
-        if not sources:
-            # Nothing retrieved: refuse without spending an LLM call.
-            return RagResult(REFUSAL, [], self._backend.name, 0)
+    def answer(self, question: str, k: int = 5, history: list | None = None) -> RagResult:
+        # V2: condense a follow-up into a standalone question before retrieval.
+        # No history (or empty) => strictly the V1 behaviour (non-regression).
+        condensed = self._condense(question, history) if history else None
+        retrieval_query = condensed or question
 
-        answer = self._backend.generate(self._system, build_user_message(question, sources)).strip()
+        sources = self._store.query(retrieval_query, k=k)
+        if not sources:
+            # Nothing retrieved: refuse without spending a generation call.
+            return RagResult(REFUSAL, [], self._backend.name, 0, condensed)
+
+        user = build_user_message(question, sources, condensed_question=condensed)
+        answer = self._backend.generate(self._system, user).strip()
         if is_refusal(answer):
             # Refusal cites no sources (F6).
-            return RagResult(answer, [], self._backend.name, len(sources))
-        return RagResult(answer, sources, self._backend.name, len(sources))
+            return RagResult(answer, [], self._backend.name, len(sources), condensed)
+        return RagResult(answer, sources, self._backend.name, len(sources), condensed)
+
+    def _condense(self, question: str, history: list) -> str:
+        """Reformulate a follow-up into a standalone question (§7.7)."""
+        recent = history[-MAX_HISTORY_MESSAGES:]
+        user = f"{format_history(recent)}\n\nDernière question : {question}"
+        condensed = self._backend.generate(self._condense_system, user).strip()
+        return condensed or question  # fall back to the raw question if empty

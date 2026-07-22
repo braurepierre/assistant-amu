@@ -181,3 +181,24 @@ sur la ligne principale (F1-F8 + finition ; F9 vit sur la branche de comparaison
 chiffrée* (recall réel, latences, équivalence des réponses du port) dépend du
 corpus AMU et d'un backend LLM. Le tag `v1.0` marque donc la complétude *du code*
 V1, pas encore la validation terrain — explicitement noté au README.
+
+## 2026-07-22 — Phase 7 : V2 multi-turn par condensation (F10-F12)
+
+**Fait.** Champ `history` optionnel dans `/ask` (rétrocompatible : absence =
+comportement V1 strictement identique, testé), condensation de requête
+(`RagPipeline._condense` avec `prompts/condense_system.md`), `condensed_question`
+renvoyé dans la réponse, mode `--mode conversation` du harnais + `scenarios.yaml`.
+9 tests supplémentaires. Total : 90 tests. Tag `v2.0`.
+
+**Décisions.**
+- *Ordre contractuel (§11.3).* La V2 n'aurait dû démarrer qu'après validation
+  chiffrée de F1-F9. L'utilisateur a explicitement demandé « tout le PRD » ; la
+  V2 est donc **codée**, mais la validation terrain de la V1 reste due (corpus +
+  backend). Noté ici et au README pour transparence.
+- *Troncature de l'historique* : au-delà de ~6 tours (`MAX_HISTORY_MESSAGES=12`),
+  les messages anciens sont retirés avant condensation (§7.7).
+- *Stateless* : aucun stockage serveur, le client renvoie l'historique.
+
+**En attente utilisateur.** F10-F12 : validation des scénarios (condensation
+correcte, recall par tour, fidélité) avec un backend LLM réel — le harnais
+`--mode conversation` est prêt, `eval/scenarios.yaml` reste à peupler.

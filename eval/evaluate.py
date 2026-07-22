@@ -22,9 +22,12 @@ from pathlib import Path
 from assistant_amu.config import PROJECT_ROOT, get_settings
 from assistant_amu.evaluation import (
     RrfRetriever,
+    evaluate_conversation,
     evaluate_end_to_end,
     evaluate_retrieval,
     load_questions,
+    load_scenarios,
+    render_conversation_report,
     render_end_to_end_report,
     render_retrieval_report,
 )
@@ -38,6 +41,7 @@ from assistant_amu.retrieval.embedder import Embedder
 from assistant_amu.retrieval.vector_store import SemanticRetriever, VectorStore
 
 QUESTIONS = PROJECT_ROOT / "eval" / "questions.yaml"
+SCENARIOS = PROJECT_ROOT / "eval" / "scenarios.yaml"
 REPORTS_DIR = PROJECT_ROOT / "eval" / "reports"
 METHODS = ("semantic", "bm25", "rrf")
 
@@ -146,19 +150,39 @@ def cmd_end_to_end(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_conversation(args: argparse.Namespace) -> int:
+    settings = get_settings()
+    pipeline = RagPipeline.from_settings(settings)
+    backend = build_backend(settings).name
+    scenarios = load_scenarios(args.scenarios)
+    if not scenarios:
+        print("No scenarios in scenarios.yaml yet (see PRD §7.7).")
+        return 1
+    rows = evaluate_conversation(scenarios, pipeline, args.k)
+    today = date.today().isoformat()
+    content = render_conversation_report(rows, date=today, backend=backend, k=args.k)
+    path = _write_report(content, f"{today}_conversation_k{args.k}.md")
+    print(f"[conversation] {len(rows)} turns across {len(scenarios)} scenarios")
+    print(f"  report: {path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="AssistantAMU evaluation harness (F8).")
-    parser.add_argument("--mode", choices=("retrieval", "end-to-end"), required=True)
+    parser = argparse.ArgumentParser(description="AssistantAMU evaluation harness (F8, F12).")
+    parser.add_argument("--mode", choices=("retrieval", "end-to-end", "conversation"), required=True)
     parser.add_argument("--method", choices=(*METHODS, "all"), default="all")
     parser.add_argument("--k", type=int, default=5)
     parser.add_argument("--embedding-model", default=None, help="HF id for an alternative embedder (§7.6)")
     parser.add_argument("--chunk-report", action="store_true", help="measure recall across chunk sizes")
     parser.add_argument("--chunk-sizes", type=int, nargs="+", default=[300, 500])
     parser.add_argument("--questions", default=str(QUESTIONS), help="path to the questions YAML")
+    parser.add_argument("--scenarios", default=str(SCENARIOS), help="path to the scenarios YAML (V2)")
     args = parser.parse_args(argv)
 
     if args.mode == "retrieval":
         return cmd_retrieval(args)
+    if args.mode == "conversation":
+        return cmd_conversation(args)
     return cmd_end_to_end(args)
 
 

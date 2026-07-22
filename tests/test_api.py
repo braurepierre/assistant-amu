@@ -82,6 +82,30 @@ def test_ask_returns_answer_and_sources(client_and_fakes):
     assert len(source["excerpt"]) <= 300
 
 
+def test_ask_with_history_returns_condensed_question(client_and_fakes):
+    client, _, backend = client_and_fakes
+    body = client.post(
+        "/ask",
+        json={
+            "question": "Et pour un etudiant en droit ?",
+            "history": [
+                {"role": "user", "content": "Modalites de cesure ?"},
+                {"role": "assistant", "content": "La cesure est une suspension."},
+            ],
+        },
+    ).json()
+    # FakeBackend returns the same reply for condense + answer, so condensed is non-null.
+    assert body["condensed_question"] == backend.reply
+
+
+def test_ask_history_invalid_role_422(client_and_fakes):
+    client, _, _ = client_and_fakes
+    response = client.post(
+        "/ask", json={"question": "q", "history": [{"role": "system", "content": "x"}]}
+    )
+    assert response.status_code == 422
+
+
 def test_ask_refusal_has_no_sources(client_and_fakes):
     client, _, backend = client_and_fakes
     backend.reply = REFUSAL

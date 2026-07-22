@@ -1,17 +1,28 @@
-"""Pydantic v2 request/response models — API contracts (PRD §7.5).
+"""Pydantic v2 request/response models — API contracts (PRD §7.5, §7.7).
 
-V1 only: ``/ask`` has no ``history`` field yet (added in V2, §11.3). The models
-are the single source of truth for validation (422) and the OpenAPI docs.
+The models are the single source of truth for validation (422) and the OpenAPI
+docs. The optional ``history`` field is the V2 extension: its absence reproduces
+the V1 behaviour exactly (backward-compatible).
 """
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1)
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     k: int = Field(default=5, ge=1, le=10)
+    # V2 (optional, backward-compatible): omitted => V1 single-turn behaviour.
+    # Beyond the last 6 turns the pipeline truncates silently (§7.7).
+    history: list[HistoryMessage] | None = None
 
 
 class Source(BaseModel):

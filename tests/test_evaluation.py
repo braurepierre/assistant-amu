@@ -116,6 +116,50 @@ def test_evaluate_end_to_end_refusal_detection():
 
 # --- loading --------------------------------------------------------------
 
+def test_evaluate_conversation_threads_history():
+    from assistant_amu.evaluation import Scenario, Turn, evaluate_conversation, render_conversation_report
+    from assistant_amu.generation.rag import RagResult
+
+    class FakeConvPipeline:
+        def answer(self, question, k=5, history=None):
+            sources = [RetrievedChunk("c1", "d", "la cesure ...", {"source_title": "Reglement"}, 0.8)]
+            condensed = "cesure en droit ?" if history else None
+            return RagResult("La cesure [S1]", sources, "fake", 1, condensed)
+
+    scenarios = [
+        Scenario("s1", [
+            Turn("cesure ?", True, "Reglement", ["cesure"]),
+            Turn("et en droit ?", True, "Reglement", ["cesure"]),
+        ])
+    ]
+    rows = evaluate_conversation(scenarios, FakeConvPipeline(), k=5)
+    assert len(rows) == 2
+    assert rows[0].condensed_question is None  # first turn, no history
+    assert rows[1].condensed_question == "cesure en droit ?"  # follow-up condensed
+    assert all(r.recall_hit for r in rows)
+    md = render_conversation_report(rows, date="2026-07-22", backend="fake", k=5)
+    assert "conversation (V2)" in md
+
+
+def test_load_scenarios(tmp_path):
+    from assistant_amu.evaluation import load_scenarios
+
+    path = tmp_path / "s.yaml"
+    path.write_text(
+        "scenarios:\n"
+        "  - id: s1\n"
+        "    turns:\n"
+        "      - question: cesure ?\n        answerable: true\n"
+        "        expected_source: Reglement\n        expected_keywords: [cesure]\n"
+        "      - question: et en droit ?\n        answerable: true\n",
+        encoding="utf-8",
+    )
+    scenarios = load_scenarios(path)
+    assert len(scenarios) == 1
+    assert len(scenarios[0].turns) == 2
+    assert scenarios[0].turns[0].expected_keywords == ["cesure"]
+
+
 def test_load_questions(tmp_path):
     path = tmp_path / "q.yaml"
     path.write_text(
