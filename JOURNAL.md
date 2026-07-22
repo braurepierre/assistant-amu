@@ -168,3 +168,16 @@ question, section désaccords). Sur ce corpus trivial, les trois méthodes sont 
 sensibilité (2 tailles de chunks, k ∈ {3,5,8}, e5 vs camembert) exigent le vrai
 corpus + `eval/questions.yaml` renseigné. Le harnais est prêt à les produire en
 une commande.
+
+## 2026-07-22 — Phase 6 : finition V1 + port LangChain (F9)
+
+**Fait.** README complet (motivation RAG vs long-contexte, architecture, pièges,
+usage, contrats API, méthodologie d'éval, limites, feuille de route, références).
+Port LangChain du pipeline de requête sur la branche **`langchain-port`** (isolée,
+§11.3) avec un paragraphe README « ce que LangChain abstrait ». Tag `v1.0` posé
+sur la ligne principale (F1-F8 + finition ; F9 vit sur la branche de comparaison).
+
+**Rappel de statut.** F1-F9 sont **codés et testés** mais leur *validation
+chiffrée* (recall réel, latences, équivalence des réponses du port) dépend du
+corpus AMU et d'un backend LLM. Le tag `v1.0` marque donc la complétude *du code*
+V1, pas encore la validation terrain — explicitement noté au README.

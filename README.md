@@ -10,16 +10,19 @@ Le système est **LLM-agnostique** (backend local Ollama ↔ API Mistral, commut
 par variable d'environnement) et livré avec un **harnais d'évaluation
 reproductible** comparant recherche sémantique, BM25 et leur fusion RRF.
 
-> Projet développé d'après un PRD versionné ([`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md)),
-> en deux temps : **V1 single-turn** (MVP) puis **V2 multi-turn** par condensation
-> de requête. Ce README sera complété au fil des phases (baseline d'évaluation,
-> latences, comparaison LangChain) — voir la feuille de route ci-dessous.
+> Développé d'après un PRD versionné ([`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md)),
+> en Python pur (le pipeline d'abord, le framework ensuite — voir le port
+> LangChain). Objectif : pouvoir expliquer **chaque brique**.
 
-## Statut
+## Pourquoi RAG plutôt que « tout mettre dans le contexte » ?
 
-**Phase 0 — Squelette : ✅ terminée.** Structure du projet, configuration,
-`.gitignore`, `.env.example`, `config.py` validé, `pyproject.toml`, tests amorcés.
-Le reste des phases n'est pas encore implémenté (voir feuille de route).
+Anthropic recommande, pour une base < ~200 000 tokens, de placer tout le corpus
+dans le prompt (avec prompt caching) plutôt que de faire du RAG. Le RAG reste le
+bon choix ici, pour quatre raisons : (1) c'est la compétence visée ; (2) le
+backend local est contraint — Ollama sert `mistral` avec une fenêtre réduite par
+défaut (voir *piège n°3*) ; (3) coût/latence d'un contexte massif à chaque requête
+incompatibles avec un CPU et un free tier ; (4) les **citations passage par
+passage**, cœur du produit, sont natives en RAG.
 
 ## Architecture
 
@@ -27,7 +30,7 @@ Le reste des phases n'est pas encore implémenté (voir feuille de route).
 INDEXATION (hors ligne)
 sources.yaml → download → extract (pdfplumber/bs4) → clean → chunk (≤ 500 tk, ov. 50)
      → embed ("passage: " + texte, e5-small) → ChromaDB (cosine)
-     → [en parallèle, pour l'éval : index BM25 en mémoire depuis les mêmes chunks]
+     → [pour l'éval : index BM25 en mémoire depuis les mêmes chunks]
 
 REQUÊTE V1 (temps réel)
 question → embed ("query: " + question) → ChromaDB top-k
@@ -35,63 +38,124 @@ question → embed ("query: " + question) → ChromaDB top-k
      → LLMBackend.generate → réponse + sources
 ```
 
+### Deux pièges documentés et neutralisés
+
+1. **Préfixes E5** — les modèles E5 exigent `"query: "` (questions) et
+   `"passage: "` (chunks) ; sans eux les performances chutent silencieusement.
+   `embedder.py` porte une table {famille → préfixes} et n'applique **aucun**
+   préfixe à `sentence-camembert-base` (comparaison Phase 5).
+2. **Métrique ChromaDB** — la collection est créée avec
+   `metadata={"hnsw:space": "cosine"}` (Chroma est en L2 par défaut).
+3. **`num_ctx` Ollama** — Ollama tronque le prompt à `num_ctx` (souvent 2048/4096),
+   pas à la capacité du modèle, **sans erreur**. `OLLAMA_NUM_CTX=8192` par défaut.
+
 ## Stack
 
 | Composant | Choix |
 |---|---|
-| Langage | Python ≥ 3.11 |
+| Langage | Python ≥ 3.11 (développé/testé sous 3.12) |
 | Embeddings | `sentence-transformers` + `intfloat/multilingual-e5-small` |
-| Base vectorielle | `chromadb` (persistant local, distance cosinus) |
+| Base vectorielle | `chromadb` (persistant local, cosinus) |
 | Recherche lexicale | `rank_bm25` (comparaison d'évaluation) |
 | LLM local | Ollama (`mistral` 7B) |
 | LLM API | Mistral La Plateforme (`mistral-small-latest`) |
 | Extraction | `pdfplumber` (+ `docling` en escalade), `beautifulsoup4` |
 | API | `fastapi` + `uvicorn` + `pydantic` v2 |
-| Tests | `pytest` |
-
-## Structure du dépôt
-
-```
-assistant-amu/
-├── corpus/            # sources.yaml (versionné), ingested.jsonl, raw/ (non versionné)
-├── src/assistant_amu/ # config, ingestion, retrieval, generation, api
-├── prompts/           # prompts RAG + CHANGELOG
-├── eval/              # jeu de questions + harnais + rapports
-├── tests/
-├── .env.example
-└── pyproject.toml
-```
+| Tests | `pytest` (aucun test n'appelle un vrai LLM ni le réseau) |
 
 ## Installation
 
 Prérequis : Python ≥ 3.11 ; pour le backend local, [Ollama](https://ollama.com)
-avec le modèle `mistral` (`ollama pull mistral`).
+avec `ollama pull mistral`.
 
 ```bash
-# Environnement virtuel
-python -m venv .venv
-# Windows : .venv\Scripts\activate   |   Linux/macOS : source .venv/bin/activate
+# Avec uv (recommandé — gère aussi la version de Python)
+uv venv --python 3.12
+uv pip install -e ".[dev]"
 
-# Dépendances (mode éditable) + outils de test
+# Ou avec pip standard
+python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
 pip install -e ".[dev]"
 
-# Configuration
-cp .env.example .env    # puis renseigner les valeurs (clé Mistral si backend API)
-
-# Tests
+cp .env.example .env    # renseigner MISTRAL_API_KEY si backend API
 pytest
 ```
 
-## Feuille de route (V1)
+## Utilisation
 
-- [x] **Phase 0** — Squelette (structure, config, tooling)
-- [ ] **Phase 1** — Corpus & ingestion (F1, F2) — *nécessite `sources.yaml`*
-- [ ] **Phase 2** — Indexation & retrieval (F3, F4)
-- [ ] **Phase 3** — Génération sourcée + itérations de prompt (F5, F6)
-- [ ] **Phase 4** — API FastAPI `/ask` `/ingest` `/health` (F7)
-- [ ] **Phase 5** — Harnais d'évaluation + mesures de sensibilité (F8)
-- [ ] **Phase 6** — Port LangChain + finition (F9), tag `v1.0`
-- [ ] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12), tag `v2.0`
+```bash
+# 1. Constituer corpus/sources.yaml (15-30 URLs), puis :
+python -m assistant_amu.ingestion.download          # télécharge dans corpus/raw/
+python -m assistant_amu.ingestion stats             # documents/exclusions/chunks
+python -m assistant_amu.ingestion dump -n 5         # inspection visuelle des chunks
+python -m assistant_amu.ingestion index             # embeddings → ChromaDB (idempotent)
+python -m assistant_amu.ingestion search "césure ?" # top-k (contrôle de pertinence)
+
+# 2. Question de bout en bout (retrieval + génération)
+python -m assistant_amu.generation ask "Quelles sont les modalités de césure ?"
+
+# 3. API
+uvicorn assistant_amu.api.main:app --reload         # docs interactives sur /docs
+
+# 4. Évaluation
+python eval/evaluate.py --mode retrieval --method all --k 5
+python eval/evaluate.py --mode end-to-end --k 5
+python eval/evaluate.py --mode retrieval --embedding-model dangvantuan/sentence-camembert-base
+```
+
+Basculer de backend : `LLM_BACKEND=mistral` (API) ou `ollama` (local) dans `.env`.
+
+## API (contrats)
+
+| Endpoint | Rôle |
+|---|---|
+| `POST /ask` | `{question, k}` → `{answer, sources[], model, retrieved_chunks, condensed_question}` ; `503` si backend indisponible |
+| `POST /ingest` | multipart (`file`, `title`, `url?`, `category?`) → `{document_id, chunks_added}` ; `409` si doublon |
+| `GET /health` | `{chroma, llm_backend, documents, chunks}` |
+
+## Évaluation
+
+Le harnais mesure le **recall@k** (proxy de *context recall*, terminologie RAGAS)
+pour trois méthodes — sémantique, BM25 et leur fusion **RRF** — et produit un
+rapport Markdown daté dans `eval/reports/`, avec une section « désaccords »
+(questions où une seule méthode trouve le bon chunk). La fusion RRF est **mesurée
+seulement** ; le pipeline `/ask` reste sémantique pur en V1.
+
+> **Baseline** — `[À_PRÉCISER après le premier run sur le corpus réel]`. Le premier
+> run fait référence ; les suivants s'y comparent. Latences `/ask` par backend
+> (ordres de grandeur : secondes via API, dizaines de secondes en local) à
+> consigner ici après mesure.
+
+## Périmètre et limites (assumés)
+
+Pas d'authentification, pas de déploiement/Docker/CI, pas de streaming, pas de
+reranking ni de recherche hybride dans `/ask` (RRF est mesuré, pas branché), pas
+d'OCR (PDF scannés exclus et signalés), français uniquement. Ce sont des choix
+de périmètre (§3 du PRD), pas des oublis. Évolutions futures documentées :
+**Contextual Retrieval** (candidate n°1 pour une V2.1), bascule hybride si les
+chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
+
+## Feuille de route
+
+- [x] **Phase 0** — Squelette
+- [x] **Phase 1** — Corpus & ingestion (F1, F2)
+- [x] **Phase 2** — Indexation & retrieval (F3, F4)
+- [x] **Phase 3** — Génération sourcée + itérations de prompt (F5, F6)
+- [x] **Phase 4** — API FastAPI (F7)
+- [x] **Phase 5** — Harnais d'évaluation (F8)
+- [x] **Phase 6** — Port LangChain (branche `langchain-port`, F9)
+- [ ] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12)
+
+> **Statut** : code V1 (phases 0-6) implémenté et testé. La *validation chiffrée*
+> de F1/F4/F7-latence/F8-baseline et le test d'intégration des deux backends
+> attendent le corpus AMU réel (`corpus/sources.yaml`) et un backend LLM (clé
+> Mistral et/ou Ollama). Voir `JOURNAL.md`.
+
+## Port LangChain (branche `langchain-port`)
+
+Le pipeline de requête est réimplémenté avec LangChain sur la branche dédiée
+`langchain-port`, à des fins de comparaison. Le README de cette branche détaille
+« ce que LangChain abstrait » — et ce que l'on perd en lisibilité/contrôle.
 
 ## Références (état de l'art)
 
@@ -99,6 +163,7 @@ pytest
 - [Claude Cookbook — Contextual Embeddings](https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide)
 - [RAGAS](https://docs.ragas.io) — vocabulaire d'évaluation (faithfulness, context recall…)
 - [Docling](https://github.com/docling-project/docling) (IBM) — parsing PDF (layout, tableaux)
+- Étalons « produit » : [RAGFlow](https://github.com/infiniflow/ragflow), kotaemon
 
-> AssistantAMU ne concurrence pas les moteurs RAG clé en main : il en réimplémente
-> le cœur en quelques centaines de lignes pour pouvoir en expliquer chaque brique.
+> AssistantAMU ne concurrence pas ces moteurs : il en réimplémente le cœur en
+> quelques centaines de lignes pour pouvoir en expliquer chaque brique.
