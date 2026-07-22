@@ -4,18 +4,92 @@
 #   - title:    human-readable document title            (required)
 #     category: reglement-scolarite | guide-etudiant | composante   (required)
 #     type:     pdf | html                                (required)
-#     url:      "https://www.amu.fr/..."   # provide either `url:` (download) ...
-#     path:     "corpus/raw/local-file.pdf"  # ... or `path:` for a local file
-#     extractor: docling                     # optional — per-document PDF escalation (§7.2)
+#     url:      "https://www.univ-amu.fr/..."             (or `path:` for a local file)
+#     extractor: docling                                  (optional — PDF escalation, §7.2)
 #
-# The URL list is [À_PRÉCISER]: to be filled by the user in Phase 1 (15-30 docs,
-# balanced across the three categories). Do NOT invent URLs (PRD §11.2).
-#
-# Example entry (commented — replace with real AMU documents):
-# documents:
-#   - title: "Règlement des études 2025-2026"
-#     category: reglement-scolarite
-#     type: pdf
-#     url: "https://www.amu.fr/system/files/..."
+# NOTE: AMU's official site is https://www.univ-amu.fr (NOT amu.fr, which is an
+# unrelated company). Documents collected 2026-07-22 by browsing univ-amu.fr and
+# its faculty subdomains. Many faculty documents (règlement/MCC) live behind the
+# ENT/intranet; the public corpus therefore leans on central documents + the
+# faculties that publish openly (ALLSH, Droit). Run
+# `python -m assistant_amu.ingestion.download` to fetch; dead links are logged,
+# not fatal (F1).
 
-documents: []
+documents:
+  # --- Central / transversal — règlement & scolarité ---
+  - title: "Calendrier universitaire 2026-2027 (arrêté du Président)"
+    category: reglement-scolarite
+    type: pdf
+    url: "https://www.univ-amu.fr/system/files/media-ressource/TX-DIRFOR-211%20Arr%C3%AAt%C3%A9%20du%20Pr%C3%A9sident-%20Ann%C3%A9e%20universitaire%202026-2027.pdf"
+  - title: "Charte des étudiants et stagiaires d'AMU"
+    category: reglement-scolarite
+    type: pdf
+    url: "https://www.univ-amu.fr/system/files/media-ressource/20250517_CA_Charte%20%C3%A9tudiants%20et%20stagiaires.pdf"
+  - title: "Règlement intérieur d'Aix-Marseille Université"
+    category: reglement-scolarite
+    type: pdf
+    url: "https://www.univ-amu.fr/system/files/media-ressource/reglement-interieur-AMU.pdf"
+  - title: "La césure à AMU"
+    category: reglement-scolarite
+    type: html
+    url: "https://www.univ-amu.fr/fr/cesure"
+  - title: "Régime spécial d'études (RSE)"
+    category: reglement-scolarite
+    type: html
+    url: "https://www.univ-amu.fr/fr/regime-special-detudes"
+
+  # --- Central / transversal — guides étudiants ---
+  - title: "Guide de l'inscription administrative en ligne (IA web)"
+    category: guide-etudiant
+    type: pdf
+    url: "https://www.univ-amu.fr/system/files/media-ressource/Guide%20de%20l%27IA%20web.pdf"
+  - title: "Droits d'inscription et aides financières"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/droits-dinscription-aides-financieres"
+  - title: "Se loger — vie des campus AMU"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/vie-des-campus/vivre-amu/se-loger"
+  - title: "Mission handicap AMU"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/mission-handicap"
+
+  # --- Composante : Faculté ALLSH (Arts, Lettres, Langues, SHS) ---
+  - title: "ALLSH — Modalités de contrôle des connaissances et des compétences (M3C)"
+    category: composante
+    type: html
+    url: "https://allsh.univ-amu.fr/fr/formation/scolarite/examens/modalites-controle-connaissances-competences-m3c"
+  - title: "ALLSH — Charte des examens"
+    category: composante
+    type: pdf
+    url: "https://allsh.univ-amu.fr/sites/default/files/media-ressource/charte_des_examens.pdf"
+  - title: "ALLSH — Sigles et acronymes"
+    category: composante
+    type: pdf
+    url: "https://allsh.univ-amu.fr/sites/default/files/media-ressource/sigles_et_acronymes.pdf"
+
+  # --- Composante : Faculté de Droit et de Science politique (FDSP) ---
+  - title: "Droit — Guide de la vie étudiante 2025"
+    category: composante
+    type: pdf
+    url: "https://facdedroit.univ-amu.fr/sites/default/files/media-ressource/guide-de-la-vie-tudiante-2025-pdf-36853%20%281%29.pdf"
+  - title: "Droit — Compensation des notes par bloc de connaissances (Licence)"
+    category: composante
+    type: pdf
+    url: "https://facdedroit.univ-amu.fr/sites/default/files/media-ressource/BCC%20Compensation%20des%20notes.pdf"
+  - title: "Droit — Régimes spéciaux d'études"
+    category: composante
+    type: html
+    url: "https://facdedroit.univ-amu.fr/fr/accueil/scolarite/regimes-speciaux"
+
+  # --- Composante : Faculté des Sciences (FDS) & IUT ---
+  - title: "Sciences — Calendriers universitaires de la Faculté"
+    category: composante
+    type: html
+    url: "https://sciences.univ-amu.fr/fr/votre-scolarite/calendriers"
+  - title: "IUT — Services de la scolarité"
+    category: composante
+    type: html
+    url: "https://iut.univ-amu.fr/fr/services-de-scolarite"

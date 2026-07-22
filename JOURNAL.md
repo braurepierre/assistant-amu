@@ -202,3 +202,32 @@ renvoyé dans la réponse, mode `--mode conversation` du harnais + `scenarios.ya
 **En attente utilisateur.** F10-F12 : validation des scénarios (condensation
 correcte, recall par tour, fidélité) avec un backend LLM réel — le harnais
 `--mode conversation` est prêt, `eval/scenarios.yaml` reste à peupler.
+
+## 2026-07-23 — Corpus réel constitué + F1-F4 validés sur le terrain
+
+**Fait (session à deux, via l'extension Chrome + WebFetch).** Constitution de
+`corpus/sources.yaml` avec **17 documents AMU réels** (browsing de `univ-amu.fr`).
+Découverte : le domaine du PRD « amu.fr » est une **entreprise sans rapport** ; le
+vrai site est **`www.univ-amu.fr`** (corrigé dans sources.yaml). Beaucoup de docs
+facultaires (règlement/MCC) sont derrière l'ENT/intranet → le corpus public
+s'appuie sur le central + ALLSH + Droit (accès libre) + Sciences/IUT.
+
+**Validation terrain.**
+- **F1** : `download` → 16/17 OK, 1 lien 404 (page IUT périmée) loggé sans casser
+  le lot ; corrigé, 2ᵉ run idempotent (16 skipped-exists).
+- **F2** : `stats` → 16 docs, **269 chunks**, 1 exclusion **correcte** : le
+  calendrier 2026-2027 (PDF) n'a pas de couche texte exploitable (pdfplumber sort
+  des avertissements FontBBox) → exclu sans OCR (§7.2).
+- **F3/F4** : `index` → 269 chunks en collection (16 docs distincts) ; une requête
+  paraphrasée sur la césure ramène des passages pertinents (score ~0.86).
+
+**Méthode.** WebFetch (rapide, extraction de liens) > extension Chrome (fiable
+mais lente) pour récupérer des URLs. WebSearch inutilisable ici (US-only → mauvais
+« amu.fr »).
+
+**Candidat Docling (§7.2).** Le calendrier scanné est le cas d'escalade type : si
+`docling` est installé, ajouter `extractor: docling` à son entrée pourrait le
+récupérer. Non fait (dépendance optionnelle non installée).
+
+**Reste dû.** `eval/questions.yaml` (baseline chiffrée) et un backend LLM
+(Ollama/Mistral) pour `/ask` et l'end-to-end.
