@@ -1,21 +1,104 @@
 # eval/questions.yaml — annotated single-turn evaluation set (PRD §7.6).
 #
-# 15-20 answerable questions + 3-4 deliberately non-answerable, mixing both
-# retrieval regimes: exact acronyms/terms (CVEC, MCC, "article N") AND paraphrase
-# ("interrompre mes études un an" -> césure). Best written while reading the
-# corpus in Phase 1.
-#
-# Each entry:
-#   - id: q01
-#     question: "Quelles sont les modalités de césure à AMU ?"
-#     answerable: true
-#     expected_source: "Règlement des études 2025-2026"   # document title
-#     expected_keywords: ["césure", "suspension"]          # must appear in the right chunk
-#
-#   - id: q20
-#     question: "Quelle est la capitale de l'Australie ?"
-#     answerable: false        # non-answerable -> expects the refusal sentence
-#
-# [À_PRÉCISER]: to be authored by the user in Phase 1 (PRD §11.2).
+# First draft written from the real corpus (2026-07-23), to refine together.
+# Mixes both retrieval regimes: exact acronyms/terms (CVEC, M3C, RSE, BCC) and
+# paraphrase. `expected_source` is matched as a case-insensitive substring of the
+# chunk's source title; `expected_keywords` must all appear in the matching chunk.
+# Omit `expected_source` for pure-keyword (acronym) questions.
 
-questions: []
+questions:
+  # --- Paraphrase regime ---
+  - id: q01
+    question: "Comment demander une césure à l'université ?"
+    answerable: true
+    expected_source: "césure"
+    expected_keywords: ["césure"]
+  - id: q02
+    question: "Puis-je interrompre mes études pendant un an puis les reprendre ?"
+    answerable: true
+    expected_source: "césure"
+    expected_keywords: ["césure"]
+  - id: q03
+    question: "Quels aménagements existent pour un étudiant salarié ou sportif de haut niveau ?"
+    answerable: true
+    expected_source: "Régime spécial"
+    expected_keywords: ["régime spécial"]
+  - id: q04
+    question: "Où puis-je me loger en tant qu'étudiant ?"
+    answerable: true
+    expected_source: "loger"
+    expected_keywords: ["logement"]
+  - id: q05
+    question: "Quels aménagements pour un étudiant en situation de handicap ?"
+    answerable: true
+    expected_source: "handicap"
+    expected_keywords: ["handicap"]
+  - id: q06
+    question: "Comment trouver un job à côté de mes études ?"
+    answerable: true
+    expected_source: "vie étudiante"
+    expected_keywords: ["job"]
+  - id: q07
+    question: "Comment obtenir un duplicata de mon diplôme à l'IUT ?"
+    answerable: true
+    expected_source: "IUT"
+    expected_keywords: ["duplicata"]
+
+  # --- Lexical / acronym regime ---
+  - id: q08
+    question: "Qu'est-ce que le régime spécial d'études (RSE) ?"
+    answerable: true
+    expected_source: "Régime spécial"
+    expected_keywords: ["régime spécial"]
+  - id: q09
+    question: "Qu'est-ce que la CVEC ?"
+    answerable: true
+    expected_keywords: ["cvec"]
+  - id: q10
+    question: "Quelles sont les modalités de contrôle des connaissances (M3C) en ALLSH ?"
+    answerable: true
+    expected_source: "M3C"
+    expected_keywords: ["contrôle"]
+  - id: q11
+    question: "Comment fonctionne la compensation des notes en licence ?"
+    answerable: true
+    expected_source: "Compensation"
+    expected_keywords: ["compensation"]
+  - id: q12
+    question: "Que signifie le sigle BCC ?"
+    answerable: true
+    expected_keywords: ["bcc"]
+  - id: q13
+    question: "Comment s'inscrire administrativement en ligne (IA web) ?"
+    answerable: true
+    expected_source: "IA web"
+    expected_keywords: ["inscription"]
+  - id: q14
+    question: "Que dit la charte des examens ?"
+    answerable: true
+    expected_source: "Charte des examens"
+    expected_keywords: ["examen"]
+  - id: q15
+    question: "Quels sont les droits et devoirs figurant dans la charte des étudiants ?"
+    answerable: true
+    expected_source: "Charte des étudiants"
+    expected_keywords: ["charte"]
+  - id: q16
+    question: "Où consulter le calendrier universitaire de la faculté des sciences ?"
+    answerable: true
+    expected_source: "Sciences"
+    expected_keywords: ["calendrier"]
+
+  # --- Non-answerable (must trigger the refusal, §7.6) ---
+  - id: q17
+    question: "Quelle est la capitale de l'Australie ?"
+    answerable: false
+  - id: q18
+    question: "Quel temps fera-t-il demain à Marseille ?"
+    answerable: false
+  - id: q19
+    question: "Combien coûte un abonnement à un service de streaming vidéo ?"
+    answerable: false
+  - id: q20
+    question: "Peux-tu me donner une recette de ratatouille ?"
+    answerable: false

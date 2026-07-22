@@ -121,10 +121,13 @@ rapport Markdown daté dans `eval/reports/`, avec une section « désaccords »
 (questions où une seule méthode trouve le bon chunk). La fusion RRF est **mesurée
 seulement** ; le pipeline `/ask` reste sémantique pur en V1.
 
-> **Baseline** — `[À_PRÉCISER après le premier run sur le corpus réel]`. Le premier
-> run fait référence ; les suivants s'y comparent. Latences `/ask` par backend
-> (ordres de grandeur : secondes via API, dizaines de secondes en local) à
-> consigner ici après mesure.
+> **Baseline** (2026-07-23 — corpus 17 docs / 269 chunks, 16 questions, k=5) :
+> recall@5 **sémantique 0.81**, **BM25 0.75**, **RRF 0.81**. Enseignements :
+> le sémantique bat BM25 sur la paraphrase « interrompre mes études un an » →
+> césure (q02) ; la RRF **récupère** une question que ni le sémantique ni BM25
+> n'ont dans leur top-5 (q04, logement). Rapport :
+> `eval/reports/2026-07-23_retrieval_all_k5.md`. Ce premier run fait référence ;
+> les suivants s'y comparent. Latences `/ask` par backend : à mesurer.
 
 ## Périmètre et limites (assumés)
 
