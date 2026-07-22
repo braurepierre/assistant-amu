@@ -1,18 +1,45 @@
-# eval/scenarios.yaml — V2 conversational evaluation (PRD §7.7 / Phase 7).
+# eval/scenarios.yaml — V2 conversational evaluation (PRD §7.7 / F12).
 #
-# 5-8 scenarios of 3 turns each; every turn annotated like a V1 question.
-# Placeholder only — NOT authored until V2 (F1-F9 validated first, PRD §11.3).
-#
-# Example shape:
-# scenarios:
-#   - id: s1
-#     turns:
-#       - question: "Quelles sont les modalités de césure à AMU ?"
-#         answerable: true
-#         expected_source: "Règlement des études 2025-2026"
-#         expected_keywords: ["césure"]
-#       - question: "Et pour un étudiant en droit ?"
-#         answerable: true
-#         expected_keywords: ["césure", "droit"]
+# First real draft (2026-07-23) from the AMU corpus, to refine together.
+# Each turn is annotated like a single-turn question; recall is measured on the
+# (condensed) question. Run: `python eval/evaluate.py --mode conversation --k 5`.
 
-scenarios: []
+scenarios:
+  # Reference scenario from the PRD (§8, F10-F12). Turn 2 is elliptical; the
+  # condensed question must carry both "césure" and "droit". Validated live
+  # (2026-07-23): condensation correct; the model then refuses (no droit-specific
+  # césure rules in the corpus) — a correct multi-turn anti-hallucination case.
+  - id: s1_cesure_droit
+    turns:
+      - question: "Quelles sont les modalités de la césure ?"
+        answerable: true
+        expected_source: "césure"
+        expected_keywords: ["césure"]
+      - question: "Et pour un étudiant en droit ?"
+        answerable: true
+        expected_source: "césure"
+        expected_keywords: ["césure"]
+
+  # Follow-up that stays answerable within the corpus (régime spécial d'études).
+  - id: s2_rse_salarie
+    turns:
+      - question: "Qu'est-ce que le régime spécial d'études ?"
+        answerable: true
+        expected_source: "Régime spécial"
+        expected_keywords: ["régime spécial"]
+      - question: "Et pour un étudiant salarié ?"
+        answerable: true
+        expected_source: "Régime spécial"
+        expected_keywords: ["régime spécial"]
+
+  # Inscription -> droits d'inscription (topic shift resolved by condensation).
+  - id: s3_inscription_droits
+    turns:
+      - question: "Comment s'inscrire administrativement en ligne ?"
+        answerable: true
+        expected_source: "IA web"
+        expected_keywords: ["inscription"]
+      - question: "Et quels en sont les droits à payer ?"
+        answerable: true
+        expected_source: "Droits d'inscription"
+        expected_keywords: ["droits"]

@@ -253,3 +253,19 @@ récupérer. Non fait (dépendance optionnelle non installée).
 **Bilan V1.** F1-F8 validés **en conditions réelles** ; F9 (port LangChain) est
 code+tests. Reste : peupler `eval/scenarios.yaml` pour la validation
 conversationnelle V2 (F10-F12), et raffiner 3 annotations d'éval (q03, q04, q10).
+
+## 2026-07-23 — V2 condensation validée en direct (F10)
+
+**Fait.** Scénario de référence du PRD testé avec Mistral : tour 1 « césure »
+(condensed_question = None, V1) ; tour 2 elliptique « Et pour un étudiant en
+droit ? » → condensé en « Un étudiant en droit peut-il bénéficier des modalités
+de la césure à AMU ? » — contient bien **césure** ET **droit** (critère F10). Le
+modèle refuse ensuite (pas de règles de césure propres au droit dans le corpus) :
+garde-fou anti-hallucination **fonctionnel en multi-tour**. `eval/scenarios.yaml`
+peuplé de 3 scénarios réels (dont celui-ci) à raffiner.
+
+**Note d'éval conversationnelle.** `evaluate_conversation` calcule le recall par
+tour depuis `result.sources` ; or un refus vide `sources` (F6). Sur un tour où le
+retrieval réussit mais la réponse refuse (cas s1 tour 2), le recall par tour peut
+donc afficher un « miss » alors que le retrieval a ramené les bons chunks —
+limite connue, à affiner (mesurer le recall avant le drop de refus) si besoin.
