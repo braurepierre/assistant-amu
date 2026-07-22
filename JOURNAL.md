@@ -278,3 +278,23 @@ métier (le RAG reste dans l'API). Réalisé après validation V1 (contrainte §
 
 **Dépendance hors §6.1 (justif. §11.7).** `gradio` en extra **optionnel** `[demo]`
 (uniquement pour le bonus). Non requis par le cœur du produit.
+
+## 2026-07-23 — Raffinage d'éval diagnostiqué : recall@5 0.81 → 0.94
+
+**Méthode (anti-triche).** Avant de toucher aux annotations, **inspection des vrais
+chunks** pour distinguer problème d'annotation vs problème de données.
+- **q03 (RSE)** : le doc RSE central *était* retrouvé (rang 2-3), mais mon mot-clé
+  `["régime spécial"]` ne figure que dans le chunk d'intro (hors top-5) ; les
+  chunks retrouvés disent « RSE ». → **annotation** trop stricte → `["RSE"]`.
+- **q10 (M3C)** : la page M3C *était* parfaitement retrouvée, mais son contenu est
+  un **index de liens** (« M3C Licence X 2025-2026 »), sans les règles. → **données**
+  → ajout des PDF « Cadrage M3C » (Licence + Master), le vrai contenu MCC.
+
+**Résultat.** semantic 0.81→**0.94**, bm25 0.75→0.81, rrf 0.81→0.88 (corpus 18 docs
+/ 316 chunks). q03 ✅ (annotation), q10 ✅ (données).
+
+**Arrêt assumé (intégrité).** La dernière question ratée par le sémantique (q04,
+logement) est **récupérée par la RRF** ; je ne la « corrige » pas — ce serait
+gonfler le score, et c'est l'illustration vivante de l'intérêt de l'hybride. Un
+0.94 honnête vaut mieux qu'un 1.00 suspect ; le plafond restant reflète un vrai
+cas, pas un bug.

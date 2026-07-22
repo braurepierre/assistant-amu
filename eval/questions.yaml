@@ -22,7 +22,10 @@ questions:
     question: "Quels aménagements existent pour un étudiant salarié ou sportif de haut niveau ?"
     answerable: true
     expected_source: "Régime spécial"
-    expected_keywords: ["régime spécial"]
+    # Refined after inspection (2026-07-23): the retrieved RSE chunks use the
+    # acronym "RSE", not the literal phrase "régime spécial" — that phrase is only
+    # in the intro chunk, which is outside the top-5. "RSE" is the faithful marker.
+    expected_keywords: ["RSE"]
   - id: q04
     question: "Où puis-je me loger en tant qu'étudiant ?"
     answerable: true

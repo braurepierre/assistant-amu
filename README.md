@@ -121,13 +121,14 @@ rapport Markdown daté dans `eval/reports/`, avec une section « désaccords »
 (questions où une seule méthode trouve le bon chunk). La fusion RRF est **mesurée
 seulement** ; le pipeline `/ask` reste sémantique pur en V1.
 
-> **Baseline** (2026-07-23 — corpus 17 docs / 269 chunks, 16 questions, k=5) :
-> recall@5 **sémantique 0.81**, **BM25 0.75**, **RRF 0.81**. Enseignements :
-> le sémantique bat BM25 sur la paraphrase « interrompre mes études un an » →
-> césure (q02) ; la RRF **récupère** une question que ni le sémantique ni BM25
-> n'ont dans leur top-5 (q04, logement). Rapport :
-> `eval/reports/2026-07-23_retrieval_all_k5.md`. Ce premier run fait référence ;
-> les suivants s'y comparent.
+> **Baseline** (2026-07-23 — corpus 18 docs / 316 chunks, 16 questions, k=5) :
+> recall@5 **sémantique 0.94**, **BM25 0.81**, **RRF 0.88**. Obtenue après un
+> raffinage **diagnostiqué** (0.81 → 0.94) : q03 était une annotation trop stricte
+> (le chunk RSE dit « RSE », pas « régime spécial »), q10 une **lacune de données**
+> (la page M3C n'était qu'un index de liens → ajout des PDF « Cadrage M3C »). La
+> seule question que le sémantique rate encore (q04, logement) est **récupérée par
+> la RRF** — argument concret pour l'hybride, laissé tel quel plutôt que gonflé.
+> Courbe recall@k ∈ {2,3,5,8} et détail par question : `eval/reports/`.
 
 **End-to-end & latences par backend** (mesuré le 2026-07-23, corpus réel) :
 

@@ -69,6 +69,16 @@ documents:
     category: composante
     type: pdf
     url: "https://allsh.univ-amu.fr/sites/default/files/media-ressource/sigles_et_acronymes.pdf"
+  # Cadrage M3C (added 2026-07-23): the substantive MCC framework PDFs behind the
+  # M3C index page — the real "modalités de contrôle des connaissances" content.
+  - title: "ALLSH — Cadrage M3C Licence et DEUST 2025-2026"
+    category: composante
+    type: pdf
+    url: "https://allsh.univ-amu.fr/sites/default/files/media-ressource/Cadrage%20ALLSH_M3C_L_2025-2026.pdf"
+  - title: "ALLSH — Cadrage M3C Master 2025-2026"
+    category: composante
+    type: pdf
+    url: "https://allsh.univ-amu.fr/sites/default/files/media-ressource/Cadrage%20ALLSH_M3C_M_2025-2026.pdf"
 
   # --- Composante : Faculté de Droit et de Science politique (FDSP) ---
   - title: "Droit — Guide de la vie étudiante 2025"
