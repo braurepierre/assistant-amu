@@ -141,3 +141,30 @@ type non géré). Total : 74 tests.
 
 **En attente utilisateur.** Latences `/ask` par backend (F7) : à mesurer et
 consigner au README avec un vrai backend (Ollama local / API Mistral).
+
+## 2026-07-22 — Phase 5 : harnais d'évaluation (F8)
+
+**Fait.** `bm25_store.py` (BM25Okapi sur les chunks stockés, tokenisation simple),
+`evaluation.py` (matching chunk attendu, fusion RRF, recall@k, section désaccords,
+rendu Markdown, mode end-to-end), `eval/evaluate.py` (CLI : `--mode
+retrieval|end-to-end`, `--method semantic|bm25|rrf|all`, `--k`, `--embedding-model`
+sur collection éphémère, `--chunk-report`, `--questions`). 20 tests
+supplémentaires. Total : 82 tests.
+
+**Smoke test réel** (corpus synthétique) : `--mode retrieval --method all --k 3`
+produit un rapport daté correct (recall@k sémantique/BM25/RRF, détail par
+question, section désaccords). Sur ce corpus trivial, les trois méthodes sont à
+1.00 — la baseline chiffrée intéressante viendra du vrai corpus AMU.
+
+**Décisions.**
+- *`evaluation.py` dans le package* (logique pure, testable) + `eval/evaluate.py`
+  fin (câblage des vrais retrievers/pipeline) — mêmes raisons que `models.py`.
+- *`--embedding-model` / `--chunk-report`* opèrent sur des collections ChromaDB
+  éphémères suffixées, supprimées en `finally` : la collection de production
+  `amu_docs` n'est **jamais** modifiée (§7.6).
+- *RRF mesuré seulement* : le pipeline `/ask` reste sémantique pur en V1 (§5.1.8).
+
+**En attente utilisateur.** La **baseline** chiffrée (F8) et le tableau de
+sensibilité (2 tailles de chunks, k ∈ {3,5,8}, e5 vs camembert) exigent le vrai
+corpus + `eval/questions.yaml` renseigné. Le harnais est prêt à les produire en
+une commande.

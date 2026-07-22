@@ -82,6 +82,29 @@ class VectorStore:
         )
         return _to_retrieved(result)
 
+    def get_all(self) -> tuple[list[str], list[str], list[dict]]:
+        """Return (ids, documents, metadatas) for every stored chunk.
+
+        Used by the evaluation harness to build the BM25 index and the RRF lookup
+        over the exact same chunks the semantic index holds (PRD §7.6).
+        """
+        result = self._collection.get(include=["documents", "metadatas"])
+        return result["ids"], result["documents"], result["metadatas"]
+
+    def delete_collection(self) -> None:
+        """Drop the collection (used for ephemeral parallel collections, §7.6)."""
+        self._client.delete_collection(self._collection.name)
+
+
+class SemanticRetriever:
+    """Adapts :class:`VectorStore` to the harness Retriever interface."""
+
+    def __init__(self, store: VectorStore):
+        self._store = store
+
+    def rank(self, question: str, depth: int) -> list[RetrievedChunk]:
+        return self._store.query(question, k=depth)
+
 
 def _sanitize(metadata: dict[str, object]) -> dict[str, object]:
     """Chroma metadata must be str/int/float/bool; drop None, stringify the rest."""
