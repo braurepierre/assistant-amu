@@ -33,3 +33,42 @@ Note de vigilance pour la Phase 1 : vérifier la disponibilité de roues (wheels
 pour `chromadb` / `sentence-transformers` / `docling` sous Python 3.14 ; à défaut,
 créer l'environnement avec un interpréteur 3.11–3.12. Aucun blocage en Phase 0
 (seuls `pytest` et `python-dotenv` sont installés à ce stade).
+
+## 2026-07-22 — Environnement : pin Python 3.12 via uv
+
+**Symptôme.** Seul Python 3.14.3 est installé sur la machine ; `torch` (tiré par
+`sentence-transformers`) et `chromadb` n'ont pas encore de wheels pour 3.14.
+
+**Diagnostic.** Python 3.14 est trop récent pour la pile ML au moment du projet.
+
+**Solution.** `uv` (0.11.14) est disponible : `uv venv --python 3.12` provisionne
+un CPython 3.12.13 autonome (dans le cache uv, non invasif) et `uv pip install -e
+".[dev]"` installe toute la pile §6.1 sans erreur. Imports vérifiés : `chromadb`,
+`sentence_transformers`, `pdfplumber`, `bs4`, `fastapi`, `rank_bm25`. `uv` est un
+outil de dev, pas une dépendance runtime — aucun impact sur §6.1. Le `README`
+documente les deux voies (uv et `python -m venv` + `pip`).
+
+## 2026-07-22 — Phase 1 : corpus et ingestion (F1, F2)
+
+**Fait.** Pipeline complet `download → extract → clean → chunk` avec métadonnées,
+CLI d'ingestion (`stats`, `dump`), et 33 tests au vert (fixtures HTML + PDF réels).
+
+**Décisions de conception.**
+- *Compteur de tokens injectable* (`chunk.py`) : la production utilise le tokenizer
+  e5 (`transformers.AutoTokenizer`, préfixe `passage: ` = 4 tokens) ; les tests
+  injectent un simple compteur de mots — chunking testable sans charger de modèle.
+- *Fusion de segments* : les blocs consécutifs de même `(page, section)` sont
+  fusionnés avant découpe, pour que les paragraphes HTML forment des chunks de
+  taille correcte au lieu d'un chunk minuscule par `<p>`.
+- *`models.py`* (hors §6.3) : dataclasses partagées (`SourceDoc`, `TextBlock`,
+  `Document`, `Chunk`) pour que `extract → clean → chunk → indexation` parlent le
+  même vocabulaire. Organisation interne, aucune fonctionnalité §5 ajoutée.
+
+**Dépendance hors §6.1 (justif. §11.7).** `fpdf2` en dépendance **de test** (extra
+`dev`) : génère à la volée des PDF de fixture (dont un scanné = page sans texte)
+pour tester extraction et exclusion, sans versionner de binaires (§7.1). Piège
+rencontré : `multi_cell` de fpdf2 2.8 laisse le curseur à la marge droite —
+`new_x=XPos.LMARGIN, new_y=YPos.NEXT` pour revenir à la marge gauche.
+
+**En attente utilisateur.** F1/F4 ne seront *validés* qu'avec de vraies URLs dans
+`corpus/sources.yaml` (`[À_PRÉCISER]`, §11.2). Le code et les tests sont prêts.

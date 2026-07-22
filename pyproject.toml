@@ -29,7 +29,8 @@ dependencies = [
 
 [project.optional-dependencies]
 # Installed on demand — see PRD §6.1 / §7.2.
-dev = ["pytest"]
+# fpdf2 is test-only: generates tiny PDF fixtures for ingestion tests (JOURNAL §11.7).
+dev = ["pytest", "fpdf2"]
 docling = ["docling"]  # PDF layout/table escalation (PRD §7.2)
 
 [tool.setuptools.packages.find]
