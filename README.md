@@ -127,7 +127,19 @@ seulement** ; le pipeline `/ask` reste sémantique pur en V1.
 > césure (q02) ; la RRF **récupère** une question que ni le sémantique ni BM25
 > n'ont dans leur top-5 (q04, logement). Rapport :
 > `eval/reports/2026-07-23_retrieval_all_k5.md`. Ce premier run fait référence ;
-> les suivants s'y comparent. Latences `/ask` par backend : à mesurer.
+> les suivants s'y comparent.
+
+**End-to-end & latences par backend** (mesuré le 2026-07-23, corpus réel) :
+
+| Backend | Latence `/ask` | Refus (end-to-end) |
+|---|---|---|
+| Mistral API (`mistral-small-latest`) | ~3 s/question | **4/4** questions hors-corpus refusées correctement |
+| Ollama local (mistral 7B, CPU) | > 120 s à `num_ctx=8192`/`k=5` (timeout géré) ; ~190 s à chaud avec repli `num_ctx=4096`/`k=3` | — |
+
+Sur cette machine (CPU), Ollama est lent : conforme à l'arbitrage du PRD
+(*développer sur l'API, démontrer en local*) et au repli documenté `num_ctx=4096`,
+`k≤5`. Le dépassement de délai remonte proprement en `LLMBackendError(timeout)`
+→ `503` (F5). Rapport : `eval/reports/2026-07-23_end-to-end_k5.md`.
 
 ## Périmètre et limites (assumés)
 

@@ -231,3 +231,25 @@ récupérer. Non fait (dépendance optionnelle non installée).
 
 **Reste dû.** `eval/questions.yaml` (baseline chiffrée) et un backend LLM
 (Ollama/Mistral) pour `/ask` et l'end-to-end.
+
+## 2026-07-23 — Backends LLM réels : F5, F6, F7 validés sur le terrain
+
+**Fait (session à deux).** Les deux backends branchés sur le corpus réel.
+- **Mistral API** : première réponse `/ask` **sourcée et fidèle** sur la césure
+  (5 chunks, citations [S1]-[S4], dates/webinaires tirés des extraits). End-to-end
+  20 questions : **refus 4/4** sur les hors-corpus (F6). ~3 s/question.
+- **Ollama local** (`mistral` 7B) : fonctionne mais lent sur CPU.
+
+**Problème → diagnostic → solution (Ollama).**
+- *Symptôme 1* : `ollama` introuvable dans bash → `command not found`. *Cause* :
+  l'exe (`%LOCALAPPDATA%/Programs/Ollama/ollama.exe`) n'est pas dans le PATH de Git
+  Bash. *Solution* : l'appeler par chemin absolu ; le serveur :11434 tourne à part.
+- *Symptôme 2* : premier `/ask` Ollama → **timeout à 120 s** (149 s réels). *Cause* :
+  chargement à froid du 7B en RAM + prompt ~3000 tk à `num_ctx=8192` sur CPU.
+  *Solution* : repli **machine modeste** du PRD — `num_ctx=4096`, `k=3`, modèle
+  gardé chaud → réponse en ~190 s. Le timeout remonte proprement en
+  `LLMBackendError(timeout)` (F5). Latences consignées au README.
+
+**Bilan V1.** F1-F8 validés **en conditions réelles** ; F9 (port LangChain) est
+code+tests. Reste : peupler `eval/scenarios.yaml` pour la validation
+conversationnelle V2 (F10-F12), et raffiner 3 annotations d'éval (q03, q04, q10).
