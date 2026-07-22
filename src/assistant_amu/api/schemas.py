@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HistoryMessage(BaseModel):
@@ -23,6 +23,14 @@ class AskRequest(BaseModel):
     # V2 (optional, backward-compatible): omitted => V1 single-turn behaviour.
     # Beyond the last 6 turns the pipeline truncates silently (§7.7).
     history: list[HistoryMessage] | None = None
+
+    # Clean single-turn example so /docs "Try it out" does not pre-fill a bogus
+    # `history` (which would wrongly trigger V2 condensation on dummy text).
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {"question": "Quelles sont les modalités de la césure ?", "k": 5}
+        }
+    )
 
 
 class Source(BaseModel):
