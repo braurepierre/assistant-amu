@@ -27,3 +27,6 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local Claude Code instructions (kept local, not part of the deliverable)
+CLAUDE.md
