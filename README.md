@@ -18,7 +18,8 @@ reproductible** comparant recherche sémantique, BM25 et leur fusion RRF.
 
 Anthropic recommande, pour une base < ~200 000 tokens, de placer tout le corpus
 dans le prompt (avec prompt caching) plutôt que de faire du RAG. Le RAG reste le
-bon choix ici, pour quatre raisons : (1) c'est la compétence visée ; (2) le
+bon choix ici, pour quatre raisons : (1) maîtriser le RAG de bout en bout est
+l'objectif du projet ; (2) le
 backend local est contraint — Ollama sert `mistral` avec une fenêtre réduite par
 défaut (voir *piège n°3*) ; (3) coût/latence d'un contexte massif à chaque requête
 incompatibles avec un CPU et un free tier ; (4) les **citations passage par

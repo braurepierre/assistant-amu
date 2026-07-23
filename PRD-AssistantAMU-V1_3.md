@@ -14,11 +14,11 @@ AssistantAMU est un assistant documentaire RAG (Retrieval-Augmented Generation) 
 
 ## 2. Contexte et motivation
 
-- **Finalité duale** : (a) un artefact technique fonctionnel et démontrable ; (b) le support central d'une candidature à l'offre APEC 179126019W (apprenti·e ingénieur·e NLP et IA générative, AMU, programme CEDRE). L'argument d'entretien visé : « J'ai construit un assistant documentaire sur vos propres documents. »
+- **Finalité** : un artefact technique fonctionnel et démontrable — un assistant documentaire construit sur des documents publics réels.
 - **Conséquence sur les choix** : chaque décision technique privilégie la compréhension démontrable (pipeline en Python pur d'abord, framework ensuite) et l'évaluation rigoureuse (harnais scripté) plutôt que la richesse fonctionnelle.
 - Le développeur (Claude) travaille par sessions courtes avec un utilisateur disposant de quelques soirées par semaine : chaque phase doit livrer un incrément testable de manière autonome.
 
-**Décision de conception — pourquoi RAG plutôt que long-contexte ?** Anthropic recommande, pour une base documentaire inférieure à ~200 000 tokens (~500 pages), de placer l'intégralité du corpus dans le prompt avec prompt caching plutôt que de faire du RAG (voir Références). Le corpus AMU pourrait approcher ce seuil. Le RAG reste néanmoins le bon choix ici, pour quatre raisons à assumer en entretien : (1) c'est la compétence explicitement visée par l'offre ; (2) le backend local est contraint — le modèle `mistral` 7B annonce 32k tokens, mais Ollama le sert par défaut avec une fenêtre bien plus réduite (piège n°3, §7.4), et même portée à 8k elle exclut un corpus entier en contexte ; (3) coût et latence par requête d'un contexte massif sont incompatibles avec un free tier et un CPU ; (4) les citations passage par passage — cœur du produit — sont natives en RAG. La question « pourquoi ne pas tout mettre dans le contexte ? » est un piège d'entretien classique : la réponse est désormais documentée.
+**Décision de conception — pourquoi RAG plutôt que long-contexte ?** Anthropic recommande, pour une base documentaire inférieure à ~200 000 tokens (~500 pages), de placer l'intégralité du corpus dans le prompt avec prompt caching plutôt que de faire du RAG (voir Références). Le corpus AMU pourrait approcher ce seuil. Le RAG reste néanmoins le bon choix ici, pour quatre raisons : (1) maîtriser le RAG de bout en bout est l'objectif même du projet ; (2) le backend local est contraint — le modèle `mistral` 7B annonce 32k tokens, mais Ollama le sert par défaut avec une fenêtre bien plus réduite (piège n°3, §7.4), et même portée à 8k elle exclut un corpus entier en contexte ; (3) coût et latence par requête d'un contexte massif sont incompatibles avec un free tier et un CPU ; (4) les citations passage par passage — cœur du produit — sont natives en RAG. La question « pourquoi ne pas tout mettre dans le contexte ? » est un classique : la réponse est désormais documentée.
 
 ## 3. Objectifs et non-objectifs
 
@@ -45,7 +45,7 @@ AssistantAMU est un assistant documentaire RAG (Retrieval-Augmented Generation) 
 
 ## 4. Utilisateurs et cas d'usage
 
-**Persona principal** : étudiant(e) ou personnel d'AMU cherchant une information administrative précise (césure, MCC, CVEC, calendriers, régimes spéciaux d'études). **Persona secondaire** : le candidat lui-même, en démonstration devant un recruteur — la robustesse d'une question isolée prime sur le spectaculaire.
+**Persona principal** : étudiant(e) ou personnel d'AMU cherchant une information administrative précise (césure, MCC, CVEC, calendriers, régimes spéciaux d'études). **Persona secondaire** : le mainteneur qui démontre le système — la robustesse d'une question isolée prime sur le spectaculaire.
 
 User stories :
 
@@ -82,7 +82,7 @@ User stories :
 2. **Bascule du pipeline en recherche hybride** : la mesure `--method rrf` existe dès la V1 ; si elle domine le sémantique pur sur le jeu d'évaluation, brancher `/ask` dessus est un petit changement dans `retrieval/`.
 3. **Reranking cross-encoder** sur un top-20 élargi (candidat : `BAAI/bge-reranker-v2-m3`, multilingue, CPU).
 4. **Évaluation automatisée RAGAS** (faithfulness, answer relevancy, context precision/recall) — adoptée *après* avoir pratiqué ces mesures manuellement en V1, pour savoir ce que le framework automatise.
-5. **Multi-query / RAG-Fusion et HyDE** (variantes de la question générées avant retrieval) : à connaître pour l'entretien ; disproportionné ici.
+5. **Multi-query / RAG-Fusion et HyDE** (variantes de la question générées avant retrieval) : bon à connaître ; disproportionné ici.
 6. Streaming des réponses ; Dockerfile ; GitHub Action pytest ; re-crawl périodique avec détection de changements.
 
 *Écartés délibérément comme disproportionnés pour un corpus de 15-30 documents : GraphRAG, RAG agentique, fine-tuning d'un modèle d'embedding.*
@@ -343,7 +343,7 @@ Chaque fonctionnalité du §5.1/§5.2 est « faite » quand :
 | Latence Ollama sur CPU | Itération pénible, démo risquée | Workflow : développer sur l'API Mistral, valider/démontrer en local ; latences mesurées à l'avance pour la démo |
 | e5-small dilue les sigles | Retrieval raté sur requêtes lexicales | Précisément ce que le harnais mesure — y compris la fusion RRF dès la V1 ; comparaison avec `sentence-camembert-base` en Phase 5 ; bascule hybride en V2.1 si les chiffres la justifient |
 | Sur-ingénierie par le développeur LLM | Budget temps consommé | Les non-objectifs §3 font foi ; règle §11 : demander avant tout ajout |
-| Fuite de secrets | Rédhibitoire sur un repo destiné à un recruteur | `.gitignore` (incluant `.env`) **avant** le premier commit ; `.env.example` seul versionné |
+| Fuite de secrets | Rédhibitoire sur un dépôt public | `.gitignore` (incluant `.env`) **avant** le premier commit ; `.env.example` seul versionné |
 | Dérive V2 pendant la V1 | MVP jamais fini | Interdiction d'implémenter quoi que ce soit de §7.7 avant validation de tous les critères F1-F9 |
 
 ## 10. Plan de développement par phases
@@ -380,8 +380,8 @@ Chaque phase se termine par un incrément démontrable, un commit propre et une 
 - `[À_PRÉCISER]` **Liste des URLs du corpus** (Phase 1, à constituer par l'utilisateur — le développeur fournit format et script).
 - `[À_PRÉCISER]` **Machine de développement** (RAM, GPU ?) : détermine le choix `mistral` (7B) vs `llama3.2` (3B) en local, et les latences de référence.
 - `[À_PRÉCISER]` **Clé API Mistral** : compte La Plateforme créé ? (À faire par l'utilisateur — jamais par le développeur.)
-- **Hypothèse** : dépôt GitHub public, destiné à être montré au recruteur.
-- **Hypothèse** : l'usage de documents publics AMU pour un projet personnel non commercial, sans redistribution des documents eux-mêmes (`corpus/raw/` non versionné), est acceptable. Point à garder en tête ; en cas de doute, mentionner le projet positivement en entretien plutôt que de publier le corpus.
+- **Hypothèse** : dépôt GitHub public.
+- **Hypothèse** : l'usage de documents publics AMU pour un projet personnel non commercial, sans redistribution des documents eux-mêmes (`corpus/raw/` non versionné), est acceptable. Point à garder en tête ; en cas de doute, ne pas publier le corpus.
 - **Hypothèse** : les seuils de performance ne sont pas fixés a priori ; la baseline du premier run d'évaluation fait référence.
 
 ### Axes d'approfondissement suggérés
@@ -394,7 +394,7 @@ Chaque phase se termine par un incrément démontrable, un commit propre et une 
 
 ## Références état de l'art (sources vérifiées en juillet 2026)
 
-*Sources ayant fondé les choix de ce PRD — à reprendre dans le README et à maîtriser pour l'entretien.*
+*Sources ayant fondé les choix de ce PRD — à reprendre dans le README.*
 
 - **Anthropic — Contextual Retrieval** (`https://www.anthropic.com/engineering/contextual-retrieval`) : article de référence de l'ingénierie du retrieval — contextual embeddings + contextual BM25 (−49 % d'échecs de retrieval, −67 % avec reranking) et arbitrage RAG vs long-contexte (seuil ~200k tokens avec prompt caching). Fonde le §2 (décision RAG) et le §5.3.1.
 - **Claude Cookbook — Contextual Embeddings** (`https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide`) : implémentation officielle de référence, métrique Pass@k. Modèle d'inspiration directe pour le harnais §7.6.
@@ -403,22 +403,4 @@ Chaque phase se termine par un incrément démontrable, un commit propre et une 
 - **kotaemon** (Cinnamon, open source) : application de QA documentaire reconnue pour ses citations détaillées avec prévisualisation des sources — référence d'UX de citation pour le format de réponse §7.5.
 - **Docling** (IBM Research, open source) : parseur de documents à modèles de layout (DocLayNet) et de structure de tableaux (TableFormer), exécution locale, export Markdown — l'outil de l'escalade PDF §7.2.
 
-**Positionnement à assumer en entretien** : AssistantAMU ne concurrence pas ces outils — il réimplémente leur cœur en quelques centaines de lignes pour pouvoir en expliquer chaque brique, ce que l'usage d'un moteur clé en main ne permettrait pas. Les références ci-dessus servent de vocabulaire commun et d'étalon, pas de dépendances.
-
----
-
-## Annexe — Correspondance avec l'offre APEC 179126019W
-
-*(Section hors périmètre développeur — référence pour l'utilisateur.)*
-
-| Activité de l'offre | Où dans le projet |
-|---|---|
-| Préparer, nettoyer et structurer des données textuelles | Phase 1 (§7.1-7.2) |
-| Développement et intégration de solutions NLP / IA générative | Phases 2-4 |
-| Création et optimisation de prompts | Phase 3 + `prompts/CHANGELOG.md` ; V2 : prompt de condensation |
-| Mise en œuvre de solutions RAG | Phases 2-3 ; V2 : RAG conversationnel |
-| Expérimentations sur différents modèles (open-source ou APIs) | Abstraction LLM (§7.4), rapports d'éval par backend |
-| Développer des APIs ou composants applicatifs | Phase 4 (§7.5) |
-| Tests, évaluation, amélioration des performances | Phase 5 (§7.6), harnais + mesures de sensibilité ; V2 : évaluation conversationnelle |
-| Documentation et partage de bonnes pratiques | README, JOURNAL.md, CHANGELOG des prompts |
-| Python, Hugging Face, Git | Transverse |
+**Positionnement** : AssistantAMU ne concurrence pas ces outils — il réimplémente leur cœur en quelques centaines de lignes pour pouvoir en expliquer chaque brique, ce que l'usage d'un moteur clé en main ne permettrait pas. Les références ci-dessus servent de vocabulaire commun et d'étalon, pas de dépendances.
