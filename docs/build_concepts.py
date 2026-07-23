@@ -95,6 +95,7 @@ def build_stats(today: str) -> dict:
         "tests": facts["tests"],
         "recall_at_5": facts["recall_at_5"],
         "recall_curve": facts["recall_curve"],
+        "embedders": facts["embedders"],
         "rewrite_hard_recall5": facts["rewrite_hard_recall5"],
         "backends": {
             "mistral": {"model": settings.mistral_model, **facts["backends"]["mistral"]},

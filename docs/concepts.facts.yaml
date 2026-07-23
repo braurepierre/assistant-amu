@@ -29,6 +29,11 @@ recall_curve:      # eval/reports/*_recall_sensitivity_k.md
   rrf: [0.75, 0.88, 0.88, 0.88]
   bm25: [0.69, 0.75, 0.81, 0.81]
 
+embedders:         # eval/reports/*_embedder_comparison.md (recall sémantique)
+  e5:        {r3: 0.88, r5: 0.94, r8: 0.94}
+  camembert: {r3: 0.81, r5: 0.94, r8: 1.00}
+  flaubert:  {r3: 0.81, r5: 0.81, r8: 0.94}
+
 rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur », k=5)
   raw: 0.62
   strip: 0.88

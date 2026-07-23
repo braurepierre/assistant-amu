@@ -145,6 +145,7 @@ section h2{font-size:22px;font-weight:600}
 .evalrow .track{flex:1;background:var(--paper);border-radius:6px;height:22px;overflow:hidden;border:1px solid var(--line)}
 .evalrow .fill{height:100%;border-radius:6px 0 0 6px;width:0%;transition:width .8s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:9px;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500}
 .f-sem{background:var(--blue)}.f-bm{background:#8892B0}.f-rrf{background:var(--teal)}
+.f-e5{background:var(--blue)}.f-cam{background:var(--teal)}.f-fla{background:#8892B0}
 .recall-chart{margin:10px 0 2px;overflow-x:auto}
 .recall-chart svg{width:100%;min-width:440px;height:auto;display:block}
 .disagree{display:flex;flex-direction:column;gap:8px}
@@ -250,12 +251,13 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <div class="grp">Qualité &amp; itération</div>
     <a href="#s4" data-sec="s4">04 · Évaluation</a>
     <a href="#s5" data-sec="s5">05 · Réécriture de requête</a>
+    <a href="#s6" data-sec="s6">06 · Embeddeurs comparés</a>
     <div class="grp">Ingénierie</div>
-    <a href="#s6" data-sec="s6">06 · Backends &amp; pièges</a>
-    <a href="#s7" data-sec="s7">07 · V2 · multi-tour</a>
-    <a href="#s8" data-sec="s8">08 · Pile logicielle</a>
+    <a href="#s7" data-sec="s7">07 · Backends &amp; pièges</a>
+    <a href="#s8" data-sec="s8">08 · V2 · multi-tour</a>
+    <a href="#s9" data-sec="s9">09 · Pile logicielle</a>
     <div class="grp">Référence</div>
-    <a href="#s9" data-sec="s9">09 · Glossaire</a>
+    <a href="#s10" data-sec="s10">10 · Glossaire</a>
   </nav>
 </aside>
 <div id="sideOverlay"></div>
@@ -391,7 +393,31 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </section>
 
 <section id="s6">
-  <div class="sec-head"><span class="sec-num">06</span><h2>Deux backends & trois pièges neutralisés</h2></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Quel encodeur ? e5 vs CamemBERT vs FlauBERT <span class="tag">embedder_comparison.py · mesurée</span></h2></div>
+  <p class="lead">Le choix de l'<button class="term" data-term="embedding">embeddeur</button> décide de ce que la recherche sémantique est <em>capable</em> de retrouver. Plutôt que de le trancher à la réputation, on le mesure : les <b>mêmes</b> chunks sont ré-encodés par trois modèles français, puis évalués sur les <b>mêmes</b> <span data-stat="eval_questions">16</span> questions annotées. Les collections de test sont éphémères — la collection de production n'est jamais touchée.</p>
+  <div class="card">
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="e5">e5-small</button></span><div class="track"><div class="fill f-e5" data-w="94">0.94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">CamemBERT</button></span><div class="track"><div class="fill f-cam" data-w="94">0.94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">FlauBERT</button></span><div class="track"><div class="fill f-fla" data-w="81">0.81</div></div></div>
+    <p class="hint" style="margin-top:14px">Recall@<span data-stat="k_default">5</span> sémantique. <b>e5 et CamemBERT sont à égalité</b> (<span data-stat="embedders.camembert.r5">0.94</span>) ; FlauBERT décroche (<span data-stat="embedders.flaubert.r5">0.81</span>). Mais la lecture change avec k : à k=8, CamemBERT récupère <b>tout</b> (<span data-stat="embedders.camembert.r8">1.00</span>) là où e5 plafonne à <span data-stat="embedders.e5.r8">0.94</span>. Autrement dit, e5 est le plus <b>régulier</b>, CamemBERT celui qui monte le plus haut si l'on élargit la fenêtre.</p>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Qui rate quoi — et pourquoi c'est instructif</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les moyennes cachent l'essentiel : les trois modèles n'échouent pas sur les mêmes questions.</p>
+    <div class="disagree">
+      <div class="dis"><div class="dq">« Où puis-je me loger en tant qu'étudiant ? »</div><span class="mtag rrf">e5 seul échoue</span></div>
+      <div class="dis"><div class="dq">« Quels aménagements pour un étudiant salarié ou sportif de haut niveau ? »</div><span class="mtag sem">e5 seul réussit</span></div>
+      <div class="dis"><div class="dq">« Qu'est-ce que la CVEC ? » · « Qu'est-ce que le RSE ? »</div><span class="mtag sem">FlauBERT échoue</span></div>
+    </div>
+    <p class="hint" style="margin-top:10px">FlauBERT décroche précisément sur les <b>sigles et définitions</b> (CVEC, RSE) — là où le signal utile est un terme rare plutôt qu'une paraphrase. À l'inverse, la seule question que e5 manque (« se loger ») est rattrapée par les deux autres... et l'était déjà par la <button class="term" data-term="rrf">fusion RRF</button>. Ces écarts valent 1 à 2 questions, soit l'ordre de la <b>granularité</b> du jeu (1/16 ≈ 0.06) : réels, mais à ne pas surinterpréter.</p>
+  </div>
+
+  <p class="hint"><b>Décision : on garde e5.</b> À recall équivalent, il est deux fois plus compact (384 dimensions contre 768) donc plus rapide sur CPU, et il est déjà en production — changer d'embeddeur imposerait de ré-indexer tout le corpus pour un gain non démontré. La mesure garde malgré tout sa valeur : elle dit <em>quand</em> il faudrait rebasculer (si l'on montait k, CamemBERT deviendrait le bon choix). Piège rencontré : le FlauBERT <em>cased</em> de référence refuse de se charger sous sentence-transformers 5.6.1 (son tokenizer Moses n'expose pas <code>basic_tokenizer</code>) — c'est la variante <em>uncased</em> qui est mesurée ici.</p>
+</section>
+
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Deux backends & trois pièges neutralisés</h2></div>
   <p class="lead">Le système est <button class="term" data-term="backend">LLM‑agnostique</button> : le même code parle à un modèle <b>local</b> ou à une <b>API</b>, commuté par une variable d'environnement. Trois pièges silencieux — repérés et neutralisés — expliquent pourquoi le RAG « marchait à moitié » sans qu'aucune erreur ne remonte.</p>
   <table class="cmp">
     <tr><th>Backend</th><th>Modèle</th><th>Latence /ask</th><th>Refus hors corpus</th></tr>
@@ -406,8 +432,8 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   <p class="hint">Les échecs de backend (timeout, connexion, auth, quota) sont normalisés en <span class="mono">LLMBackendError</span> et remontés en <b>503</b> propre par l'API — jamais une stack trace à l'utilisateur.</p>
 </section>
 
-<section id="s7">
-  <div class="sec-head"><span class="sec-num">07</span><h2>V2 — conversation multi‑tour par condensation</h2></div>
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">08</span><h2>V2 — conversation multi‑tour par condensation</h2></div>
   <p class="lead">Une question de suivi (« Et comment la demander ? ») est incompréhensible seule : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule d'abord le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> de chercher. L'endpoint <span class="mono">/prepare</span> l'expose pour un aperçu en direct sous la question.</p>
   <div class="card">
     <div class="dlg">
@@ -421,8 +447,8 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   <p class="hint">V2 rétrocompatible : sans <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> la V1. La reformulation calculée une seule fois par <span class="mono">/prepare</span> est réutilisée par <span class="mono">/ask</span> — l'aperçu ne peut donc jamais différer de ce qui est réellement recherché.</p>
 </section>
 
-<section id="s8">
-  <div class="sec-head"><span class="sec-num">08</span><h2>La pile logicielle du projet</h2></div>
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">09</span><h2>La pile logicielle du projet</h2></div>
   <p class="lead">De l'API jusqu'au socle, chaque couche s'appuie sur celle du dessous. C'est la carte mentale du dépôt.</p>
   <div class="card">
     <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> + la page démo servie sur <span class="mono">/</span></span></div>
@@ -441,8 +467,8 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
   <p class="hint">Un <button class="term" data-term="langchain">port LangChain</button> du pipeline de requête existe sur une branche dédiée, pour comparer « ce que le framework abstrait » — et ce qu'on perd en lisibilité et contrôle.</p>
 </section>
 
-<section id="s9">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Glossaire complet</h2></div>
+<section id="s10">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Glossaire complet</h2></div>
   <p class="lead">Tous les termes de cette page, chacun relié au(x) fichier(s) réel(s) du projet.</p>
   <div class="chips" id="chips"></div>
 </section>
@@ -483,7 +509,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 /* STATS:START */
 var STATS = {
   "updated": "2026-07-23",
-  "commit": "18535ce",
+  "commit": "af07f94",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -523,6 +549,23 @@ var STATS = {
       0.81
     ]
   },
+  "embedders": {
+    "e5": {
+      "r3": 0.88,
+      "r5": 0.94,
+      "r8": 0.94
+    },
+    "camembert": {
+      "r3": 0.81,
+      "r5": 0.94,
+      "r8": 1.0
+    },
+    "flaubert": {
+      "r3": 0.81,
+      "r5": 0.81,
+      "r8": 0.94
+    }
+  },
   "rewrite_hard_recall5": {
     "raw": 0.62,
     "strip": 0.88
@@ -546,7 +589,8 @@ var G={
  llm:{t:"LLM",c:"Modèles",d:["Grand modèle de langage : un réseau Transformer décodeur entraîné à prédire le token suivant. Il absorbe grammaire, connaissances et capacités de raisonnement, mais génère du texte <em>plausible</em>, pas nécessairement vrai.","AssistantAMU ne l'utilise que pour <b>rédiger</b> à partir d'extraits fournis — jamais comme source de vérité. Deux backends interchangeables : Mistral (API) et Ollama (local)."],r:["backend","hallucination","prompt","mistral"]},
  hallucination:{t:"Hallucination",c:"Limites des LLM",d:["Un LLM peut inventer avec assurance une date, une référence ou un article de règlement quand il ignore la réponse : il n'a aucune notion interne de vérité.","C'est la motivation directe du RAG ici : en ancrant la réponse dans des extraits et en imposant le refus hors corpus, on réduit fortement les inventions et on peut citer les sources. La fidélité aux sources est un axe d'évaluation explicite."],r:["rag","refus","prompt"]},
  embedding:{t:"Embedding",c:"Représentation du texte",d:["Vecteur de nombres (384 dimensions pour e5-small) qui représente le <em>sens</em> d'un texte. Propriété clé : deux textes de sens proche produisent des vecteurs proches. C'est ce qui permet de retrouver « droits parentaux » à partir de « congé maternité », sans mot commun.","Tout passe par une seule classe <code>Embedder</code> : questions et passages y sont encodés avec le bon préfixe, puis normalisés."],r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
- e5:{t:"multilingual-e5-small",c:"Modèle d'embedding",d:["Le modèle d'embedding du projet : multilingue (utile pour un corpus 100 % français), léger (~470 Mo), 384 dimensions. Chargé paresseusement au premier usage.","Particularité E5 (piège n°1) : il faut préfixer les entrées — <code>query: </code> pour une question, <code>passage: </code> pour un chunk. Sans ces préfixes, la qualité de récupération chute <b>silencieusement</b>. Une table {famille → préfixes} centralise la règle et n'applique aucun préfixe à un modèle non-E5 (comparaison CamemBERT en Phase 5)."],r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
+ e5:{t:"multilingual-e5-small",c:"Modèle d'embedding",d:["Le modèle d'embedding du projet : multilingue (utile pour un corpus 100 % français), léger (~470 Mo), 384 dimensions. Chargé paresseusement au premier usage.","Particularité E5 (piège n°1) : il faut préfixer les entrées — <code>query: </code> pour une question, <code>passage: </code> pour un chunk. Sans ces préfixes, la qualité de récupération chute <b>silencieusement</b>. Une table {famille → préfixes} centralise la règle et n'applique aucun préfixe à un modèle non-E5 (voir la comparaison mesurée CamemBERT / FlauBERT)."],r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
+ camembert:{t:"CamemBERT & FlauBERT",c:"Modèles d'embedding",d:["Les deux grands modèles de langue entraînés <em>spécifiquement</em> sur du français (là où e5 est multilingue). Utilisés ici dans leurs variantes affinées pour la <b>similarité de phrases</b> (approche <button class=\"term\" data-term=\"sbert\">SBERT</button>) : <code>sentence-camembert-base</code> et une variante <em>uncased</em> de FlauBERT. Tous deux produisent des vecteurs de 768 dimensions, contre 384 pour e5-small.","Mesurés contre e5 sur les mêmes chunks et les mêmes questions : CamemBERT fait jeu égal à k=5 et récupère tout à k=8 ; FlauBERT décroche sur les sigles (CVEC, RSE). Point d'attention : ce sont des modèles <b>non-E5</b>, donc la table par famille ne leur applique <b>aucun préfixe</b> — leur en ajouter un dégraderait la mesure."],r:["e5","embedding","sbert","recall"],f:"eval/embedder_comparison.py"},
  cosine:{t:"Similarité cosinus",c:"Recherche sémantique",d:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, entre -1 et 1 ; proche de 1 = sens très proche. C'est la métrique standard pour comparer des embeddings.","Piège n°2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>. Le score exposé à l'utilisateur est <code>1 - distance</code>, ramené dans [0, 1]."],r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
  chromadb:{t:"ChromaDB",c:"Base vectorielle",d:["Base de données spécialisée dans le stockage d'embeddings et la recherche des plus proches voisins. Persistante en local ici (dossier <code>chroma_db/</code>), une seule collection <code>amu_docs</code>.","Les chunks sont dédupliqués par identifiant à la ré-indexation (idempotence : « 0 doublon »), et le <code>doc_id</code> est stocké en métadonnée pour la déduplication au niveau document (le 409 de <code>/ingest</code>)."],r:["cosine","hnsw","embedding","topk"],f:"retrieval/vector_store.py"},
  hnsw:{t:"HNSW",c:"Base vectorielle",d:["Hierarchical Navigable Small World : l'index de graphe approximatif qu'utilise Chroma pour trouver les voisins proches en millisecondes même avec beaucoup de vecteurs. Une petite perte de précision contre une recherche très rapide.","C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où le piège cosinus/L2."],r:["cosine","chromadb"]},
@@ -771,7 +815,8 @@ function applyStats(){
     var v=resolveStat(el.getAttribute('data-stat'));
     if(v!==undefined&&v!==null)el.textContent=fmtStat(v);
   });
-  [['.f-sem',STATS.recall_at_5.semantic],['.f-bm',STATS.recall_at_5.bm25],['.f-rrf',STATS.recall_at_5.rrf]].forEach(function(b){
+  [['.f-sem',STATS.recall_at_5.semantic],['.f-bm',STATS.recall_at_5.bm25],['.f-rrf',STATS.recall_at_5.rrf],
+   ['.f-e5',STATS.embedders.e5.r5],['.f-cam',STATS.embedders.camembert.r5],['.f-fla',STATS.embedders.flaubert.r5]].forEach(function(b){
     var el=document.querySelector(b[0]);if(!el)return;
     el.setAttribute('data-w',Math.round(b[1]*100));
     el.textContent=b[1].toFixed(2);
