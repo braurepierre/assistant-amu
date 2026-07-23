@@ -1,7 +1,7 @@
 # AssistantAMU — Guide de démonstration
 
-Exemples prêts à copier-coller pour l'API `/ask`. Testés sur le corpus réel
-(17 documents AMU, 269 chunks), backend **Mistral**.
+Exemples testés sur le corpus réel (18 documents AMU, 316 chunks), backend **Mistral**.
+Deux interfaces, mêmes réponses via la même API.
 
 ## Lancer l'API en local
 
@@ -11,8 +11,15 @@ $env:LLM_BACKEND = "mistral"
 .venv\Scripts\python.exe -m uvicorn assistant_amu.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-Puis ouvrir **http://127.0.0.1:8000/docs** → `POST /ask` → **Try it out** → coller un
-corps ci-dessous → **Execute**.
+## Deux façons de démontrer
+
+- **A. Chatbot (recommandé)** → **http://127.0.0.1:8000/**
+  Interface conversationnelle aux couleurs AMU. Tape ta question : l'assistant répond
+  en citant ses sources `[S1]`, et en multi-tour il affiche « ↳ compris comme : … »
+  (condensation V2). Les questions des exemples ci-dessous se tapent directement dans
+  le champ.
+- **B. API / Swagger** → **http://127.0.0.1:8000/docs**
+  `POST /ask` → **Try it out** → coller un corps JSON ci-dessous → **Execute**.
 
 ---
 
@@ -48,6 +55,10 @@ Sigles / termes exacts :
 ---
 
 ## 2. Conversation multi-tour (V2 — condensation de requête)
+
+> **Dans le chatbot**, le multi-tour est **automatique** : tape simplement le tour 1
+> puis le tour 2 — l'historique est géré pour toi, et « ↳ compris comme : … » s'affiche.
+> Le champ `history` ci-dessous n'est utile que pour `/docs` ou un appel direct à l'API.
 
 **Étape A — pose d'abord le tour 1 seul** pour montrer `condensed_question: null` :
 
