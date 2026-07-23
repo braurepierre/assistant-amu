@@ -131,6 +131,24 @@ seulement** ; le pipeline `/ask` reste sémantique pur en V1.
 > la RRF** — argument concret pour l'hybride, laissé tel quel plutôt que gonflé.
 > Courbe recall@k ∈ {2,3,5,8} et détail par question : `eval/reports/`.
 
+**Comparaison d'embeddeurs** (recall@k sémantique, mêmes 16 questions et mêmes
+chunks, mesure seule — le pipeline `/ask` garde l'embeddeur de production) :
+
+| Embeddeur | @3 | @5 | @8 |
+|---|---|---|---|
+| `intfloat/multilingual-e5-small` (production, 384 dims) | 0.88 | 0.94 | 0.94 |
+| `dangvantuan/sentence-camembert-base` (768 dims) | 0.81 | 0.94 | **1.00** |
+| `hugorosen/flaubert_base_uncased-xnli-sts` (768 dims) | 0.81 | 0.81 | 0.94 |
+
+e5 et CamemBERT sont **à égalité en moyenne (0.92)** : CamemBERT récupère tout au
+rang 8, e5 est le plus régulier — et le plus léger. FlauBERT est en retrait,
+surtout sur les sigles/définitions (rate RSE et CVEC). Les écarts (1-2 questions
+≈ granularité 0.06) ne justifient pas de changer l'embeddeur de production. Le
+modèle *cased* `Lajavaness/sentence-flaubert-base` ne se charge pas sous
+sentence-transformers 5.6.1 (tokenizer Moses sans `basic_tokenizer`), d'où la
+variante *uncased*. Script : `eval/embedder_comparison.py`, rapport daté dans
+`eval/reports/`.
+
 **End-to-end & latences par backend** (mesuré le 2026-07-23, corpus réel) :
 
 | Backend | Latence `/ask` | Refus (end-to-end) |
