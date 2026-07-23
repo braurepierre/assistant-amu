@@ -188,14 +188,19 @@ chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
 >
 > Le rapport conversationnel V2 (F12) est produit
 > (`eval/reports/2026-07-23_conversation_k5.md`) : recall **3/6** sur les tours
-> answerable — chiffre à lire avec précaution, car `eval/scenarios.yaml` est un
-> premier jet. Deux biais identifiés : (1) les annotations `expected_source` y sont
-> trop strictes (pour la césure, les chunks récupérés parlent bien de césure mais
-> viennent de la page « IUT — Services de la scolarité », dont le titre ne contient
-> pas le mot) ; (2) un tour annoté `answerable` **refuse correctement**, faute de
-> règle spécifique au droit dans le corpus — et le refus vide les sources (F6), donc
-> compte comme un raté de recall. **Prochain pas** : raffiner ces annotations comme
-> cela a été fait pour le jeu single-turn (q03).
+> answerable. Diagnostic (détail dans `JOURNAL.md`) : c'est un **signal réel de
+> retrieval**, pas un défaut d'annotation. Sur la césure, les 5 chunks récupérés
+> viennent tous de « IUT — Services de la scolarité » — la césure vue par *une*
+> composante — tandis que la page institutionnelle « La césure à AMU », qui porte la
+> réponse, est **absente du top-5** : le même motif d'éviction de la page centrale
+> que celui déjà relevé sur le RSE. Cause aggravante mesurée : **11.7 % de l'index
+> fait moins de 50 caractères** (`FAQ`, `Césure`, `Bonus`… — fragments de navigation
+> devenus unités indexées, contre une médiane de 786 caractères) ; un chunk
+> ultra-court quasi identique à une requête courte obtient une similarité très
+> élevée, truste une place du top-k et évince du vrai contenu. Un second biais, lui,
+> relève bien de l'annotation : un tour marqué `answerable` **refuse correctement**
+> (pas de règle de césure propre au droit dans le corpus), or le refus vide les
+> sources (F6) et compte donc mécaniquement comme un raté.
 >
 > La V2 reste rétrocompatible : sans `history`, `/ask` reproduit exactement la V1.
 > Voir `JOURNAL.md`.

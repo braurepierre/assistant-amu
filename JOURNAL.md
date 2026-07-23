@@ -342,18 +342,35 @@ utilisée à la place.
 feuille de route à n'avoir jamais été produit. Recall **3/6** sur les tours
 answerable.
 
-**Diagnostic — ce chiffre n'est pas un verdict de retrieval.** Vérifié sur
-`s1_cesure_droit` tour 1 : le pipeline **ne refuse pas** et rend 5 sources qui
-contiennent **toutes** le mot « césure » — mais toutes issues de la page « IUT —
-Services de la scolarité », dont le titre ne contient pas « césure ». L'annotation
-`expected_source: "césure"` portant sur le *titre*, elle les rejette toutes. Même
-classe de problème que q03 sur le jeu single-turn (annotation trop stricte), déjà
-diagnostiquée une fois. Second biais : le tour 2 de s1 **refuse correctement** (le
-corpus n'a pas de règle de césure spécifique au droit) alors qu'il est annoté
-`answerable` ; or un refus vide les sources (F6), donc il compte mécaniquement
-comme un raté de recall.
+**Diagnostic — première lecture erronée, corrigée après examen du contenu.**
+Premier réflexe : « annotation trop stricte », comme q03. **C'était faux**, et la
+correction vaut d'être consignée. Vérifié sur `s1_cesure_droit` tour 1 : le
+pipeline ne refuse pas et rend 5 chunks qui parlent bien de césure — mais tous
+issus de « IUT — Services de la scolarité », c'est-à-dire la césure vue par *une*
+composante. La page institutionnelle « La césure à AMU », qui porte la réponse
+(« Les formalités administratives… précise les modalités »), est **absente du
+top-5**. L'annotation encode donc une intention **défendable** — à une question
+générique, répondre par la source institutionnelle et non par les règles d'une
+composante, sous peine d'induire en erreur un étudiant non-IUT — et c'est le
+**retrieval** qui échoue. Même motif d'éviction de la page centrale que celui déjà
+relevé sur le RSE (cf. `eval/query_rewrite_experiment.py`).
 
-**Reste dû.** `eval/scenarios.yaml` est toujours un premier jet : raffiner ces
-annotations (comme pour q03) avant de traiter le 3/6 comme une baseline
-conversationnelle. À faire avec l'utilisateur (§7.7) — c'est un jugement métier
-sur ce que chaque tour doit légitimement récupérer, pas une correction mécanique.
+**Cause aggravante, mesurée : micro-chunks parasites.** 37 chunks sur 316
+(**11.7 %**) font moins de 50 caractères — `FAQ` (3 car.), `Top !` (5), `Bonus`
+(5), `Césure` (6), `Scolarité` (9) : des fragments de navigation HTML et des titres
+orphelins devenus unités indexées, contre une médiane de corpus à 786 caractères.
+Un chunk ultra-court quasi identique à une requête courte obtient une similarité
+cosinus très élevée — aucun contenu ne dilue le signal. Ici, `Césure` (6
+caractères, zéro information) score **0.860** et occupe la place n°2 du top-5,
+pendant que la page institutionnelle reste dehors.
+
+**Reste dû (arbitrage utilisateur requis : touche le cœur produit, §11.3).**
+- Filtre de longueur minimale au chunking, ré-ingestion et re-mesure : on saurait
+  alors ce que ces 11.7 % de déchets coûtent réellement en recall.
+- L'éviction de la page centrale par les pages de composante : problème de fond,
+  relevant des pistes V2.1 (réécriture de requête, bascule hybride/RRF, Contextual
+  Retrieval).
+- Le second biais du 3/6, lui, relève bien de l'annotation et reste valide : le
+  tour 2 de s1 est marqué `answerable` alors qu'il **refuse correctement** (le
+  corpus n'a pas de règle de césure propre au droit) ; or un refus vide les sources
+  (F6), donc il compte mécaniquement comme un raté de recall.
