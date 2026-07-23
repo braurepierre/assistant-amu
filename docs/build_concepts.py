@@ -97,6 +97,9 @@ def build_stats(today: str) -> dict:
         "recall_curve": facts["recall_curve"],
         "embedders": facts["embedders"],
         "rewrite_hard_recall5": facts["rewrite_hard_recall5"],
+        "conversation": facts["conversation"],
+        "chunk_hygiene": facts["chunk_hygiene"],
+        "langchain_parity": facts["langchain_parity"],
         "backends": {
             "mistral": {"model": settings.mistral_model, **facts["backends"]["mistral"]},
             "ollama": {"model": f"{settings.ollama_model} 7B (CPU)", **facts["backends"]["ollama"]},

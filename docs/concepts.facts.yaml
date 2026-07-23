@@ -38,6 +38,21 @@ rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur », k=5)
   raw: 0.62
   strip: 0.88
 
+conversation:      # eval/reports/*_conversation_k5.md (F12, V2 multi-tour)
+  scenarios: 3
+  turns: 6
+  recall: "3/6"
+
+chunk_hygiene:     # mesuré sur la collection amu_docs (voir JOURNAL, diagnostic F12)
+  under50_pct: "11.7"   # chaîne : fmtStat arrondirait 11.7 en « 11.70 »
+  median_chars: 786
+
+langchain_parity:  # eval/reports/*_pipeline_vs_langchain.md (branche langchain-port)
+  questions: 20
+  refusals: "19/20"
+  citations: "15/20"
+  overlap: 0.75
+
 backends:          # latences/refus MESURÉS (les noms de modèles viennent de config.py)
   mistral:
     latency: "~3 s / question"

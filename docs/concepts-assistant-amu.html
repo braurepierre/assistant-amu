@@ -445,6 +445,15 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     </div>
   </div>
   <p class="hint">V2 rétrocompatible : sans <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> la V1. La reformulation calculée une seule fois par <span class="mono">/prepare</span> est réutilisée par <span class="mono">/ask</span> — l'aperçu ne peut donc jamais différer de ce qui est réellement recherché.</p>
+
+  <div class="card" style="margin-top:16px">
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Ce que l'évaluation conversationnelle révèle <span class="tag">eval · mode conversation</span></p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesuré sur <span data-stat="conversation.scenarios">3</span> scénarios, <span data-stat="conversation.turns">6</span> tours : recall <b><span data-stat="conversation.recall">3/6</span></b>. Un chiffre bas — et c'est le plus intéressant de la page, à condition de savoir ce qu'il mesure vraiment.</p>
+    <p class="hint" style="margin-top:0">La condensation, elle, <b>fonctionne</b> (le dialogue ci‑dessus est réel). Le 3/6 vient d'ailleurs, et de deux causes qu'il faut séparer :</p>
+    <p class="hint" style="margin-top:8px"><b>1 · Une vraie faiblesse de récupération.</b> Sur « les modalités de la césure », les <span data-stat="k_default">5</span> passages remontés viennent <em>tous</em> de la page d'une seule composante (l'IUT), pendant que la page institutionnelle « La césure à AMU » — celle qui porte la réponse — reste hors du top‑k. Cause aggravante mesurée : <b><span data-stat="chunk_hygiene.under50_pct">11.7</span> %</b> de l'index fait moins de 50 caractères (« FAQ », « Césure », « Bonus » — des fragments de navigation devenus unités indexées, contre une médiane de <span data-stat="chunk_hygiene.median_chars">786</span>). Or un chunk minuscule quasi identique à une requête courte décroche une <button class="term" data-term="cosine">similarité</button> très élevée : il truste une place du top‑k sans rien apporter.</p>
+    <p class="hint" style="margin-top:8px"><b>2 · Un artefact de la métrique.</b> Un tour annoté « répondable » <b>refuse correctement</b> — le corpus n'a pas de règle de césure propre au droit — mais un <button class="term" data-term="refus">refus</button> vide les sources par conception. Il compte donc mécaniquement comme un raté de recall, alors que c'est le comportement <em>souhaité</em>.</p>
+    <p class="hint" style="margin-top:8px">Le premier diagnostic — « les annotations sont trop strictes » — s'est révélé <b>faux</b> après lecture du contenu réel des chunks. C'est consigné tel quel dans le journal du projet : un jeu de scénarios encore à l'état de premier jet, et un chiffre qu'on préfère expliquer plutôt que maquiller.</p>
+  </div>
 </section>
 
 <section id="s9">
@@ -464,7 +473,8 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 <span class="c"># res.answer  -> réponse citant [S1], [S2]…</span>
 <span class="c"># res.sources -> les chunks réellement utilisés (vide si refus)</span></pre>
   </div>
-  <p class="hint">Un <button class="term" data-term="langchain">port LangChain</button> du pipeline de requête existe sur une branche dédiée, pour comparer « ce que le framework abstrait » — et ce qu'on perd en lisibilité et contrôle.</p>
+  <p class="hint">Un <button class="term" data-term="langchain">port LangChain</button> du pipeline de requête existe sur une branche dédiée, pour comparer « ce que le framework abstrait » — et ce qu'on perd en lisibilité et contrôle. L'équivalence n'est pas postulée mais <b>mesurée</b> : les mêmes <span data-stat="langchain_parity.questions">20</span> questions rejouées dans les deux implémentations, même base vectorielle, même prompt, même backend → <b><span data-stat="langchain_parity.refusals">19/20</span></b> de parité de refus (dont les 4 questions hors corpus), <span data-stat="langchain_parity.citations">15/20</span> sur les citations, recouvrement lexical moyen <span data-stat="langchain_parity.overlap">0.75</span>. L'unique divergence tient à la <em>génération</em> sur une question limite, pas au câblage.</p>
+  <p class="hint">Ce que LangChain n'abstrait <b>pas</b>, et qu'il faut écrire de toute façon : la chaîne rend une simple chaîne de caractères, là où <span class="mono">/ask</span> doit produire un résultat structuré — sources citées, refus qui vide les sources, erreur backend traduite en <span class="mono">503</span>. Et les préfixes <button class="term" data-term="e5">E5</button> restent à la charge du développeur : l'embeddeur générique du framework ne les ajoute pas.</p>
 </section>
 
 <section id="s10">
@@ -508,8 +518,8 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
    ============================================================================ */
 /* STATS:START */
 var STATS = {
-  "updated": "2026-07-23",
-  "commit": "af07f94",
+  "updated": "2026-07-24",
+  "commit": "d96dba5",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -569,6 +579,21 @@ var STATS = {
   "rewrite_hard_recall5": {
     "raw": 0.62,
     "strip": 0.88
+  },
+  "conversation": {
+    "scenarios": 3,
+    "turns": 6,
+    "recall": "3/6"
+  },
+  "chunk_hygiene": {
+    "under50_pct": "11.7",
+    "median_chars": 786
+  },
+  "langchain_parity": {
+    "questions": 20,
+    "refusals": "19/20",
+    "citations": "15/20",
+    "overlap": 0.75
   },
   "backends": {
     "mistral": {
