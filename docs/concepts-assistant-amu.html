@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssistantAMU — le RAG, brique par brique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0F1F4D; --ink-soft:#33406B; --paper:#F4F6FB; --card:#FFFFFF;
+  --line:#E1E5F0; --blue:#143b8f; --blue-2:#2c6ecb; --blue-bg:#E9EEFA;
+  --yellow:#f6e400; --yellow-bg:#FCF7CE; --yellow-ink:#5A5200;
+  --teal:#12836F; --teal-bg:#E2F4EF; --coral:#C8451F; --coral-bg:#FBE9E3;
+  --muted:#6B7290; --radius:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;font-size:16px;line-height:1.65}
+h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.25;margin:0}
+.mono{font-family:"IBM Plex Mono",monospace}
+a{color:var(--blue-2)}
+button{font-family:"Public Sans",sans-serif;font-size:14px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+button:hover{background:var(--blue-bg);border-color:var(--blue-2)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,.term:focus-visible,.cand:focus-visible{outline:2px solid var(--blue-2);outline-offset:2px;border-radius:4px}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button.primary:hover{background:var(--ink)}
+input[type=text],textarea{font-family:"Public Sans",sans-serif;font-size:15px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
+textarea{resize:vertical;line-height:1.55}
+
+.term{font:inherit;color:inherit;background:none;border:none;padding:0;margin:0;cursor:pointer;border-bottom:1.5px dotted var(--blue-2);color:#1F49A8;transition:background .12s}
+.term:hover{background:var(--blue-bg)}
+.hero .term{color:#B9C6EE;border-bottom-color:#6E80B8}
+.hero .term:hover{background:#22346B}
+
+/* --- Topbar --- */
+#topbar{position:sticky;top:0;z-index:30;background:var(--blue);color:#fff;display:flex;align-items:center;gap:12px;padding:9px 20px;box-shadow:0 2px 8px rgba(15,31,77,.15)}
+#topbar .brand{font-family:"Sora",sans-serif;font-weight:600;font-size:14px;display:flex;align-items:center;gap:9px}
+#topbar .repo{margin-left:auto;font-size:12px;color:#B9C6EE}
+.menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font-size:16px;line-height:1;padding:5px 11px;border-radius:7px;cursor:pointer}
+.menu-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.logo{background:#fff;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.4px;padding:3px 7px;border-radius:5px}
+.logo b{color:var(--blue)}
+
+/* --- Doc layout : sidebar + content --- */
+.layout{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start}
+.sidebar{position:sticky;top:50px;align-self:flex-start;width:262px;min-width:262px;max-height:calc(100vh - 50px);overflow-y:auto;padding:26px 12px 48px 22px;border-right:1px solid var(--line)}
+.sidebar nav{display:flex;flex-direction:column;gap:1px}
+.sidebar .grp{font-family:"Sora",sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 6px 10px}
+.sidebar .grp:first-child{margin-top:0}
+.sidebar a{font-size:13.5px;text-decoration:none;color:var(--ink-soft);padding:6px 11px;border-radius:7px;border-left:2px solid transparent;transition:background .12s,color .12s}
+.sidebar a:hover{background:var(--blue-bg);color:var(--blue)}
+.sidebar a.active{background:var(--blue-bg);color:var(--blue);font-weight:600;border-left-color:var(--blue)}
+#sideOverlay{display:none}
+
+header.hero{background:linear-gradient(160deg,#0F1F4D 0%,#143b8f 100%);color:#EDEFF8;padding:56px 24px 60px;border-bottom:5px solid var(--yellow)}
+.hero .in{max-width:880px;margin:0 auto}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#9DAAD8;margin:0 0 14px}
+.hero h1{font-size:clamp(26px,4.5vw,40px);font-weight:700;color:#fff;max-width:680px}
+.hero p.sub{color:#C7CEE8;max-width:640px;margin:16px 0 26px;font-size:16px}
+.hero-tokens{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.hero-tokens .tk{font-family:"IBM Plex Mono",monospace;font-size:12.5px;padding:5px 11px;border-radius:7px;background:#22346B;color:#BAC6EA;border:1px solid #33477D;opacity:0;transform:translateY(6px)}
+.hero-tokens .ar{color:#6E80B8;opacity:0;transform:translateY(6px)}
+@media (prefers-reduced-motion: no-preference){
+  .hero-tokens .tk,.hero-tokens .ar{animation:pop .45s ease forwards}
+  @keyframes pop{to{opacity:1;transform:none}}
+  #drawer{transition:transform .25s ease}
+}
+@media (prefers-reduced-motion: reduce){.hero-tokens .tk,.hero-tokens .ar{opacity:1;transform:none}}
+
+main{flex:1;min-width:0;max-width:840px;margin:0;padding:12px 34px 72px}
+section{margin-top:56px;scroll-margin-top:72px}
+@media (max-width:940px){
+  .menu-btn{display:inline-block}
+  #topbar .repo{display:none}
+  .layout{display:block}
+  main{max-width:none;padding:12px 20px 60px}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;height:100vh;max-height:none;width:290px;background:var(--card);z-index:60;transform:translateX(-105%);transition:transform .25s ease;box-shadow:6px 0 24px rgba(15,31,77,.18);padding-top:22px}
+  .sidebar.open{transform:none}
+  #sideOverlay{position:fixed;inset:0;background:rgba(15,31,77,.42);z-index:55}
+  #sideOverlay.show{display:block}
+}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--blue);border:1px solid var(--blue);border-radius:99px;padding:2px 10px;white-space:nowrap}
+section h2{font-size:22px;font-weight:600}
+.lead{color:var(--ink-soft);margin:6px 0 20px;max-width:680px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--yellow-bg);color:var(--yellow-ink);border:1px solid #E8DE8A;vertical-align:middle;margin-left:8px}
+
+/* Architecture / pipeline */
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:6px}
+.stage{flex:1;min-width:118px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--card);position:relative}
+.stage b{display:block;font-size:13.5px;font-weight:600}
+.stage span{font-size:12px;color:var(--muted)}
+.stage.on{background:var(--blue-bg);border-color:var(--blue-2)}
+.arrowrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px}
+.phases{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.phase{border-radius:10px;padding:14px 16px;font-size:13.5px;border:1px solid transparent}
+.phase b{display:block;font-size:14px;margin-bottom:6px}
+.phase.idx{background:var(--blue-bg);color:#22307A;border-color:#C9D5F1}
+.phase.req{background:var(--teal-bg);color:#0B5A4C;border-color:#BEE4DA}
+.phase .term{color:inherit;border-bottom-color:currentColor}
+.phase .flow{font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.9}
+@media (max-width:600px){.phases{grid-template-columns:1fr}}
+
+/* Chunking demo */
+.controls{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin:14px 0 4px}
+.controls label{font-size:13px;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px;min-width:180px}
+.controls input[type=range]{width:100%;accent-color:var(--blue)}
+.controls .val{font-family:"IBM Plex Mono",monospace;color:var(--blue)}
+.chunks{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.chunk{border:1px solid var(--line);border-left:4px solid var(--blue-2);border-radius:0 8px 8px 0;padding:9px 13px;background:var(--card)}
+.chunk .ch-h{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.chunk .ch-t{font-size:13.5px;line-height:1.5}
+.chunk .ov{background:var(--yellow-bg);border-radius:3px;padding:0 2px}
+.chip-prefix{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;background:#EAECF4;color:var(--ink-soft);padding:1px 6px;border-radius:5px;margin-right:5px}
+
+/* RAG demo */
+.qbtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.qbtns .oob{border-style:dashed}
+.doc{border:1px solid var(--line);border-radius:9px;padding:10px 14px;margin:8px 0;background:var(--card);transition:border-color .3s,background .3s}
+.doc .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.doc .dt{font-size:14px;font-weight:500}
+.doc .cat{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.doc .sc{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);min-width:46px;text-align:right}
+.doc .track{margin-top:8px;background:var(--paper);border-radius:5px;height:9px;overflow:hidden}
+.sbar{height:9px;border-radius:5px;background:var(--blue-2);width:0%;transition:width .55s ease}
+.doc.hit{border-color:var(--teal);background:var(--teal-bg)}
+.doc.hit .dt{color:#0B5A4C}
+.doc.hit .sbar{background:var(--teal)}
+.promptbox{display:none;margin-top:16px;border:1px solid var(--line);border-radius:var(--radius);background:#0F1F4D;color:#D8DEF5;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;padding:14px 16px;overflow-x:auto}
+.promptbox .k{color:#8FA6E8}.promptbox .s{color:#9FE1CB}.promptbox .c{color:#7E89B8}
+.answer{display:none;margin-top:16px;border:1px solid var(--teal);border-radius:var(--radius);background:var(--teal-bg);padding:14px 18px}
+.answer.refuse{border-color:var(--coral);background:var(--coral-bg)}
+.answer .who{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.answer.refuse .who{color:var(--coral)}
+.answer p{margin:0;font-size:14.5px;color:#123F36}
+.answer.refuse p{color:#7A2A12}
+.cite{background:var(--yellow);color:var(--yellow-ink);font-weight:700;border-radius:4px;padding:0 5px;font-size:.85em;font-family:"IBM Plex Mono",monospace}
+
+/* Eval bars */
+.evalrow{display:flex;align-items:center;gap:12px;margin:10px 0}
+.evalrow .lbl{font-family:"IBM Plex Mono",monospace;font-size:13px;min-width:96px}
+.evalrow .track{flex:1;background:var(--paper);border-radius:6px;height:22px;overflow:hidden;border:1px solid var(--line)}
+.evalrow .fill{height:100%;border-radius:6px 0 0 6px;width:0%;transition:width .8s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:9px;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500}
+.f-sem{background:var(--blue)}.f-bm{background:#8892B0}.f-rrf{background:var(--teal)}
+.recall-chart{margin:10px 0 2px;overflow-x:auto}
+.recall-chart svg{width:100%;min-width:440px;height:auto;display:block}
+.disagree{display:flex;flex-direction:column;gap:8px}
+.dis{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:9px;padding:9px 13px;background:var(--card)}
+.dis .dq{font-size:13.5px}
+.mtag{font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.mtag.sem{background:var(--blue-bg);color:#22307A}
+.mtag.rrf{background:var(--teal-bg);color:#0B5A4C}
+
+/* strip demo */
+.reform-out{margin-top:14px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.reform-out .box{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:var(--card)}
+.reform-out .box .lb{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+.reform-out .box .tx{font-family:"IBM Plex Mono",monospace;font-size:13.5px}
+.reform-out .box.after{border-color:var(--blue-2);background:var(--blue-bg)}
+.reform-out .ar{font-size:22px;color:var(--muted);text-align:center}
+.identity{color:var(--teal);font-weight:600}
+@media (max-width:600px){.reform-out{grid-template-columns:1fr;text-align:center}.reform-out .ar{transform:rotate(90deg)}}
+
+/* pièges + backends */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.piege{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--card)}
+.piege .n{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--coral);font-weight:600}
+.piege h3{font-size:15px;margin:4px 0 6px}
+.piege p{font-size:13.5px;margin:0;color:var(--ink-soft)}
+.piege code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--paper);padding:1px 5px;border-radius:4px}
+table.cmp{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.cmp th{font-family:"Sora",sans-serif;font-size:13px;color:var(--muted);font-weight:600}
+table.cmp td:first-child{font-weight:600}
+.pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px}
+.pill.local{background:var(--blue-bg);color:#22307A}
+.pill.api{background:var(--teal-bg);color:#0B5A4C}
+
+/* V2 dialogue */
+.dlg{display:flex;flex-direction:column;gap:10px}
+.bub{max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5}
+.bub.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
+.bub.a{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.cond{align-self:flex-end;font-size:12px;color:var(--muted);font-style:italic;max-width:82%;text-align:right}
+
+/* stack */
+.layer{padding:12px 16px;border-radius:9px;margin:6px 0;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.layer b,.layer .term{font-size:14.5px;font-weight:600}
+.layer span{font-size:12.5px}
+.layer .term{border-bottom-color:currentColor}
+.l-api{background:var(--teal-bg);color:#0B5A4C}
+.l-mid{background:var(--blue-bg);color:#22307A}
+.l-base{background:#EAECF4;color:var(--ink-soft)}
+pre.code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;background:#0F1F4D;color:#D8DEF5;border-radius:var(--radius);padding:18px 20px;overflow-x:auto;margin:16px 0 0}
+pre.code .c{color:#7E89B8}pre.code .s{color:#9FE1CB}pre.code .k{color:#8FA6E8}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:13px;padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chip:hover{border-color:var(--blue-2);background:var(--blue-bg);color:#22307A}
+
+#overlay{position:fixed;inset:0;background:rgba(15,31,77,.45);z-index:40;display:none}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(430px,92vw);background:var(--card);z-index:50;transform:translateX(105%);box-shadow:-8px 0 32px rgba(15,31,77,.18);display:flex;flex-direction:column}
+#drawer.open{transform:translateX(0)}
+#drawer .head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px 14px;border-bottom:1px solid var(--line)}
+#drawer .cat{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-2);margin:0 0 6px}
+#drawer h3{font-size:20px}
+#drawer .close{border:none;background:none;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:4px 8px}
+#drawer .close:hover{color:var(--ink);background:var(--paper);border-radius:6px}
+#drawer .body{padding:18px 24px 24px;overflow-y:auto}
+#drawer .body p{margin:0 0 14px;font-size:14.5px;line-height:1.7;color:var(--ink-soft)}
+#drawer .body code{font-family:"IBM Plex Mono",monospace;font-size:13px;background:var(--paper);padding:1px 5px;border-radius:4px}
+#drawer .rel-lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+#drawer .rel{display:flex;flex-wrap:wrap;gap:7px}
+#drawer .rel button{font-size:13px;padding:5px 12px;border-radius:99px}
+#drawer .ext{display:inline-block;margin-top:16px;font-size:13.5px}
+#drawer .file{display:inline-block;margin-top:14px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:4px 9px}
+
+footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;text-align:center;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
+  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — le RAG brique par brique</span>
+  <span class="repo mono">assistant-amu · pipeline RAG</span>
+</div>
+
+<header class="hero">
+  <div class="in">
+    <p class="eyebrow">Assistant documentaire RAG · documents publics d'Aix-Marseille Université</p>
+    <h1>Tout ce que fait AssistantAMU, expliqué et manipulable</h1>
+    <p class="sub">Chaque terme <span style="border-bottom:1.5px dotted #6E80B8">souligné en pointillé</span> est cliquable et ouvre sa définition, reliée au fichier réel du projet. On part d'un corpus de documents AMU et on aboutit à une réponse <button class="term" data-term="refus">sourcée ou à un refus</button> — voici la chaîne complète.</p>
+    <div class="hero-tokens" id="heroTokens" aria-hidden="true"></div>
+  </div>
+</header>
+
+<div class="layout">
+<aside id="sidebar" class="sidebar">
+  <nav aria-label="Sommaire">
+    <div class="grp">Démarrer</div>
+    <a href="#s0" data-sec="s0">00 · Vue d'ensemble</a>
+    <div class="grp">Le pipeline RAG</div>
+    <a href="#s1" data-sec="s1">01 · Pourquoi RAG</a>
+    <a href="#s2" data-sec="s2">02 · Indexation</a>
+    <a href="#s3" data-sec="s3">03 · La requête RAG</a>
+    <div class="grp">Qualité &amp; itération</div>
+    <a href="#s4" data-sec="s4">04 · Évaluation</a>
+    <a href="#s5" data-sec="s5">05 · Réécriture de requête</a>
+    <div class="grp">Ingénierie</div>
+    <a href="#s6" data-sec="s6">06 · Backends &amp; pièges</a>
+    <a href="#s7" data-sec="s7">07 · V2 · multi-tour</a>
+    <a href="#s8" data-sec="s8">08 · Pile logicielle</a>
+    <div class="grp">Référence</div>
+    <a href="#s9" data-sec="s9">09 · Glossaire</a>
+  </nav>
+</aside>
+<div id="sideOverlay"></div>
+
+<main>
+
+<section id="s0">
+  <div class="sec-head"><span class="sec-num">00</span><h2>Vue d'ensemble : deux phases</h2></div>
+  <p class="lead">AssistantAMU est un système <button class="term" data-term="rag">RAG</button> (Retrieval-Augmented Generation) : on ne met pas la connaissance <em>dans</em> le modèle, on la lui <em>fournit</em> au moment de la question. Tout le projet tient en deux phases — une hors ligne qui prépare l'index, une en temps réel qui répond.</p>
+  <div class="phases">
+    <div class="phase idx">
+      <b>Phase 1 · Indexation (hors ligne)</b>
+      <div class="flow">sources.yaml → <button class="term" data-term="extract">download / extract</button> → <button class="term" data-term="clean">clean</button> → <button class="term" data-term="chunking">chunk</button> (≤ 500 tk, ov. 50) → <button class="term" data-term="embedding">embed</button> (« passage: », <button class="term" data-term="e5">e5‑small</button>) → <button class="term" data-term="chromadb">ChromaDB</button> (<button class="term" data-term="cosine">cosine</button>)</div>
+    </div>
+    <div class="phase req">
+      <b>Phase 2 · Requête (temps réel)</b>
+      <div class="flow">question → embed (« query: ») → ChromaDB <button class="term" data-term="topk">top‑k</button> → <button class="term" data-term="prompt">prompt RAG</button> (règles + &lt;sources&gt; + question) → <button class="term" data-term="backend">LLM</button> → réponse <button class="term" data-term="citation">+ citations</button> / <button class="term" data-term="refus">refus</button></div>
+    </div>
+  </div>
+  <p class="hint">Corpus réel : <b><span data-stat="corpus.docs">18</span> documents utilisables → <span data-stat="corpus.chunks">316</span> chunks</b> (central + composantes ALLSH, Droit, Sciences, IUT). Le calendrier scanné est exclu (pas d'<button class="term" data-term="ocr">OCR</button>). Chiffres et titres réels ; les scores de similarité et le texte des réponses ci‑dessous sont illustratifs.</p>
+</section>
+
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Pourquoi RAG plutôt que « tout dans le contexte » ?</h2></div>
+  <p class="lead">Un <button class="term" data-term="llm">LLM</button> seul répond de façon plausible, pas forcément vraie : c'est l'<button class="term" data-term="hallucination">hallucination</button>. Pour un corpus &lt; ~200 k tokens on pourrait tout coller dans le <button class="term" data-term="prompt">prompt</button>. Ici le RAG reste le bon choix, pour quatre raisons assumées dans le projet.</p>
+  <div class="grid2">
+    <div class="piege"><div class="n">1</div><h3>Maîtriser la brique</h3><p>Le but du projet est de comprendre le RAG de bout en bout — chaque étape est écrite en Python pur avant tout framework.</p></div>
+    <div class="piege"><div class="n">2</div><h3>Backend local contraint</h3><p><button class="term" data-term="ollama">Ollama</button> sert <span class="mono">mistral</span> avec une fenêtre réduite par défaut (<button class="term" data-term="numctx">num_ctx</button>) : impossible d'y verser tout le corpus.</p></div>
+    <div class="piege"><div class="n">3</div><h3>Coût & latence</h3><p>Un contexte massif à chaque requête est incompatible avec un CPU et un <em>free tier</em> d'API.</p></div>
+    <div class="piege"><div class="n">4</div><h3>Citations natives</h3><p>Le cœur du produit — la <button class="term" data-term="citation">citation passage par passage</button> et le <button class="term" data-term="refus">refus hors corpus</button> — est naturel en RAG.</p></div>
+  </div>
+  <p class="hint">Règle produit inscrite dans le <button class="term" data-term="prompt">prompt système</button> : répondre <b>exclusivement</b> à partir des extraits fournis, citer <span class="cite">[S1]</span> <span class="cite">[S2]</span>, et sinon refuser mot pour mot. La <button class="term" data-term="refus">fidélité aux sources</button> est un objectif mesurable, pas un vœu.</p>
+</section>
+
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Indexation — du document au vecteur</h2></div>
+  <p class="lead">Chaque document passe par une chaîne de transformation. Cliquez une étape pour la définir ; le <button class="term" data-term="chunking">chunking</button> est manipulable juste en dessous.</p>
+  <div class="pipe" id="pipe">
+    <div class="stage" data-term="extract"><b>extract</b><span>pdfplumber / BeautifulSoup</span></div>
+    <div class="arrowrow">→</div>
+    <div class="stage" data-term="clean"><b>clean</b><span>en‑têtes, TOC, espaces</span></div>
+    <div class="arrowrow">→</div>
+    <div class="stage" data-term="chunking"><b>chunk</b><span>≤ 500 tk · overlap 50</span></div>
+    <div class="arrowrow">→</div>
+    <div class="stage" data-term="embedding"><b>embed</b><span>« passage: » + e5‑small</span></div>
+    <div class="arrowrow">→</div>
+    <div class="stage" data-term="chromadb"><b>ChromaDB</b><span>index cosinus</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <p style="margin:0 0 6px;font-weight:600;font-size:15px">Découpage en chunks <span class="tag">chunk.py</span></p>
+    <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink-soft)">Le texte est coupé sur des frontières de phrases, sans jamais dépasser le budget de tokens — <span class="chip-prefix">passage: </span>compris. Un <button class="term" data-term="chunking">overlap</button> recopie la fin d'un chunk au début du suivant (surligné en jaune) pour ne pas perdre le contexte à la coupe.</p>
+    <div class="controls">
+      <label>max_tokens : <span class="val" id="mtVal">70</span>
+        <input type="range" id="mt" min="30" max="140" value="70" step="5"></label>
+      <label>overlap : <span class="val" id="ovVal">14</span>
+        <input type="range" id="ov" min="0" max="40" value="14" step="2"></label>
+    </div>
+    <textarea id="chunkIn" rows="4">La césure est une période durant laquelle l'étudiant suspend temporairement ses études. Elle dure un ou deux semestres et l'étudiant conserve son statut. La demande se dépose auprès de la composante, avec l'accord du responsable de formation. Pendant la césure, l'étudiant peut réaliser un projet personnel, un stage, un service civique ou une expérience à l'étranger. À l'issue de la césure, l'étudiant retrouve de droit sa place dans la formation.</textarea>
+    <div class="chunks" id="chunkOut"></div>
+  </div>
+  <p class="hint">Compteur de tokens simplifié ici (≈ 1,3 token/mot) ; en production c'est le <button class="term" data-term="tokenizer">tokenizer</button> réel de <button class="term" data-term="e5">e5‑small</button> qui compte — d'où la marge de sécurité, le modèle tronquant silencieusement au‑delà de 512 tokens.</p>
+</section>
+
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>La requête RAG en temps réel</h2></div>
+  <p class="lead">C'est le cœur du système. La question est <button class="term" data-term="embedding">vectorisée</button> (préfixe « query: »), comparée par <button class="term" data-term="cosine">similarité cosinus</button> à tous les chunks, on garde les <button class="term" data-term="topk">top‑k</button>, on les injecte dans le <button class="term" data-term="prompt">prompt</button>, le LLM répond en citant — ou refuse. Choisissez une question et regardez le corpus réagir.</p>
+  <div class="card">
+    <div class="qbtns">
+      <button onclick="ask(0)">Comment demander une césure ?</button>
+      <button onclick="ask(1)">Qu'est-ce que le RSE ?</button>
+      <button onclick="ask(2)">Qu'est-ce que la CVEC ?</button>
+      <button class="oob" onclick="ask(3)">Quelle heure est-il ? <span style="color:var(--coral)">(hors corpus)</span></button>
+    </div>
+    <div id="docs"></div>
+    <div class="promptbox" id="promptbox"></div>
+    <div class="answer" id="ans">
+      <p class="who" id="answho">Réponse du LLM · ancrée dans les sources</p>
+      <p id="anstxt"></p>
+    </div>
+  </div>
+  <p class="hint">Les barres représentent la similarité cosinus entre la question et chaque chunk. Les <b>2 meilleurs</b> (surlignés) sont injectés en balises <span class="mono">&lt;source id="S1" …&gt;</span> ; le modèle ne cite <em>que</em> ce qu'il a lu. La 4<sup>e</sup> question, hors corpus, déclenche le <button class="term" data-term="refus">refus</button> exact — c'est l'exemple littéral du prompt système. Corpus (7 docs affichés sur <span data-stat="corpus.docs">18</span>) et titres réels ; scores et réponses illustratifs.</p>
+</section>
+
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Évaluation : mesurer, ne pas deviner</h2></div>
+  <p class="lead">Comment savoir si la récupération marche ? Un <button class="term" data-term="harness">harnais reproductible</button> mesure le <button class="term" data-term="recall">recall@k</button> (proxy de <em>context recall</em>, vocabulaire <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">16</span> questions, et produit un rapport Markdown daté.</p>
+  <div class="card">
+    <div class="evalrow"><span class="lbl">sémantique</span><div class="track"><div class="fill f-sem" data-w="94">0.94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="bm25">BM25</button></span><div class="track"><div class="fill f-bm" data-w="81">0.81</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="rrf">RRF</button></span><div class="track"><div class="fill f-rrf" data-w="88">0.88</div></div></div>
+    <p class="hint" style="margin-top:14px">Baseline (corpus <span data-stat="corpus.docs">18</span> docs / <span data-stat="corpus.chunks">316</span> chunks, k=<span data-stat="k_default">5</span>). Le sémantique <b>domine</b> → le pipeline <span class="mono">/ask</span> reste <b>sémantique pur</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, pas branchées</b> — comme la <button class="term" data-term="rewrite">réécriture</button> ci‑dessous. La seule question que le sémantique rate (q04, logement) est justement rattrapée par la RRF : argument concret pour l'hybride, gardé tel quel plutôt que gonflé.</p>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Sensibilité à k — pourquoi k = 5 ?<span class="tag">eval/reports · recall_sensitivity_k</span></p>
+    <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft)">Le <button class="term" data-term="recall">recall@k</button> de chaque méthode quand on fait varier le nombre de passages récupérés. Le compromis se lit d'un coup d'œil.</p>
+    <div id="recallChart" class="recall-chart" role="img" aria-label="Courbe recall@k : sémantique 0.88→0.94, RRF 0.75→0.88, BM25 0.69→0.81, pour k de 2 à 8"></div>
+    <p class="hint" style="margin-top:4px"><b>La RRF atteint son plateau dès k=3</b> ; le sémantique domine partout et gagne encore à k=5 (0.94). Au‑delà, plus rien ne bouge — inutile de gonfler k (et sur Ollama, <button class="term" data-term="numctx">num_ctx</button> l'interdit). D'où le choix <b>k = 5</b>.</p>
+
+    <p style="margin:20px 0 6px;font-weight:600;font-size:15px">Désaccords sémantique ↔ BM25 ↔ RRF</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les questions où une seule méthode remonte le bon chunk — c'est exactement là que se joue l'arbitrage hybride.</p>
+    <div class="disagree">
+      <div class="dis"><div class="dq">« Puis-je interrompre mes études un an puis les reprendre ? »</div><span class="mtag sem">sémantique seul</span></div>
+      <div class="dis"><div class="dq">« Quels aménagements pour un étudiant salarié ou sportif de haut niveau ? »</div><span class="mtag sem">sémantique seul</span></div>
+      <div class="dis"><div class="dq">« Où puis-je me loger en tant qu'étudiant ? »</div><span class="mtag rrf">RRF seule</span></div>
+    </div>
+    <p class="hint" style="margin-top:10px">Deux questions <em>reformulées</em> (« interrompre mes études un an » plutôt que « césure ») ne sont retrouvées que par le <button class="term" data-term="cosine">sens</button> — le lexical (<button class="term" data-term="bm25">BM25</button>) passe à côté. À l'inverse, « se loger » n'est rattrapée que par la fusion <button class="term" data-term="rrf">RRF</button>. Le sémantique reste devant globalement (0.94), mais ces cas justifient de <b>garder la RRF sous le coude</b> pour une éventuelle bascule hybride.</p>
+  </div>
+  <p class="hint">Honnêteté chiffrée : la baseline vient d'un raffinage <em>diagnostiqué</em> (0.81 → 0.94), pas d'un réglage opportuniste — une annotation trop stricte corrigée (q03) et une vraie lacune de données comblée (ajout des PDF « Cadrage M3C »).</p>
+</section>
+
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Réécriture de requête <span class="tag">rewrite.py · mesurée</span></h2></div>
+  <p class="lead">Une formulation conversationnelle (« Parle‑moi de… ») pousse le vecteur de la question dans le bruit et fait manquer le bon document — et augmenter k n'y change rien : le problème est au niveau de la <em>requête</em>. La stratégie <span class="mono">strip</span> retire l'ouverture impérative ; elle est <b>déterministe</b> et ne touche jamais une question définitionnelle (« Qu'est‑ce que… ») : elle ne peut donc pas régresser.</p>
+  <div class="card">
+    <div class="qbtns">
+      <button onclick="doStrip(0)">Parle-moi des régimes spéciaux</button>
+      <button onclick="doStrip(1)">Je voudrais des infos sur le contrôle des connaissances</button>
+      <button onclick="doStrip(2)">Peux-tu m'expliquer la césure ?</button>
+      <button onclick="doStrip(3)">Qu'est-ce que la CVEC ?</button>
+    </div>
+    <input type="text" id="stripIn" value="Parle-moi des régimes spéciaux" aria-label="Requête à réécrire">
+    <div style="margin-top:10px"><button class="primary" onclick="doStrip()">Appliquer strip</button></div>
+    <div class="reform-out">
+      <div class="box"><div class="lb">Requête d'origine</div><div class="tx" id="stripBefore">—</div></div>
+      <div class="ar">→</div>
+      <div class="box after"><div class="lb">Requête recherchée</div><div class="tx" id="stripAfter">—</div></div>
+    </div>
+    <p class="hint" id="stripNote" style="margin-top:12px"></p>
+  </div>
+  <p class="hint">Résultat mesuré sur un jeu « dur » de 8 formulations : recall@5 <b><span data-stat="rewrite_hard_recall5.raw">0.62</span> → <span data-stat="rewrite_hard_recall5.strip">0.88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu « facile ». La variante <span class="mono">llm</span> (réécriture par Mistral) répare autant mais paraphrase, coûte un appel et casse 2 questions faciles → écartée. Comme la RRF, la réécriture est mesurée puis proposée en option de <span class="mono">/ask</span> (défaut = comportement V1 inchangé).</p>
+</section>
+
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Deux backends & trois pièges neutralisés</h2></div>
+  <p class="lead">Le système est <button class="term" data-term="backend">LLM‑agnostique</button> : le même code parle à un modèle <b>local</b> ou à une <b>API</b>, commuté par une variable d'environnement. Trois pièges silencieux — repérés et neutralisés — expliquent pourquoi le RAG « marchait à moitié » sans qu'aucune erreur ne remonte.</p>
+  <table class="cmp">
+    <tr><th>Backend</th><th>Modèle</th><th>Latence /ask</th><th>Refus hors corpus</th></tr>
+    <tr><td><span class="pill api">API</span> <button class="term" data-term="mistral">Mistral</button></td><td><span class="mono" data-stat="backends.mistral.model">mistral-small-latest</span></td><td data-stat="backends.mistral.latency">~3 s / question</td><td><span data-stat="backends.mistral.refusals">4/4</span> corrects</td></tr>
+    <tr><td><span class="pill local">local</span> <button class="term" data-term="ollama">Ollama</button></td><td><span class="mono" data-stat="backends.ollama.model">mistral 7B (CPU)</span></td><td data-stat="backends.ollama.latency">&gt; 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3</td><td>—</td></tr>
+  </table>
+  <div class="grid2" style="margin-top:16px">
+    <div class="piege"><div class="n">piège n°1</div><h3>Préfixes E5</h3><p>Les modèles <button class="term" data-term="e5">E5</button> exigent <code>query: </code> et <code>passage: </code>. Sans eux, les performances chutent <b>sans erreur</b>. Une table {famille → préfixes} centralise la règle.</p></div>
+    <div class="piege"><div class="n">piège n°2</div><h3>Métrique ChromaDB</h3><p><button class="term" data-term="chromadb">Chroma</button> indexe en <b>L2 par défaut</b>. La collection est créée avec <code>{"hnsw:space":"cosine"}</code> pour coller à des embeddings normalisés.</p></div>
+    <div class="piege"><div class="n">piège n°3</div><h3>num_ctx Ollama</h3><p><button class="term" data-term="numctx">Ollama</button> tronque le prompt à <code>num_ctx</code> (souvent 2048/4096), pas à la capacité du modèle, <b>en silence</b> — perdant des sources. Fixé explicitement à 8192.</p></div>
+  </div>
+  <p class="hint">Les échecs de backend (timeout, connexion, auth, quota) sont normalisés en <span class="mono">LLMBackendError</span> et remontés en <b>503</b> propre par l'API — jamais une stack trace à l'utilisateur.</p>
+</section>
+
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>V2 — conversation multi‑tour par condensation</h2></div>
+  <p class="lead">Une question de suivi (« Et comment la demander ? ») est incompréhensible seule : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule d'abord le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> de chercher. L'endpoint <span class="mono">/prepare</span> l'expose pour un aperçu en direct sous la question.</p>
+  <div class="card">
+    <div class="dlg">
+      <div class="bub u">Qu'est-ce que la césure ?</div>
+      <div class="bub a">La césure est une suspension temporaire des études, d'un ou deux semestres, statut conservé. <span class="cite">[S1]</span></div>
+      <div class="bub u">Et comment la demander ?</div>
+      <div class="cond">↳ compris comme : « Comment demander une césure ? »</div>
+      <div class="bub a">La demande se dépose auprès de la composante, avec l'accord du responsable de formation. <span class="cite">[S1]</span></div>
+    </div>
+  </div>
+  <p class="hint">V2 rétrocompatible : sans <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> la V1. La reformulation calculée une seule fois par <span class="mono">/prepare</span> est réutilisée par <span class="mono">/ask</span> — l'aperçu ne peut donc jamais différer de ce qui est réellement recherché.</p>
+</section>
+
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">08</span><h2>La pile logicielle du projet</h2></div>
+  <p class="lead">De l'API jusqu'au socle, chaque couche s'appuie sur celle du dessous. C'est la carte mentale du dépôt.</p>
+  <div class="card">
+    <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> + la page démo servie sur <span class="mono">/</span></span></div>
+    <div class="layer l-mid"><button class="term" data-term="pipeline">RagPipeline</button><span>Orchestration : prepare (condensation + réécriture) → retrieve top‑k → prompt → generate</span></div>
+    <div class="layer l-mid"><button class="term" data-term="sbert">sentence-transformers</button> + <button class="term" data-term="chromadb">ChromaDB</button><span>Embeddings <button class="term" data-term="e5">e5‑small</button> · base vectorielle cosinus persistante</span></div>
+    <div class="layer l-api"><button class="term" data-term="backend">Ollama · Mistral</button><span>Génération, commutable par <span class="mono">LLM_BACKEND</span></span></div>
+    <div class="layer l-base"><b>Python 3.12 (uv)</b><span>Socle · <span data-stat="tests">90</span> tests pytest, aucun n'appelle un vrai LLM ni le réseau</span></div>
+    <pre class="code"><span class="c"># Une question de bout en bout, en trois lignes</span>
+<span class="k">from</span> assistant_amu.generation.rag <span class="k">import</span> RagPipeline
+
+pipe = RagPipeline.from_settings()
+res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"</span>, k=<span class="s">5</span>)
+<span class="c"># res.answer  -> réponse citant [S1], [S2]…</span>
+<span class="c"># res.sources -> les chunks réellement utilisés (vide si refus)</span></pre>
+  </div>
+  <p class="hint">Un <button class="term" data-term="langchain">port LangChain</button> du pipeline de requête existe sur une branche dédiée, pour comparer « ce que le framework abstrait » — et ce qu'on perd en lisibilité et contrôle.</p>
+</section>
+
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Glossaire complet</h2></div>
+  <p class="lead">Tous les termes de cette page, chacun relié au(x) fichier(s) réel(s) du projet.</p>
+  <div class="chips" id="chips"></div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  Carte pédagogique du projet <b>AssistantAMU</b> · pipeline, chiffres et titres de corpus réels · scores de similarité et texte des réponses illustratifs, à but explicatif.
+  <div id="updatedStamp" style="margin-top:8px;font-size:12px;opacity:.8"></div>
+</footer>
+
+<div id="overlay" onclick="closeDrawer()"></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="head">
+    <div>
+      <p class="cat" id="dCat"></p>
+      <h3 id="dTitle"></h3>
+    </div>
+    <button class="close" onclick="closeDrawer()" aria-label="Fermer">×</button>
+  </div>
+  <div class="body">
+    <div id="dBody"></div>
+    <span class="file" id="dFile" style="display:none"></span>
+    <p class="rel-lbl" id="dRelLbl" style="display:none">Termes liés</p>
+    <div class="rel" id="dRel"></div>
+    <a class="ext" id="dExt" target="_blank" rel="noopener" style="display:none"></a>
+  </div>
+</aside>
+
+<script>
+/* ============================================================================
+   STATS — faits volatils du projet, SOURCE UNIQUE DE VÉRITÉ pour cette page.
+   Ne pas éditer à la main entre les marqueurs STATS:START / STATS:END :
+   éditer docs/concepts.facts.yaml puis lancer `python docs/build_concepts.py`
+   (qui relit aussi config.py + git). Détails : docs/README.md.
+   ============================================================================ */
+/* STATS:START */
+var STATS = {
+  "updated": "2026-07-23",
+  "commit": "18535ce",
+  "corpus": {
+    "docs": 18,
+    "chunks": 316
+  },
+  "eval_questions": 16,
+  "k_default": 5,
+  "embedding_model": "intfloat/multilingual-e5-small",
+  "tests": 90,
+  "recall_at_5": {
+    "semantic": 0.94,
+    "bm25": 0.81,
+    "rrf": 0.88
+  },
+  "recall_curve": {
+    "k": [
+      2,
+      3,
+      5,
+      8
+    ],
+    "semantic": [
+      0.88,
+      0.88,
+      0.94,
+      0.94
+    ],
+    "rrf": [
+      0.75,
+      0.88,
+      0.88,
+      0.88
+    ],
+    "bm25": [
+      0.69,
+      0.75,
+      0.81,
+      0.81
+    ]
+  },
+  "rewrite_hard_recall5": {
+    "raw": 0.62,
+    "strip": 0.88
+  },
+  "backends": {
+    "mistral": {
+      "model": "mistral-small-latest",
+      "latency": "~3 s / question",
+      "refusals": "4/4"
+    },
+    "ollama": {
+      "model": "mistral 7B (CPU)",
+      "latency": "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3"
+    }
+  }
+};
+/* STATS:END */
+
+var G={
+ rag:{t:"RAG",c:"Concept central",d:["Retrieval-Augmented Generation : au lieu de mettre la connaissance <em>dans</em> le modèle (ré-entraînement coûteux), on la lui fournit au moment de la question. Deux phases : indexation hors ligne (extraction, chunking, embeddings, base vectorielle) puis requête en temps réel (vectoriser la question, récupérer les top-k passages, les injecter dans le prompt, générer une réponse sourcée).","Dans AssistantAMU, le RAG apporte deux propriétés produit non négociables : la citation passage par passage et le refus explicite quand l'information est absente du corpus."],r:["embedding","topk","prompt","refus","chromadb"],f:"generation/rag.py"},
+ llm:{t:"LLM",c:"Modèles",d:["Grand modèle de langage : un réseau Transformer décodeur entraîné à prédire le token suivant. Il absorbe grammaire, connaissances et capacités de raisonnement, mais génère du texte <em>plausible</em>, pas nécessairement vrai.","AssistantAMU ne l'utilise que pour <b>rédiger</b> à partir d'extraits fournis — jamais comme source de vérité. Deux backends interchangeables : Mistral (API) et Ollama (local)."],r:["backend","hallucination","prompt","mistral"]},
+ hallucination:{t:"Hallucination",c:"Limites des LLM",d:["Un LLM peut inventer avec assurance une date, une référence ou un article de règlement quand il ignore la réponse : il n'a aucune notion interne de vérité.","C'est la motivation directe du RAG ici : en ancrant la réponse dans des extraits et en imposant le refus hors corpus, on réduit fortement les inventions et on peut citer les sources. La fidélité aux sources est un axe d'évaluation explicite."],r:["rag","refus","prompt"]},
+ embedding:{t:"Embedding",c:"Représentation du texte",d:["Vecteur de nombres (384 dimensions pour e5-small) qui représente le <em>sens</em> d'un texte. Propriété clé : deux textes de sens proche produisent des vecteurs proches. C'est ce qui permet de retrouver « droits parentaux » à partir de « congé maternité », sans mot commun.","Tout passe par une seule classe <code>Embedder</code> : questions et passages y sont encodés avec le bon préfixe, puis normalisés."],r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
+ e5:{t:"multilingual-e5-small",c:"Modèle d'embedding",d:["Le modèle d'embedding du projet : multilingue (utile pour un corpus 100 % français), léger (~470 Mo), 384 dimensions. Chargé paresseusement au premier usage.","Particularité E5 (piège n°1) : il faut préfixer les entrées — <code>query: </code> pour une question, <code>passage: </code> pour un chunk. Sans ces préfixes, la qualité de récupération chute <b>silencieusement</b>. Une table {famille → préfixes} centralise la règle et n'applique aucun préfixe à un modèle non-E5 (comparaison CamemBERT en Phase 5)."],r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
+ cosine:{t:"Similarité cosinus",c:"Recherche sémantique",d:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, entre -1 et 1 ; proche de 1 = sens très proche. C'est la métrique standard pour comparer des embeddings.","Piège n°2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>. Le score exposé à l'utilisateur est <code>1 - distance</code>, ramené dans [0, 1]."],r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
+ chromadb:{t:"ChromaDB",c:"Base vectorielle",d:["Base de données spécialisée dans le stockage d'embeddings et la recherche des plus proches voisins. Persistante en local ici (dossier <code>chroma_db/</code>), une seule collection <code>amu_docs</code>.","Les chunks sont dédupliqués par identifiant à la ré-indexation (idempotence : « 0 doublon »), et le <code>doc_id</code> est stocké en métadonnée pour la déduplication au niveau document (le 409 de <code>/ingest</code>)."],r:["cosine","hnsw","embedding","topk"],f:"retrieval/vector_store.py"},
+ hnsw:{t:"HNSW",c:"Base vectorielle",d:["Hierarchical Navigable Small World : l'index de graphe approximatif qu'utilise Chroma pour trouver les voisins proches en millisecondes même avec beaucoup de vecteurs. Une petite perte de précision contre une recherche très rapide.","C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où le piège cosinus/L2."],r:["cosine","chromadb"]},
+ chunking:{t:"Chunking & overlap",c:"Indexation",d:["Découpage des documents en unités de récupération de quelques centaines de tokens. Trop court : on perd le contexte ; trop long : on dilue l'information et on sature la fenêtre du modèle.","Ici : coupe sur frontières de paragraphes puis de phrases, budget dur de <b>500 tokens préfixe compris</b>, jamais au milieu d'une phrase (sauf phrase géante, coupée en dernier recours). Un <b>overlap</b> de 50 tokens recopie la fin d'un chunk au début du suivant pour ne pas casser une idée à la jointure. Les blocs partageant (page, section) sont fusionnés avant découpe."],r:["e5","tokenizer","embedding","extract"],f:"ingestion/chunk.py"},
+ tokenizer:{t:"Tokenizer & tokens",c:"Représentation du texte",d:["Un modèle ne lit pas des mots mais des <em>tokens</em> (sous-mots). Le texte « anticonstitutionnellement » devient plusieurs fragments connus, ce qui permet de traiter des mots jamais vus.","Le chunking mesure ses budgets avec le <b>vrai</b> tokenizer de e5-small (via <code>transformers.AutoTokenizer</code>), pas une approximation — car e5 tronque au-delà de 512 tokens. Ordre de grandeur en français : ~1,3 token par mot."],r:["e5","chunking","embedding"],f:"ingestion/chunk.py"},
+ extract:{t:"Extraction (PDF / HTML)",c:"Indexation",d:["PDF : <code>pdfplumber</code> page par page, avec escalade optionnelle vers <b>Docling</b> (mise en page, tableaux) pour les documents complexes. Un PDF sans couche de texte (scanné) lève une erreur dédiée : il est exclu et journalisé — <b>pas d'OCR</b>.","HTML : <code>BeautifulSoup</code>, contenu principal seulement (on retire nav/footer/scripts), la hiérarchie de titres <code>h1&gt;h2&gt;h3</code> est conservée comme <em>section</em> — provenance utile pour les citations."],r:["clean","chunking","ocr","docling"],f:"ingestion/extract.py"},
+ clean:{t:"Nettoyage",c:"Indexation",d:["Après extraction : suppression des en-têtes/pieds de page répétés (lignes courtes apparaissant sur ≥ 3 pages), retrait des lignes de sommaire (points de suite + numéro de page), normalisation des espaces et des lignes vides.","La provenance (page, section) et l'identité du document (son hash de contenu) sont préservées : une source garde son <code>doc_id</code>."],r:["extract","chunking"],f:"ingestion/clean.py"},
+ docling:{t:"Docling",c:"Indexation",d:["Bibliothèque d'IBM pour parser les PDF complexes (mise en page multi-colonnes, tableaux) en Markdown structuré. Dépendance <b>optionnelle</b>, activée par document via <code>extractor: docling</code> dans sources.yaml.","C'est une escalade : le PDF simple part sur pdfplumber, on ne paie Docling que là où c'est nécessaire."],r:["extract"],x:["Docling (GitHub)","https://github.com/docling-project/docling"]},
+ ocr:{t:"OCR (hors périmètre)",c:"Choix de périmètre",d:["Reconnaissance optique de caractères : lire le texte d'une image. Volontairement <b>hors périmètre</b> du projet.","Conséquence concrète : le calendrier universitaire n'existe qu'en PDF scanné → détecté comme sans couche de texte, exclu et signalé plutôt qu'ingéré à moitié. C'est un choix assumé, pas un oubli."],r:["extract"]},
+ topk:{t:"Top-k",c:"Requête",d:["Le nombre de chunks les mieux classés que l'on garde après la recherche par similarité — <b>k = 5 par défaut</b> ici. Ces k passages sont injectés dans le prompt du LLM.","Trop petit : on risque de manquer l'information ; trop grand : on dilue les bons passages et on gonfle le coût (et sur Ollama, on dépasse num_ctx). Le bon réglage se trouve par l'évaluation — la courbe recall@k montre un plateau dès k=3."],r:["cosine","recall","numctx","prompt"]},
+ prompt:{t:"Prompt RAG (système + user)",c:"Requête",d:["Deux messages. Le <b>système</b> fixe les règles : répondre exclusivement à partir des extraits, citer [S1]/[S2], signaler les contradictions, traiter séparément les cas multiples, et sinon refuser mot pour mot.","Le message <b>user</b> place les sources en balises XML <code>&lt;source id=\"S1\" titre=…&gt;</code> <b>d'abord</b>, puis la question <b>en dernier</b> : meilleure obéissance sur contexte long, et le XML sépare sans ambiguïté les données des instructions."],r:["rag","citation","refus","backend"],f:"generation/rag.py · prompts/rag_system.md"},
+ citation:{t:"Citations [S1] [S2]",c:"Requête",d:["Chaque affirmation factuelle porte au moins une citation renvoyant à l'identifiant d'une balise <code>&lt;source&gt;</code>. Le modèle a pour consigne de ne jamais citer un identifiant qu'il n'a pas réellement utilisé.","C'est la traçabilité du produit : l'utilisateur peut remonter à la source exacte. L'interface affiche le titre du document, la page et un extrait sous chaque réponse."],r:["prompt","refus","rag"]},
+ refus:{t:"Refus & fidélité aux sources",c:"Requête",d:["Si les extraits ne permettent pas de répondre, le modèle renvoie <b>exactement</b> : « Je ne trouve pas cette information dans les documents disponibles. » — seule, sans rien ajouter.","La détection du refus se fait par comparaison <b>normalisée</b> (minuscules, sans ponctuation) : les petites variations d'un modèle 7B comptent quand même comme un refus. Un refus ne cite aucune source. C'est la même normalisation qu'utilise le harnais d'évaluation."],r:["prompt","citation","hallucination","recall"],f:"generation/rag.py"},
+ backend:{t:"Backend LLM-agnostique",c:"Génération",d:["Un seul protocole <code>LLMBackend</code> (un nom + une méthode <code>generate</code>), deux implémentations sélectionnées par <code>LLM_BACKEND</code> : <code>OllamaBackend</code> (local) et <code>MistralBackend</code> (API). Pas de streaming, pas d'état, pas de retry élaboré.","Les échecs sont normalisés en <code>LLMBackendError</code> avec une cause (timeout, connexion, auth, quota) que l'API traduit en 503 propre. Changer de fournisseur ne touche pas le reste du code."],r:["ollama","mistral","numctx","llm"],f:"generation/llm.py"},
+ ollama:{t:"Ollama (backend local)",c:"Génération",d:["Serveur local qui sert des modèles open-source (ici <code>mistral</code> 7B) via HTTP. Contrôle total, données qui ne sortent pas de la machine, pas de coût par requête — mais lent sur CPU.","Piège n°3 neutralisé : Ollama tronque le prompt à <code>num_ctx</code> (souvent 2048/4096), pas à la capacité du modèle, <b>sans erreur</b> — on perd des sources en silence. Le projet fixe <code>OLLAMA_NUM_CTX=8192</code> explicitement, avec repli documenté 4096/k=3."],r:["numctx","backend","mistral"],f:"generation/llm.py"},
+ mistral:{t:"Mistral La Plateforme (API)",c:"Génération",d:["L'API de Mistral (société française, modèles open-weight). Modèle <code>mistral-small-latest</code>. Les meilleures performances sans infrastructure, ~3 s par question, mais les données transitent chez un tiers et chaque appel se paie.","L'arbitrage assumé du projet : <b>développer sur l'API</b> (rapide, fiable), <b>démontrer en local</b> (Ollama). La clé vit dans <code>.env</code> ; sans elle, le backend API échoue au démarrage (fail-fast)."],r:["ollama","backend","llm"],f:"generation/llm.py"},
+ numctx:{t:"num_ctx (fenêtre Ollama)",c:"Pièges",d:["Nombre maximal de tokens qu'Ollama donne au modèle. Le piège : sa valeur par défaut est petite et <b>silencieuse</b> — au-delà, le prompt (donc des sources) est tronqué sans aucune erreur, et le modèle répond sur un contexte amputé.","Conséquence pour le RAG : k et la taille des chunks doivent tenir dans num_ctx. D'où le repli documenté (num_ctx 4096, k=3) quand le CPU est trop lent à 8192."],r:["ollama","topk","chunking"]},
+ recall:{t:"recall@k (context recall)",c:"Évaluation",d:["La métrique de récupération du projet : sur k passages remontés, le bon chunk est-il présent ? Moyennée sur 16 questions annotées. C'est un proxy du <em>context recall</em> au sens RAGAS.","On mesure la <b>récupération</b> séparément de la <b>génération</b> : si le bon chunk n'est jamais remonté, aucun LLM ne pourra répondre correctement. Baseline k=5 : sémantique 0.94, BM25 0.81, RRF 0.88."],r:["ragas","bm25","rrf","harness","topk"],f:"evaluation.py · eval/evaluate.py"},
+ ragas:{t:"RAGAS (vocabulaire)",c:"Évaluation",d:["Cadre d'évaluation des systèmes RAG. Le projet en emprunte le <b>vocabulaire</b> — <em>context recall</em> (le contexte contient-il la réponse ?), <em>faithfulness</em> (la réponse est-elle fidèle au contexte ?) — sans automatiser l'outil complet en V1.","Cela ancre les mesures maison dans une terminologie reconnue ; l'évaluation RAGAS automatisée est notée comme évolution future."],r:["recall","refus","harness"],x:["Documentation RAGAS","https://docs.ragas.io"]},
+ bm25:{t:"BM25 (recherche lexicale)",c:"Évaluation",d:["Recherche par mots-clés classique : compte les termes communs pondérés. L'opposé de la recherche sémantique — forte sur les sigles et termes exacts (BCC, CVEC, M3C), faible sur les reformulations.","Ici : index BM25 en mémoire (<code>rank_bm25</code>) construit à la volée depuis les <b>mêmes</b> chunks que l'index sémantique, <b>pour l'évaluation seulement</b>. Le pipeline /ask reste sémantique pur."],r:["recall","rrf","cosine"],f:"retrieval/bm25_store.py"},
+ rrf:{t:"RRF (fusion de rangs)",c:"Évaluation",d:["Reciprocal Rank Fusion : combine les classements sémantique et BM25 en additionnant l'inverse des rangs. Recherche « hybride » simple et robuste, sans réglage de poids.","Mesurée (recall@5 = 0.88), <b>pas branchée</b> dans /ask : le sémantique la dépasse ici (0.94). Mais elle rattrape la seule question que le sémantique rate (q04, logement) — argument gardé pour une bascule hybride si les chiffres la justifient un jour."],r:["bm25","recall","cosine"],f:"evaluation.py"},
+ harness:{t:"Harnais d'évaluation",c:"Évaluation",d:["Un script qui rejoue un jeu de questions annotées et produit un <b>rapport Markdown daté</b> : recall@k par méthode, détail par question, et une section « désaccords » (questions où une seule méthode trouve le bon chunk).","Reproductible et versionné (<code>eval/reports/</code>) : les progrès sont chiffrés et traçables, pas ressentis. Aucun test unitaire n'appelle un vrai LLM ni le réseau."],r:["recall","ragas","rewrite"],f:"eval/evaluate.py · eval/reports/"},
+ rewrite:{t:"Réécriture de requête",c:"Requête",d:["Trois stratégies pour la requête envoyée à la recherche : <code>raw</code> (identité, défaut V1), <code>strip</code> (retrait heuristique déterministe de l'ouverture conversationnelle), <code>llm</code> (réécriture par le modèle en requête factuelle).","<code>strip</code> est l'identité sur les questions définitionnelles (« Qu'est-ce que… ») : il ne peut donc pas les régresser. Mesuré puis proposé en <b>option</b> de /ask (défaut raw ⇒ comportement V1 inchangé)."],r:["strip","topk","harness","condensation"],f:"generation/rewrite.py"},
+ strip:{t:"Stratégie strip",c:"Requête",d:["Retire par expression régulière l'ouverture impérative/conversationnelle (« parle-moi de », « je voudrais des infos sur »…) et l'article qui la suit, en gardant la queue informative. « Parle-moi des régimes spéciaux » → « régimes spéciaux ».","Déterministe, aucun appel LLM, jamais destructif sur une question définitionnelle. Résultat mesuré sur le jeu « dur » : recall@5 0.62 → 0.88, sans régression ailleurs."],r:["rewrite","recall"],f:"generation/rewrite.py"},
+ condensation:{t:"Condensation (V2)",c:"Requête",d:["Reformule une question de suivi en question <b>autonome</b> à partir de l'historique, <em>avant</em> la recherche : « Et comment la demander ? » → « Comment demander une césure ? ». Sans elle, le vecteur d'un tour elliptique ne retrouverait rien.","Exposée par <code>/prepare</code> pour un aperçu en direct sous la question ; la reformulation, calculée une fois, est réutilisée par <code>/ask</code> pour ne jamais diverger de ce qui est recherché. Rétrocompatible : sans historique, on retombe exactement sur la V1."],r:["rewrite","prompt","pipeline"],f:"generation/rag.py · prompts/condense_system.md"},
+ pipeline:{t:"RagPipeline",c:"Orchestration",d:["La classe qui orchestre un tour : <code>prepare</code> (condensation + réécriture ⇒ requête de recherche) puis <code>answer</code> (récupérer top-k, assembler le prompt, générer, détecter un refus).","Injection de dépendances partout (store, backend) : les tests substituent des faux — aucun test ne télécharge un modèle ni ne touche le réseau. C'est le point d'entrée unique de la logique RAG."],r:["rag","condensation","backend","fastapi"],f:"generation/rag.py"},
+ fastapi:{t:"FastAPI",c:"Ingénierie",d:["Le framework qui expose le système en API HTTP : <code>POST /ask</code>, <code>POST /prepare</code>, <code>POST /ingest</code> (upload multipart), <code>GET /health</code>, et la page démo sur <code>/</code>. Documentation interactive auto-générée sur <code>/docs</code>.","La configuration est validée <b>au démarrage</b> (fail-fast) : un backend mal configuré fait échouer le lancement, pas la première requête. Store, backend et pipeline sont des singletons paresseux surchargeables par les tests."],r:["pipeline","backend"],f:"api/main.py"},
+ sbert:{t:"sentence-transformers",c:"Bibliothèques",d:["La bibliothèque qui charge et fait tourner le modèle d'embedding (e5-small) : quelques lignes pour transformer une liste de textes en vecteurs normalisés, sur CPU ou GPU.","Encapsulée dans une seule classe <code>Embedder</code> : aucun autre module n'encode de texte directement, ce qui garantit que les préfixes E5 sont toujours appliqués au bon endroit."],r:["e5","embedding","chromadb"],f:"retrieval/embedder.py"},
+ langchain:{t:"Port LangChain",c:"Comparaison",d:["Le pipeline de requête est réimplémenté avec LangChain sur une branche dédiée (<code>langchain-port</code>), à des fins de comparaison honnête : ce que le framework abstrait vs ce qu'on perd en lisibilité et en contrôle.","La démarche du projet est « le pipeline d'abord, le framework ensuite » — pour pouvoir expliquer chaque brique avant de la déléguer."],r:["pipeline","rag"]}
+};
+
+var CATS={};
+function openTerm(k){
+  var g=G[k];if(!g)return;
+  document.getElementById('dCat').textContent=g.c;
+  document.getElementById('dTitle').textContent=g.t;
+  document.getElementById('dBody').innerHTML=g.d.map(function(p){return '<p>'+p+'</p>';}).join('');
+  var file=document.getElementById('dFile');
+  if(g.f){file.style.display='inline-block';file.textContent='📄 '+g.f;}else{file.style.display='none';}
+  var rel=document.getElementById('dRel'),lbl=document.getElementById('dRelLbl');
+  if(g.r&&g.r.length){
+    lbl.style.display='block';
+    rel.innerHTML=g.r.map(function(rk){return G[rk]?'<button onclick="openTerm(\''+rk+'\')">'+G[rk].t+'</button>':'';}).join('');
+  }else{lbl.style.display='none';rel.innerHTML='';}
+  var ext=document.getElementById('dExt');
+  if(g.x){ext.style.display='inline-block';ext.textContent=g.x[0]+' ↗';ext.href=g.x[1];}
+  else{ext.style.display='none';}
+  document.getElementById('overlay').style.display='block';
+  document.getElementById('drawer').classList.add('open');
+  document.querySelector('#drawer .body').scrollTop=0;
+  document.querySelector('#drawer .close').focus();
+}
+function closeDrawer(){
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('drawer').classList.remove('open');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer();});
+document.querySelectorAll('.term').forEach(function(b){
+  b.addEventListener('click',function(){openTerm(b.getAttribute('data-term'));});
+});
+document.querySelectorAll('.stage').forEach(function(s){
+  s.addEventListener('click',function(){openTerm(s.getAttribute('data-term'));});
+  s.style.cursor='pointer';
+});
+document.getElementById('chips').innerHTML=Object.keys(G).map(function(k){
+  return '<button class="chip" onclick="openTerm(\''+k+'\')">'+G[k].t+'</button>';
+}).join('');
+
+/* ---------- hero animation : la pile d'indexation ---------- */
+var heroStages=["sources.yaml","download","extract","clean","chunk","« passage: »","e5-small","ChromaDB"];
+document.getElementById('heroTokens').innerHTML=heroStages.map(function(s,i){
+  var arrow=i<heroStages.length-1?'<span class="ar" style="animation-delay:'+(i*180+90)+'ms">→</span>':'';
+  return '<span class="tk" style="animation-delay:'+(i*180)+'ms">'+s+'</span>'+arrow;
+}).join('');
+
+/* ---------- chunking demo ---------- */
+function approxTokens(t){var w=t.trim().split(/\s+/).filter(Boolean).length;return Math.max(1,Math.round(w*1.3));}
+var PREFIX_TOK=2; // "passage: " ~ 2 tokens
+function splitSentences(t){return t.replace(/\s+/g,' ').trim().match(/[^.!?]+[.!?]*/g)||[t];}
+function chunkText(text,maxTok,overlap){
+  var budget=maxTok-PREFIX_TOK;
+  var sents=splitSentences(text).map(function(s){return s.trim();}).filter(Boolean);
+  var chunks=[],cur=[],curTok=0;
+  for(var i=0;i<sents.length;i++){
+    var st=approxTokens(sents[i]);
+    if(cur.length && curTok+st>budget){
+      chunks.push(cur.slice());
+      // overlap: carry trailing sentences within the overlap budget
+      var tail=[],tt=0;
+      for(var j=cur.length-1;j>=0;j--){var jt=approxTokens(cur[j]);if(tt+jt>overlap)break;tail.unshift(cur[j]);tt+=jt;}
+      cur=tail.slice();curTok=tt;
+    }
+    cur.push(sents[i]);curTok+=st;
+  }
+  if(cur.length)chunks.push(cur);
+  return chunks;
+}
+function renderChunks(){
+  var text=document.getElementById('chunkIn').value;
+  var mt=+document.getElementById('mt').value, ov=+document.getElementById('ov').value;
+  document.getElementById('mtVal').textContent=mt;document.getElementById('ovVal').textContent=ov;
+  if(ov>=mt-PREFIX_TOK)ov=mt-PREFIX_TOK-2;
+  var chunks=chunkText(text,mt,ov);
+  var prevTail=[];
+  var html=chunks.map(function(sents,idx){
+    var overlapSet={};
+    if(idx>0){prevTail.forEach(function(s){overlapSet[s]=1;});}
+    var body=sents.map(function(s){return overlapSet[s]?'<span class="ov">'+s+'</span>':s;}).join(' ');
+    // compute this chunk's tail for the next one
+    var tail=[],tt=0;for(var j=sents.length-1;j>=0;j--){var jt=approxTokens(sents[j]);if(tt+jt>ov)break;tail.unshift(sents[j]);tt+=jt;}
+    prevTail=tail;
+    var full='passage: '+sents.join(' ');
+    return '<div class="chunk"><div class="ch-h"><span>chunk #'+idx+'</span><span>'+approxTokens(full)+' tokens (préfixe compris)</span></div>'+
+      '<div class="ch-t"><span class="chip-prefix">passage: </span>'+body+'</div></div>';
+  }).join('');
+  document.getElementById('chunkOut').innerHTML=html;
+}
+document.getElementById('mt').addEventListener('input',renderChunks);
+document.getElementById('ov').addEventListener('input',renderChunks);
+document.getElementById('chunkIn').addEventListener('input',renderChunks);
+renderChunks();
+
+/* ---------- RAG query demo ---------- */
+var DOCS=[
+ {t:"La césure à AMU",c:"reglement-scolarite"},
+ {t:"Charte des étudiants et stagiaires d'AMU",c:"reglement-scolarite"},
+ {t:"Régime spécial d'études (RSE)",c:"reglement-scolarite"},
+ {t:"Droit — Régimes spéciaux d'études",c:"composante"},
+ {t:"Droits d'inscription et aides financières",c:"guide-etudiant"},
+ {t:"ALLSH — Cadrage M3C Master 2025-2026",c:"composante"},
+ {t:"Guide de l'inscription administrative en ligne (IA web)",c:"guide-etudiant"}
+];
+var QUERIES=[
+ {q:"Comment demander une césure à l'université ?",
+  s:[0.89,0.71,0.34,0.31,0.28,0.22,0.41],
+  a:"La demande de césure se dépose auprès de la composante, avec l'accord du responsable de formation ; l'étudiant suspend ses études pour un ou deux semestres tout en conservant son statut [S1]. Les droits et le cadre de la césure sont rappelés dans la charte des étudiants [S2].",
+  refuse:false},
+ {q:"Qu'est-ce que le régime spécial d'études (RSE) ?",
+  s:[0.30,0.38,0.90,0.82,0.33,0.44,0.21],
+  a:"Le régime spécial d'études (RSE) est un aménagement de la scolarité — emploi du temps, modalités de contrôle, dispense d'assiduité — destiné notamment aux étudiants salariés, chargés de famille, en situation de handicap ou sportifs de haut niveau [S1]. Chaque composante en précise les conditions et les pièces à fournir [S2].",
+  refuse:false},
+ {q:"Qu'est-ce que la CVEC ?",
+  s:[0.24,0.35,0.29,0.22,0.86,0.31,0.55],
+  a:"La Contribution de vie étudiante et de campus (CVEC) est une contribution obligatoire à régler avant l'inscription administrative ; son attestation est exigée pour finaliser l'inscription [S1]. Le justificatif est demandé lors de l'inscription en ligne (IA web) [S2].",
+  refuse:false},
+ {q:"Quelle heure est-il ?",
+  s:[0.12,0.09,0.08,0.10,0.11,0.07,0.09],
+  a:"Je ne trouve pas cette information dans les documents disponibles.",
+  refuse:true}
+];
+function renderDocs(){
+  document.getElementById('docs').innerHTML=DOCS.map(function(d,i){
+    return '<div class="doc" id="doc'+i+'"><div class="head"><div><div class="dt">'+d.t+'</div>'+
+      '<div class="cat">'+d.c+'</div></div><span class="sc">—</span></div>'+
+      '<div class="track"><div class="sbar"></div></div></div>';
+  }).join('');
+}
+renderDocs();
+function ask(qi){
+  var d=QUERIES[qi];
+  var docs=document.querySelectorAll('#docs .doc');
+  var order=d.s.map(function(v,i){return [v,i];}).sort(function(a,b){return b[0]-a[0];});
+  var top=[order[0][1],order[1][1]];
+  document.getElementById('ans').style.display='none';
+  document.getElementById('promptbox').style.display='none';
+  docs.forEach(function(doc,i){
+    doc.classList.remove('hit');
+    doc.querySelector('.sbar').style.width=(d.s[i]*100).toFixed(0)+'%';
+    doc.querySelector('.sc').textContent=d.s[i].toFixed(2);
+  });
+  setTimeout(function(){ if(!d.refuse) top.forEach(function(i){docs[i].classList.add('hit');}); },600);
+  // build the prompt preview
+  setTimeout(function(){
+    var pb=document.getElementById('promptbox');
+    if(d.refuse){
+      pb.innerHTML='<span class="c"># aucun chunk pertinent (scores faibles) — mais on tente quand même :</span>\n'+
+        '<span class="k">système</span> : réponds UNIQUEMENT d\'après &lt;sources&gt;, sinon refuse mot pour mot.\n'+
+        '<span class="k">user</span> : &lt;sources&gt; … &lt;/sources&gt;\n\nQuestion : '+d.q;
+    }else{
+      var s1=DOCS[top[0]], s2=DOCS[top[1]];
+      pb.innerHTML='<span class="k">système</span> : réponds UNIQUEMENT d\'après &lt;sources&gt;, cite [S1]/[S2], sinon refuse.\n'+
+        '<span class="k">user</span> :\n&lt;sources&gt;\n'+
+        '  &lt;source id=<span class="s">"S1"</span> titre=<span class="s">"'+s1.t+'"</span>&gt; … &lt;/source&gt;\n'+
+        '  &lt;source id=<span class="s">"S2"</span> titre=<span class="s">"'+s2.t+'"</span>&gt; … &lt;/source&gt;\n'+
+        '&lt;/sources&gt;\n\nQuestion : '+d.q;
+    }
+    pb.style.display='block';
+  },1000);
+  // answer
+  setTimeout(function(){
+    var ans=document.getElementById('ans'),who=document.getElementById('answho');
+    ans.className='answer'+(d.refuse?' refuse':'');
+    who.textContent=d.refuse?'Refus · information absente du corpus':'Réponse du LLM · ancrée dans les sources';
+    document.getElementById('anstxt').innerHTML=d.a.replace(/\[(S\d+)\]/g,'<span class="cite">$1</span>');
+    ans.style.display='block';
+  },1500);
+}
+
+/* ---------- eval bars (animate) ---------- */
+function animateEval(){
+  document.querySelectorAll('.evalrow .fill').forEach(function(f){
+    f.style.width=f.getAttribute('data-w')+'%';
+  });
+}
+var evalDone=false;
+window.addEventListener('scroll',function(){
+  if(evalDone)return;
+  var sec=document.getElementById('s4');
+  if(sec.getBoundingClientRect().top<window.innerHeight*0.8){evalDone=true;animateEval();}
+});
+
+/* ---------- STATS -> DOM (source unique de vérité, câblée depuis le bloc STATS) ---------- */
+function fmtStat(v){
+  if(typeof v==='number')return Number.isInteger(v)?String(v):v.toFixed(2);
+  return v;
+}
+function resolveStat(path){
+  return path.split('.').reduce(function(o,k){return (o==null)?undefined:o[k];},STATS);
+}
+function applyStats(){
+  document.querySelectorAll('[data-stat]').forEach(function(el){
+    var v=resolveStat(el.getAttribute('data-stat'));
+    if(v!==undefined&&v!==null)el.textContent=fmtStat(v);
+  });
+  [['.f-sem',STATS.recall_at_5.semantic],['.f-bm',STATS.recall_at_5.bm25],['.f-rrf',STATS.recall_at_5.rrf]].forEach(function(b){
+    var el=document.querySelector(b[0]);if(!el)return;
+    el.setAttribute('data-w',Math.round(b[1]*100));
+    el.textContent=b[1].toFixed(2);
+  });
+  var stamp=document.getElementById('updatedStamp');
+  if(stamp)stamp.textContent='Instantané du projet au '+STATS.updated+((STATS.commit&&STATS.commit!=='local')?' · commit '+STATS.commit:'');
+}
+applyStats();
+
+/* ---------- recall@k curve (SVG, chiffres réels depuis STATS.recall_curve) ---------- */
+function buildRecallChart(){
+  var el=document.getElementById('recallChart');if(!el)return;
+  var rc=STATS.recall_curve,ks=rc.k;
+  var series=[
+    {name:'sémantique',color:'#143b8f',v:rc.semantic},
+    {name:'RRF',color:'#12836F',v:rc.rrf},
+    {name:'BM25',color:'#8892B0',v:rc.bm25}
+  ];
+  var W=660,H=300,padL=46,padR=118,padT=18,padB=46;
+  var plotW=W-padL-padR,plotH=H-padT-padB;
+  var xi=function(i){return padL+i*(plotW/(ks.length-1));};
+  var yv=function(r){return padT+(1-(r-0.6)/0.4)*plotH;};
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">';
+  for(var g=0.6;g<=1.0001;g+=0.1){
+    var y=yv(g);
+    svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(padL+plotW)+'" y2="'+y+'" stroke="#E1E5F0" stroke-width="1"/>';
+    svg+='<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6B7290">'+g.toFixed(1)+'</text>';
+  }
+  var bx=xi(2);
+  svg+='<line x1="'+bx+'" y1="'+padT+'" x2="'+bx+'" y2="'+(padT+plotH)+'" stroke="#143b8f" stroke-width="1" stroke-dasharray="4 4" opacity="0.35"/>';
+  svg+='<text x="'+bx+'" y="'+(padT-5)+'" text-anchor="middle" font-size="10.5" fill="#143b8f">k=5 · retenu</text>';
+  ks.forEach(function(k,i){svg+='<text x="'+xi(i)+'" y="'+(padT+plotH+21)+'" text-anchor="middle" font-size="11.5" fill="#33406B">k='+k+'</text>';});
+  svg+='<text x="'+(padL+plotW/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11" fill="#6B7290">passages récupérés (k)</text>';
+  series.forEach(function(s){
+    var pts=s.v.map(function(r,i){return xi(i)+','+yv(r);}).join(' ');
+    svg+='<polyline points="'+pts+'" fill="none" stroke="'+s.color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s.v.forEach(function(r,i){svg+='<circle cx="'+xi(i)+'" cy="'+yv(r)+'" r="3.5" fill="'+s.color+'"/>';});
+    var last=s.v[s.v.length-1];
+    svg+='<text x="'+(xi(ks.length-1)+9)+'" y="'+(yv(last)+4)+'" font-size="12" font-weight="600" fill="'+s.color+'">'+s.name+' '+last.toFixed(2)+'</text>';
+  });
+  svg+='</svg>';
+  el.innerHTML=svg;
+}
+buildRecallChart();
+
+/* ---------- sidebar : scroll-spy + tiroir mobile ---------- */
+(function(){
+  var links=[].slice.call(document.querySelectorAll('.sidebar a[data-sec]'));
+  var map={};links.forEach(function(a){map[a.getAttribute('data-sec')]=a;});
+  var spy=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(a){a.classList.remove('active');});
+        var a=map[e.target.id];if(a)a.classList.add('active');
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+  document.querySelectorAll('main section[id]').forEach(function(s){spy.observe(s);});
+  var sb=document.getElementById('sidebar'),ov=document.getElementById('sideOverlay'),mb=document.getElementById('menuBtn');
+  function close(){sb.classList.remove('open');ov.classList.remove('show');}
+  if(mb)mb.addEventListener('click',function(){sb.classList.add('open');ov.classList.add('show');});
+  if(ov)ov.addEventListener('click',close);
+  links.forEach(function(a){a.addEventListener('click',close);});
+})();
+
+/* ---------- strip demo (porté de rewrite.py) ---------- */
+var OPENERS=[
+ "parle[- ]?moi","parlez[- ]?moi","dis[- ]?moi","dites[- ]?moi",
+ "explique[- ]?moi","expliquez[- ]?moi","raconte[- ]?moi","racontez[- ]?moi",
+ "montre[- ]?moi","montrez[- ]?moi",
+ "donne[- ]?moi(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails|précisions))?",
+ "donnez[- ]?moi(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails|précisions))?",
+ "j['’]?\\s*aimerais(?:\\s+(?:bien|savoir|en\\s+savoir\\s+plus|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
+ "je\\s+voudrais(?:\\s+(?:bien|savoir|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
+ "je\\s+souhaite(?:rais)?(?:\\s+(?:savoir|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
+ "je\\s+cherche(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
+ "je\\s+veux(?:\\s+savoir)?",
+ "peux[- ]?tu(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner|renseigner|indiquer|en\\s+dire\\s+plus))?",
+ "pouvez[- ]?vous(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner|renseigner|indiquer))?",
+ "pourrais[- ]?tu(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner))?",
+ "as[- ]?tu\\s+des\\s+(?:informations|infos)(?:\\s+sur)?",
+ "aurais[- ]?tu\\s+des\\s+(?:informations|infos)(?:\\s+sur)?"
+];
+var CONNECTIVE="(?:\\s+(?:sur|concernant|au\\s+sujet\\s+de|à\\s+propos\\s+de|de\\s+la|de\\s+l['’]|de|du|des|d['’]))?";
+var OPENER_RE=new RegExp("^\\s*(?:"+OPENERS.join("|")+")"+CONNECTIVE+"(?:\\s+|$)","i");
+var LEAD_ART_RE=new RegExp("^\\s*(?:les|le|la|l['’]|un|une|des|du|de\\s+la|de\\s+l['’]|de|d['’])\\s+","i");
+function stripQuery(q){
+  var s=q.replace(OPENER_RE,"");
+  if(s===q)return {out:q,changed:false};
+  s=s.replace(LEAD_ART_RE,"");
+  s=s.trim().replace(/^[?.!,;:]+|[?.!,;:]+$/g,"").trim();
+  return {out:s||q,changed:true};
+}
+var STRIP_EX=["Parle-moi des régimes spéciaux",
+ "Je voudrais des infos sur le contrôle des connaissances",
+ "Peux-tu m'expliquer la césure ?",
+ "Qu'est-ce que la CVEC ?"];
+function doStrip(exi){
+  var q= (typeof exi==='number') ? STRIP_EX[exi] : document.getElementById('stripIn').value;
+  document.getElementById('stripIn').value=q;
+  var r=stripQuery(q);
+  document.getElementById('stripBefore').textContent='« '+q+' »';
+  document.getElementById('stripAfter').textContent='« '+r.out+' »';
+  var note=document.getElementById('stripNote');
+  if(r.changed){
+    note.innerHTML='Ouverture conversationnelle retirée : la requête recherchée est désormais un groupe nominal factuel, bien plus proche du bon document.';
+  }else{
+    note.innerHTML='<span class="identity">Question définitionnelle : aucune ouverture à retirer → requête <b>inchangée</b>.</span> C\'est la garantie de non-régression de <span class="mono">strip</span>.';
+  }
+}
+doStrip(0);
+</script>
+</body>
+</html>

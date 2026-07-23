@@ -1,0 +1,41 @@
+# docs/concepts.facts.yaml
+# ---------------------------------------------------------------------------
+# Source unique des faits VOLATILS affichés par docs/concepts-assistant-amu.html.
+# Mettre à jour ces valeurs quand une phase/feature atterrit ou qu'un nouveau
+# rapport d'évaluation est produit, puis régénérer la page :
+#
+#     python docs/build_concepts.py
+#
+# NB : `k_default`, `embedding_model` et les NOMS de modèles backend sont lus
+# AUTOMATIQUEMENT depuis src/assistant_amu/config.py par le générateur — ne pas
+# les dupliquer ici. Le reste provient de tes rapports datés dans eval/reports/.
+# ---------------------------------------------------------------------------
+
+corpus:            # `python -m assistant_amu.ingestion stats`
+  docs: 18
+  chunks: 316
+
+eval_questions: 16 # taille du jeu answerable (eval/questions.yaml)
+tests: 90          # `pytest -q` -> nombre de tests verts
+
+recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5)
+  semantic: 0.94
+  bm25: 0.81
+  rrf: 0.88
+
+recall_curve:      # eval/reports/*_recall_sensitivity_k.md
+  k: [2, 3, 5, 8]
+  semantic: [0.88, 0.88, 0.94, 0.94]
+  rrf: [0.75, 0.88, 0.88, 0.88]
+  bm25: [0.69, 0.75, 0.81, 0.81]
+
+rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur », k=5)
+  raw: 0.62
+  strip: 0.88
+
+backends:          # latences/refus MESURÉS (les noms de modèles viennent de config.py)
+  mistral:
+    latency: "~3 s / question"
+    refusals: "4/4"
+  ollama:
+    latency: "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3"
