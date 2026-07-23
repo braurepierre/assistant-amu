@@ -308,3 +308,29 @@ Avantages : dépendance `gradio` retirée (projet plus léger), look **charte AM
 (bleu #143b8f / jaune #f6e400), et surtout **format chatbot conversationnel** qui
 exploite `history` → met en scène la **condensation V2** (affichage « compris
 comme : … »). `demo.py` et l'extra `[demo]` supprimés (une seule UI). Réversible.
+
+## 2026-07-23 — Comparaisons : embeddeurs (Phase 5) & pipeline vs LangChain (F9)
+
+**Fait.** Deux comparaisons *mesure seule* demandées par l'utilisateur, lancées en
+parallèle (worktree dédiée pour la branche `langchain-port`).
+- **Embeddeurs** (`eval/embedder_comparison.py`, sur `main`) : recall@k sémantique
+  d'e5-small / CamemBERT / FlauBERT sur les **mêmes** chunks (ré-embarqués dans des
+  collections éphémères, supprimées ensuite ; `amu_docs` intacte). Résultat : e5 et
+  CamemBERT à égalité en moyenne (0.92 ; CamemBERT parfait à k=8), FlauBERT en
+  retrait sur les sigles (rate RSE, CVEC). Tableau reporté au README. `/ask` garde
+  e5 : les écarts (1-2 questions ≈ granularité 0.06) ne le justifient pas.
+- **Pipeline manuel vs port LangChain** (`eval/compare_pipelines.py`, sur
+  `langchain-port`) : mêmes questions, même collection, même prompt, backend
+  Mistral. Parité de refus **19/20**, citations 15/20, recouvrement lexical 0.75 →
+  F9 « réponses équivalentes » vérifié. Piège : les deux pipelines ouvrant un client
+  Chroma sur le même dossier dans un seul process, il faut aligner leurs réglages
+  (télémétrie) et injecter le retriever LangChain.
+
+**Dépendance hors §6.1 (justif. §11.7).** `sacremoses` en extra **optionnel**
+`[eval-flaubert]` : le tokenizer Moses de FlauBERT en a besoin pour se charger
+(sentence-transformers). Réservé à la comparaison d'embeddeurs (Phase 5), hors du
+cœur produit — `/ask` reste sur e5. À noter : le modèle FlauBERT *cased*
+`Lajavaness/sentence-flaubert-base` ne charge pas sous sentence-transformers 5.6.1
+(son `FlaubertTokenizer` Moses n'a pas `basic_tokenizer`, que le module Transformer
+suppose) ; la variante *uncased* `hugorosen/flaubert_base_uncased-xnli-sts` est
+utilisée à la place.

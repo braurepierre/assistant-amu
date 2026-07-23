@@ -32,6 +32,10 @@ dependencies = [
 # fpdf2 is test-only: generates tiny PDF fixtures for ingestion tests (JOURNAL §11.7).
 dev = ["pytest", "fpdf2"]
 docling = ["docling"]  # PDF layout/table escalation (PRD §7.2)
+# eval-flaubert (Phase 5): FlauBERT's Moses tokenizer needs `sacremoses` to load
+# under sentence-transformers. Only `eval/embedder_comparison.py` touches FlauBERT;
+# /ask stays on e5. Measurement-only extra — see JOURNAL (§11.7 justification).
+eval-flaubert = ["sacremoses"]
 # Demo UI (§5.4 bonus) = demo.html, a dependency-free vanilla page served by the
 # API at "/". No extra needed.
 
