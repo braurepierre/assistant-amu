@@ -181,18 +181,40 @@ chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
 - [x] **Phase 6** — Port LangChain (branche `langchain-port`, F9)
 - [x] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12)
 
-> **Statut** : code des phases 0-7 implémenté et testé. La *validation chiffrée*
-> de F1/F4/F7-latence/F8-baseline, le test d'intégration des deux backends et
-> l'évaluation conversationnelle (F12) attendent le corpus AMU réel
-> (`corpus/sources.yaml`) et un backend LLM (clé Mistral et/ou Ollama). La V2 est
-> rétrocompatible : sans `history`, `/ask` reproduit exactement la V1. Voir
-> `JOURNAL.md`.
+> **Statut** : phases 0-7 implémentées, testées et **validées sur le corpus réel**
+> (18 docs / 316 chunks) avec les deux backends — baseline de retrieval, latences
+> `/ask`, comparaison d'embeddeurs et équivalence du port LangChain sont toutes
+> mesurées et reportées ci-dessus.
+>
+> Le rapport conversationnel V2 (F12) est produit
+> (`eval/reports/2026-07-23_conversation_k5.md`) : recall **3/6** sur les tours
+> answerable — chiffre à lire avec précaution, car `eval/scenarios.yaml` est un
+> premier jet. Deux biais identifiés : (1) les annotations `expected_source` y sont
+> trop strictes (pour la césure, les chunks récupérés parlent bien de césure mais
+> viennent de la page « IUT — Services de la scolarité », dont le titre ne contient
+> pas le mot) ; (2) un tour annoté `answerable` **refuse correctement**, faute de
+> règle spécifique au droit dans le corpus — et le refus vide les sources (F6), donc
+> compte comme un raté de recall. **Prochain pas** : raffiner ces annotations comme
+> cela a été fait pour le jeu single-turn (q03).
+>
+> La V2 reste rétrocompatible : sans `history`, `/ask` reproduit exactement la V1.
+> Voir `JOURNAL.md`.
 
 ## Port LangChain (branche `langchain-port`)
 
 Le pipeline de requête est réimplémenté avec LangChain sur la branche dédiée
 `langchain-port`, à des fins de comparaison. Le README de cette branche détaille
 « ce que LangChain abstrait » — et ce que l'on perd en lisibilité/contrôle.
+
+L'équivalence est **mesurée**, pas postulée : `eval/compare_pipelines.py` (sur la
+branche) rejoue les mêmes questions dans les deux implémentations, avec la même
+collection Chroma, le même prompt système et le même backend. Résultat (2026-07-23,
+`mistral-small-latest`, k=5, 20 questions) : **parité de refus 19/20** (dont les 4
+questions hors-corpus), parité de citations 15/20, recouvrement lexical moyen 0.75.
+L'unique divergence (q16) se situe au niveau de la *génération* sur une question
+limite, pas dans le câblage. Ce que LangChain **n'abstrait pas** reste visible : la
+chaîne LCEL rend une `str`, là où `/ask` doit encore produire un `RagResult`
+structuré (sources, refus → sources vidées, erreur backend → `503`).
 
 ## Références (état de l'art)
 

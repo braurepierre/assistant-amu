@@ -334,3 +334,26 @@ cœur produit — `/ask` reste sur e5. À noter : le modèle FlauBERT *cased*
 (son `FlaubertTokenizer` Moses n'a pas `basic_tokenizer`, que le module Transformer
 suppose) ; la variante *uncased* `hugorosen/flaubert_base_uncased-xnli-sts` est
 utilisée à la place.
+
+## 2026-07-23 — F12 : rapport conversationnel produit + diagnostic d'annotations
+
+**Fait.** `--mode conversation` lancé sur les 3 scénarios (Mistral, k=5) →
+`eval/reports/2026-07-23_conversation_k5.md`. C'était le dernier livrable de la
+feuille de route à n'avoir jamais été produit. Recall **3/6** sur les tours
+answerable.
+
+**Diagnostic — ce chiffre n'est pas un verdict de retrieval.** Vérifié sur
+`s1_cesure_droit` tour 1 : le pipeline **ne refuse pas** et rend 5 sources qui
+contiennent **toutes** le mot « césure » — mais toutes issues de la page « IUT —
+Services de la scolarité », dont le titre ne contient pas « césure ». L'annotation
+`expected_source: "césure"` portant sur le *titre*, elle les rejette toutes. Même
+classe de problème que q03 sur le jeu single-turn (annotation trop stricte), déjà
+diagnostiquée une fois. Second biais : le tour 2 de s1 **refuse correctement** (le
+corpus n'a pas de règle de césure spécifique au droit) alors qu'il est annoté
+`answerable` ; or un refus vide les sources (F6), donc il compte mécaniquement
+comme un raté de recall.
+
+**Reste dû.** `eval/scenarios.yaml` est toujours un premier jet : raffiner ces
+annotations (comme pour q03) avant de traiter le 3/6 comme une baseline
+conversationnelle. À faire avec l'utilisateur (§7.7) — c'est un jugement métier
+sur ce que chaque tour doit légitimement récupérer, pas une correction mécanique.
