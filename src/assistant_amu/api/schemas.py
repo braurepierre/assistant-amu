@@ -23,6 +23,18 @@ class AskRequest(BaseModel):
     # V2 (optional, backward-compatible): omitted => V1 single-turn behaviour.
     # Beyond the last 6 turns the pipeline truncates silently (§7.7).
     history: list[HistoryMessage] | None = None
+    # Query rewriting before retrieval (§5.3.5, measured in eval/). "raw" is the
+    # V1 default (identity, no extra backend call); "strip" is a deterministic
+    # heuristic; "llm" costs one extra backend call and is non-deterministic.
+    rewrite: Literal["raw", "strip", "llm"] = "raw"
+
+    # Live-preview flow (used by the demo): when /prepare has already resolved the
+    # retrieval query, pass it back so /ask reuses it verbatim — no second
+    # condensation/rewrite call, and the previewed query cannot drift from what is
+    # searched. Omitted by normal clients => /ask resolves it itself.
+    retrieval_query: str | None = None
+    condensed_question: str | None = None
+    rewritten_query: str | None = None
 
     # Clean single-turn example so /docs "Try it out" does not pre-fill a bogus
     # `history` (which would wrongly trigger V2 condensation on dummy text).
@@ -31,6 +43,20 @@ class AskRequest(BaseModel):
             "example": {"question": "Quelles sont les modalités de la césure ?", "k": 5}
         }
     )
+
+
+class PrepareRequest(BaseModel):
+    """Resolve the retrieval query (condensation + rewrite) without generating."""
+
+    question: str = Field(min_length=1, max_length=500)
+    history: list[HistoryMessage] | None = None
+    rewrite: Literal["raw", "strip", "llm"] = "raw"
+
+
+class PrepareResponse(BaseModel):
+    condensed_question: str | None = None  # V2 condensation of a follow-up (§7.7)
+    rewritten_query: str | None = None  # non-null only if the rewrite changed the query
+    retrieval_query: str  # the query actually used for retrieval (echoed back to /ask)
 
 
 class Source(BaseModel):
@@ -47,6 +73,7 @@ class AskResponse(BaseModel):
     model: str
     retrieved_chunks: int
     condensed_question: str | None = None  # always null in V1
+    rewritten_query: str | None = None  # the rewritten retrieval query, if rewrite changed it
 
 
 class IngestResponse(BaseModel):

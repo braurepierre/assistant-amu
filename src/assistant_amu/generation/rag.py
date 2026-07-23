@@ -18,6 +18,7 @@ from ..config import PROJECT_ROOT, Settings, get_settings
 from ..models import RetrievedChunk
 from ..retrieval.vector_store import VectorStore
 from .llm import LLMBackend, build_backend
+from .rewrite import rewrite_query
 
 PROMPTS_DIR = PROJECT_ROOT / "prompts"
 REFUSAL = "Je ne trouve pas cette information dans les documents disponibles."
@@ -36,6 +37,21 @@ class RagResult:
     model: str = ""
     retrieved_chunks: int = 0
     condensed_question: str | None = None  # always None in V1
+    rewritten_query: str | None = None  # None unless a rewrite strategy changed the query
+
+
+@dataclass(frozen=True, slots=True)
+class Preparation:
+    """The retrieval query resolved before generation (condensation + rewrite).
+
+    Returned by :meth:`RagPipeline.prepare` so a UI can show the reformulation
+    live (before the answer) and so :meth:`RagPipeline.answer` can reuse the exact
+    same query instead of recomputing it (§7.7 condensation, §5.3.5 rewrite).
+    """
+
+    condensed_question: str | None
+    rewritten_query: str | None
+    retrieval_query: str
 
 
 def normalize(text: str) -> str:
@@ -125,23 +141,47 @@ class RagPipeline:
             backend=backend or build_backend(settings),
         )
 
-    def answer(self, question: str, k: int = 5, history: list | None = None) -> RagResult:
-        # V2: condense a follow-up into a standalone question before retrieval.
-        # No history (or empty) => strictly the V1 behaviour (non-regression).
-        condensed = self._condense(question, history) if history else None
-        retrieval_query = condensed or question
+    def prepare(
+        self, question: str, history: list | None = None, rewrite: str = "raw"
+    ) -> Preparation:
+        """Resolve the retrieval query (condensation + rewrite) WITHOUT generating.
 
-        sources = self._store.query(retrieval_query, k=k)
+        Exposed so a UI can show the reformulation live, before the answer, and so
+        :meth:`answer` can reuse the exact same query — no double condensation/
+        rewrite call, and the preview can never drift from what was searched.
+        rewrite="raw" with no history is the identity and spends no backend call.
+        """
+        condensed = self._condense(question, history) if history else None
+        base_query = condensed or question
+        retrieval_query = rewrite_query(base_query, rewrite, self._backend)
+        rewritten = retrieval_query if retrieval_query != base_query else None
+        return Preparation(condensed, rewritten, retrieval_query)
+
+    def answer(
+        self,
+        question: str,
+        k: int = 5,
+        history: list | None = None,
+        rewrite: str = "raw",
+        prepared: Preparation | None = None,
+    ) -> RagResult:
+        # No history + rewrite="raw" => strictly the V1 behaviour (non-regression).
+        # `prepared` lets a caller reuse an earlier prepare() (live-preview flow),
+        # so the reformulation is resolved exactly once.
+        prep = prepared or self.prepare(question, history, rewrite)
+        condensed, rewritten = prep.condensed_question, prep.rewritten_query
+
+        sources = self._store.query(prep.retrieval_query, k=k)
         if not sources:
             # Nothing retrieved: refuse without spending a generation call.
-            return RagResult(REFUSAL, [], self._backend.name, 0, condensed)
+            return RagResult(REFUSAL, [], self._backend.name, 0, condensed, rewritten)
 
         user = build_user_message(question, sources, condensed_question=condensed)
         answer = self._backend.generate(self._system, user).strip()
         if is_refusal(answer):
             # Refusal cites no sources (F6).
-            return RagResult(answer, [], self._backend.name, len(sources), condensed)
-        return RagResult(answer, sources, self._backend.name, len(sources), condensed)
+            return RagResult(answer, [], self._backend.name, len(sources), condensed, rewritten)
+        return RagResult(answer, sources, self._backend.name, len(sources), condensed, rewritten)
 
     def _condense(self, question: str, history: list) -> str:
         """Reformulate a follow-up into a standalone question (§7.7)."""

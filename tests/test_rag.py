@@ -151,3 +151,80 @@ def test_build_user_message_includes_condensed():
     msg = build_user_message("Et en droit ?", [_rc("c1", "texte")], condensed_question="Cesure en droit ?")
     assert "Question d'origine : Et en droit ?" in msg
     assert "Cesure en droit ?" in msg
+
+
+# --- Query rewriting wired into /ask (§5.3.5) ----------------------------
+
+def test_rewrite_raw_leaves_query_untouched():
+    store = FakeStore([_rc("c1", "texte", score=0.8)])
+    backend = FakeBackend("Reponse [S1]")
+    result = RagPipeline(store=store, backend=backend, system_prompt="SYS").answer(
+        "Parle-moi des regimes speciaux.", rewrite="raw"
+    )
+    assert store.queries[0] == "Parle-moi des regimes speciaux."  # identity
+    assert result.rewritten_query is None
+    assert len(backend.calls) == 1  # raw spends no extra backend call (non-regression)
+
+
+def test_rewrite_strip_changes_retrieval_query_without_extra_call():
+    store = FakeStore([_rc("c1", "texte", score=0.8)])
+    backend = FakeBackend("Reponse [S1]")
+    result = RagPipeline(store=store, backend=backend, system_prompt="SYS").answer(
+        "Parle-moi des régimes spéciaux.", rewrite="strip"
+    )
+    assert store.queries[0] == "régimes spéciaux"  # opener stripped before retrieval
+    assert result.rewritten_query == "régimes spéciaux"
+    assert len(backend.calls) == 1  # strip is a pure heuristic, no backend call
+    assert backend.calls[0][0] == "SYS"
+
+
+def test_rewrite_llm_rewrites_before_retrieval():
+    store = FakeStore([_rc("c1", "texte", score=0.8)])
+    backend = FakeBackend(["régimes spéciaux", "Reponse [S1]"])  # 1st: rewrite, 2nd: answer
+    result = RagPipeline(store=store, backend=backend, system_prompt="SYS").answer(
+        "Parle-moi des régimes spéciaux.", rewrite="llm"
+    )
+    assert store.queries[0] == "régimes spéciaux"  # retrieval on the llm rewrite
+    assert result.rewritten_query == "régimes spéciaux"
+    assert len(backend.calls) == 2  # one rewrite call + one answer call
+
+
+# --- prepare() and the live-preview reuse path ---------------------------
+
+def test_prepare_strip_resolves_query_without_backend_call():
+    backend = FakeBackend("unused")
+    prep = RagPipeline(store=FakeStore([]), backend=backend, system_prompt="SYS").prepare(
+        "Parle-moi des régimes spéciaux.", rewrite="strip"
+    )
+    assert prep.retrieval_query == "régimes spéciaux"
+    assert prep.rewritten_query == "régimes spéciaux"
+    assert prep.condensed_question is None
+    assert backend.calls == []  # strip is pure; no condensation without history
+
+
+def test_prepare_raw_is_identity():
+    backend = FakeBackend("unused")
+    prep = RagPipeline(store=FakeStore([]), backend=backend, system_prompt="SYS").prepare("Question ?")
+    assert prep.retrieval_query == "Question ?"
+    assert prep.rewritten_query is None
+    assert prep.condensed_question is None
+    assert backend.calls == []
+
+
+def test_answer_reuses_prepared_without_recomputing():
+    from assistant_amu.generation.rag import Preparation
+
+    store = FakeStore([_rc("c1", "texte", score=0.8)])
+    backend = FakeBackend(["Reponse [S1]"])  # only the answer call must happen
+    prep = Preparation(condensed_question="cond", rewritten_query="rq", retrieval_query="rq")
+    result = RagPipeline(store=store, backend=backend, system_prompt="SYS").answer(
+        "Parle-moi des régimes spéciaux.",
+        history=[{"role": "user", "content": "x"}],
+        rewrite="llm",
+        prepared=prep,
+    )
+    assert store.queries[0] == "rq"  # uses the prepared retrieval query
+    assert result.condensed_question == "cond"
+    assert result.rewritten_query == "rq"
+    assert len(backend.calls) == 1  # no condensation, no rewrite — only the answer
+    assert backend.calls[0][0] == "SYS"

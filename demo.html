@@ -52,6 +52,9 @@
   .cite { background: var(--amu-yellow); color: #3a3400; font-weight: 700;
           border-radius: 4px; padding: 0 5px; font-size: .85em; }
   .condensed { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 8px; }
+  /* Reformulation shown UNDER the question (right-aligned like the user bubble). */
+  .reform { max-width: 82%; text-align: right; }
+  .reform .condensed { margin-top: 2px; }
   details.sources { margin-top: 10px; font-size: 13px; }
   details.sources summary { cursor: pointer; color: var(--amu-blue-2); font-weight: 600; }
   .src { border-left: 3px solid var(--amu-blue-2); background: #f7f9fd;
@@ -98,6 +101,11 @@
       <select id="k" title="Nombre d'extraits récupérés (k)">
         <option>2</option><option>3</option><option selected>5</option><option>8</option>
       </select>
+      <select id="rw" title="Réécriture de la requête avant recherche (mesurée dans eval/)">
+        <option value="raw" selected>Réécriture : aucune</option>
+        <option value="strip">Réécriture : strip</option>
+        <option value="llm">Réécriture : llm</option>
+      </select>
       <button class="send" id="send">Envoyer</button>
     </div>
     <div class="hint">Entrée = envoyer · Maj+Entrée = nouvelle ligne · l'assistant cite ses sources et refuse hors corpus</div>
@@ -107,6 +115,7 @@
   const chat = document.getElementById("chat");
   const input = document.getElementById("q");
   const kSel = document.getElementById("k");
+  const rwSel = document.getElementById("rw");
   const sendBtn = document.getElementById("send");
   const history = [];              // {role, content} — envoyé à /ask pour la V2
 
@@ -138,29 +147,75 @@
     return `<details class="sources"><summary>Sources (${sources.length})</summary>${items}</details>`;
   }
 
+  const TYPING = '<span class="typing"><span></span><span></span><span></span></span>';
+
+  // The reformulation lines: the V2 condensation of a follow-up and/or the
+  // rewritten retrieval query.
+  function reformHtml(condensed, rewritten) {
+    let h = "";
+    if (condensed)
+      h += `<div class="condensed">↳ compris comme : « ${esc(condensed)} »</div>`;
+    if (rewritten)
+      h += `<div class="condensed">🔎 recherché comme : « ${esc(rewritten)} »</div>`;
+    return h;
+  }
+
+  // Insert the reformulation right UNDER the question bubble (before the answer).
+  function insertReform(afterRow, condensed, rewritten) {
+    const inner = reformHtml(condensed, rewritten);
+    if (!inner) return;
+    const row = document.createElement("div");
+    row.className = "row wrap user";
+    const div = document.createElement("div");
+    div.className = "reform";
+    div.innerHTML = inner;
+    row.appendChild(div);
+    afterRow.after(row);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
   async function send() {
     const question = input.value.trim();
     if (!question) return;
     input.value = ""; input.style.height = "auto";
     sendBtn.disabled = true;
-    bubble("user", esc(question));
-    const typing = bubble("bot", '<span class="typing"><span></span><span></span><span></span></span>');
+    const userRow = bubble("user", esc(question)).parentNode;  // the .row.user wrapper
+    const bot = bubble("bot", TYPING);
+    const base = { question, rewrite: rwSel.value, history: history.length ? history : null };
     try {
+      // 1) Live preview UNDER the question, before the answer (/prepare does
+      //    condensation + rewrite, no generation). Best-effort — on failure we
+      //    fall back to the fields /ask returns.
+      let prep = null;
+      try {
+        const pr = await fetch("/prepare", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(base)
+        });
+        if (pr.ok) prep = await pr.json();
+      } catch (_) { /* keep prep = null */ }
+      if (prep) insertReform(userRow, prep.condensed_question, prep.rewritten_query);
+
+      // 2) Answer — reuse the resolved retrieval query so nothing is recomputed and
+      //    the preview cannot drift from what is actually searched.
+      const askBody = { ...base, k: parseInt(kSel.value, 10) };
+      if (prep) {
+        askBody.retrieval_query = prep.retrieval_query;
+        askBody.condensed_question = prep.condensed_question;
+        askBody.rewritten_query = prep.rewritten_query;
+      }
       const res = await fetch("/ask", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, k: parseInt(kSel.value, 10), history: history.length ? history : null })
+        body: JSON.stringify(askBody)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || ("HTTP " + res.status));
-      let html = fmt(data.answer);
-      if (data.condensed_question)
-        html += `<div class="condensed">↳ compris comme : « ${esc(data.condensed_question)} »</div>`;
-      html += sourcesHtml(data.sources);
-      typing.innerHTML = html;
+      if (!prep) insertReform(userRow, data.condensed_question, data.rewritten_query);  // fallback
+      bot.innerHTML = fmt(data.answer) + sourcesHtml(data.sources);
       history.push({ role: "user", content: question });
       history.push({ role: "assistant", content: data.answer });
     } catch (e) {
-      typing.innerHTML = "⚠️ " + esc(e.message) + " — l'API est-elle lancée ?";
+      bot.innerHTML = "⚠️ " + esc(e.message) + " — l'API est-elle lancée ?";
     } finally {
       sendBtn.disabled = false; input.focus(); chat.scrollTop = chat.scrollHeight;
     }

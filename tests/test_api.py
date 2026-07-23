@@ -113,10 +113,59 @@ def test_ask_refusal_has_no_sources(client_and_fakes):
     assert body["sources"] == []
 
 
-@pytest.mark.parametrize("payload", [{"question": ""}, {"question": "x" * 501}, {"question": "ok", "k": 0}, {"question": "ok", "k": 11}])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"question": ""},
+        {"question": "x" * 501},
+        {"question": "ok", "k": 0},
+        {"question": "ok", "k": 11},
+        {"question": "ok", "rewrite": "bogus"},  # not in {raw, strip, llm}
+    ],
+)
 def test_ask_validation_422(client_and_fakes, payload):
     client, _, _ = client_and_fakes
     assert client.post("/ask", json=payload).status_code == 422
+
+
+def test_ask_rewrite_strip_returns_rewritten_query(client_and_fakes):
+    client, _, _ = client_and_fakes
+    body = client.post(
+        "/ask", json={"question": "Parle-moi des régimes spéciaux.", "rewrite": "strip"}
+    ).json()
+    assert body["rewritten_query"] == "régimes spéciaux"
+
+
+def test_ask_default_rewrite_leaves_rewritten_query_null(client_and_fakes):
+    client, _, _ = client_and_fakes
+    body = client.post("/ask", json={"question": "Modalites de cesure ?"}).json()
+    assert body["rewritten_query"] is None  # rewrite defaults to raw (V1 behaviour)
+
+
+def test_prepare_strip_returns_retrieval_query(client_and_fakes):
+    client, _, _ = client_and_fakes
+    body = client.post(
+        "/prepare", json={"question": "Parle-moi des régimes spéciaux.", "rewrite": "strip"}
+    ).json()
+    assert body["retrieval_query"] == "régimes spéciaux"
+    assert body["rewritten_query"] == "régimes spéciaux"
+    assert body["condensed_question"] is None
+
+
+def test_ask_accepts_precomputed_retrieval_query(client_and_fakes):
+    # The live-preview flow: /prepare resolved the query, /ask reuses it verbatim.
+    client, _, _ = client_and_fakes
+    body = client.post(
+        "/ask",
+        json={
+            "question": "Parle-moi des régimes spéciaux.",
+            "rewrite": "strip",
+            "retrieval_query": "régimes spéciaux",
+            "rewritten_query": "régimes spéciaux",
+        },
+    ).json()
+    assert body["answer"].endswith("[S1]")
+    assert body["rewritten_query"] == "régimes spéciaux"
 
 
 def test_ask_503_on_backend_error(client_and_fakes):

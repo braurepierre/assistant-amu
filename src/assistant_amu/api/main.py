@@ -19,14 +19,22 @@ from fastapi.responses import HTMLResponse
 
 from ..config import PROJECT_ROOT, get_settings
 from ..generation.llm import LLMBackend, LLMBackendError, build_backend
-from ..generation.rag import RagPipeline
+from ..generation.rag import Preparation, RagPipeline
 from ..ingestion import IngestionError
 from ..ingestion.chunk import chunk_document
 from ..ingestion.clean import clean_document
 from ..ingestion.extract import extract
 from ..models import SourceDoc
 from ..retrieval.vector_store import VectorStore
-from .schemas import AskRequest, AskResponse, HealthResponse, IngestResponse, Source
+from .schemas import (
+    AskRequest,
+    AskResponse,
+    HealthResponse,
+    IngestResponse,
+    PrepareRequest,
+    PrepareResponse,
+    Source,
+)
 
 # Validate configuration eagerly: a bad LLM_BACKEND fails uvicorn startup (F5).
 get_settings()
@@ -70,8 +78,17 @@ def get_pipeline(
 @app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest, pipeline: RagPipeline = Depends(get_pipeline)) -> AskResponse:
     history = [{"role": m.role, "content": m.content} for m in request.history] if request.history else None
+    # If the client already resolved the retrieval query via /prepare (live-preview
+    # flow), reuse it verbatim so the reformulation is computed exactly once.
+    prepared = (
+        Preparation(request.condensed_question, request.rewritten_query, request.retrieval_query)
+        if request.retrieval_query is not None
+        else None
+    )
     try:
-        result = pipeline.answer(request.question, k=request.k, history=history)
+        result = pipeline.answer(
+            request.question, k=request.k, history=history, rewrite=request.rewrite, prepared=prepared
+        )
     except LLMBackendError as exc:
         raise HTTPException(status_code=503, detail=f"LLM backend unavailable: {exc.cause}")
     return AskResponse(
@@ -89,6 +106,27 @@ def ask(request: AskRequest, pipeline: RagPipeline = Depends(get_pipeline)) -> A
         model=result.model,
         retrieved_chunks=result.retrieved_chunks,
         condensed_question=result.condensed_question,
+        rewritten_query=result.rewritten_query,
+    )
+
+
+@app.post("/prepare", response_model=PrepareResponse)
+def prepare(request: PrepareRequest, pipeline: RagPipeline = Depends(get_pipeline)) -> PrepareResponse:
+    """Resolve the retrieval query (condensation + rewrite) without generating.
+
+    Lets a UI show the reformulation live, before the answer. The returned
+    ``retrieval_query`` is echoed back to ``/ask`` so the answer reuses it and the
+    preview never drifts from what was searched (§7.7, §5.3.5).
+    """
+    history = [{"role": m.role, "content": m.content} for m in request.history] if request.history else None
+    try:
+        prep = pipeline.prepare(request.question, history=history, rewrite=request.rewrite)
+    except LLMBackendError as exc:
+        raise HTTPException(status_code=503, detail=f"LLM backend unavailable: {exc.cause}")
+    return PrepareResponse(
+        condensed_question=prep.condensed_question,
+        rewritten_query=prep.rewritten_query,
+        retrieval_query=prep.retrieval_query,
     )
 
 

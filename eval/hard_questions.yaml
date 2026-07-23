@@ -1,0 +1,57 @@
+# eval/hard_questions.yaml — "hard" conversational/imperative formulations.
+#
+# Companion to questions.yaml for the query-rewriting experiment (measured only,
+# same spirit as RRF — PRD §5.1.8 / §5.3.5). Every question targets a topic that
+# IS in the corpus but is phrased as a conversational/imperative opener
+# (« Parle-moi de… », « Dis-moi… », « Explique-moi… », « Je voudrais des infos
+# sur… »…) rather than as a definitional question. Observed failure mode: these
+# formulations push the query vector into noise and drop the definitional source.
+#
+# Annotation is DOCUMENT-LEVEL: `expected_source` is a case-insensitive substring
+# of the chunk's source title, and `expected_keywords` is left EMPTY on purpose —
+# so a hit means "the right document was retrieved", nothing stricter. Each
+# `expected_source` below was checked against the 18 indexed titles to resolve to
+# the intended document (h01 targets the central RSE definitional page, not the
+# Droit régimes-spéciaux page; h04 accepts any of the three ALLSH M3C documents).
+
+questions:
+  - id: h01
+    question: "Parle-moi des régimes spéciaux."
+    answerable: true
+    expected_source: "Régime spécial d'études"   # central "Régime spécial d'études (RSE)"
+    expected_keywords: []
+  - id: h02
+    question: "Explique-moi la césure."
+    answerable: true
+    expected_source: "césure"
+    expected_keywords: []
+  - id: h03
+    question: "Dis-moi comment marche la compensation des notes."
+    answerable: true
+    expected_source: "Compensation"
+    expected_keywords: []
+  - id: h04
+    question: "Je voudrais des infos sur le contrôle des connaissances."
+    answerable: true
+    expected_source: "M3C"                        # any of the 3 ALLSH M3C documents
+    expected_keywords: []
+  - id: h05
+    question: "Raconte-moi les aménagements pour le handicap."
+    answerable: true
+    expected_source: "handicap"
+    expected_keywords: []
+  - id: h06
+    question: "Donne-moi des informations sur le logement étudiant."
+    answerable: true
+    expected_source: "loger"                      # "Se loger — vie des campus AMU"
+    expected_keywords: []
+  - id: h07
+    question: "Peux-tu me parler de l'inscription administrative en ligne ?"
+    answerable: true
+    expected_source: "IA web"
+    expected_keywords: []
+  - id: h08
+    question: "J'aimerais en savoir plus sur la charte des examens."
+    answerable: true
+    expected_source: "Charte des examens"
+    expected_keywords: []
