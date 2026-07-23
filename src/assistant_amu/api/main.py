@@ -15,6 +15,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse
 
 from ..config import PROJECT_ROOT, get_settings
 from ..generation.llm import LLMBackend, LLMBackendError, build_backend
@@ -31,6 +32,7 @@ from .schemas import AskRequest, AskResponse, HealthResponse, IngestResponse, So
 get_settings()
 
 INGESTED_MANIFEST = PROJECT_ROOT / "corpus" / "ingested.jsonl"
+DEMO_PAGE = PROJECT_ROOT / "demo.html"
 _EXTENSIONS = {".pdf": "pdf", ".html": "html", ".htm": "html"}
 
 app = FastAPI(
@@ -38,6 +40,14 @@ app = FastAPI(
     version="0.1.0",
     summary="RAG documentary assistant over Aix-Marseille Université public documents.",
 )
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def demo_page() -> HTMLResponse:
+    """Serve the static chatbot demo page — a pure HTTP client of this API (§5.4)."""
+    if DEMO_PAGE.exists():
+        return HTMLResponse(DEMO_PAGE.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>demo.html introuvable</h1>", status_code=404)
 
 
 @lru_cache(maxsize=1)

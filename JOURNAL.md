@@ -298,3 +298,13 @@ logement) est **récupérée par la RRF** ; je ne la « corrige » pas — ce se
 gonfler le score, et c'est l'illustration vivante de l'intérêt de l'hybride. Un
 0.94 honnête vaut mieux qu'un 1.00 suspect ; le plafond restant reflète un vrai
 cas, pas un bug.
+
+## 2026-07-23 — UI : swap Gradio → chatbot HTML vanilla (charte AMU)
+
+**Décision (accord utilisateur).** Remplacement du bonus Gradio par une
+`demo.html` **autonome, zéro dépendance**, servie par l'API sur `GET /`
+(même origine → pas de CORS). Reste un **pur client HTTP** de `/ask` (esprit §5.4).
+Avantages : dépendance `gradio` retirée (projet plus léger), look **charte AMU**
+(bleu #143b8f / jaune #f6e400), et surtout **format chatbot conversationnel** qui
+exploite `history` → met en scène la **condensation V2** (affichage « compris
+comme : … »). `demo.py` et l'extra `[demo]` supprimés (une seule UI). Réversible.

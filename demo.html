@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AssistantAMU — démo</title>
+<style>
+  :root {
+    --amu-blue: #143b8f;      /* bleu AMU */
+    --amu-blue-2: #2c6ecb;
+    --amu-yellow: #f6e400;    /* jaune AMU */
+    --bg: #eef1f6;
+    --bot: #ffffff;
+    --ink: #1f2430;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  header {
+    background: var(--amu-blue); color: #fff;
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .logo {
+    background: #fff; color: var(--amu-blue);
+    font-weight: 800; font-size: 20px; letter-spacing: .5px;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  .logo b { color: var(--amu-blue); }
+  header .title { font-weight: 700; font-size: 17px; }
+  header .sub { color: #cdd8f4; font-size: 12px; }
+  header .bar { width: 6px; align-self: stretch; background: var(--amu-yellow); border-radius: 3px; }
+
+  #chat {
+    flex: 1; overflow-y: auto; padding: 22px 16px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .wrap { width: 100%; max-width: 760px; margin: 0 auto; }
+  .msg { max-width: 82%; padding: 12px 15px; border-radius: 14px; line-height: 1.5;
+         white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .row { display: flex; }
+  .row.user { justify-content: flex-end; }
+  .msg.user { background: var(--amu-blue); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot  { background: var(--bot); color: var(--ink); border: 1px solid #e3e7ef;
+              border-bottom-left-radius: 4px; }
+  .msg strong { font-weight: 700; }
+  .cite { background: var(--amu-yellow); color: #3a3400; font-weight: 700;
+          border-radius: 4px; padding: 0 5px; font-size: .85em; }
+  .condensed { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 8px; }
+  details.sources { margin-top: 10px; font-size: 13px; }
+  details.sources summary { cursor: pointer; color: var(--amu-blue-2); font-weight: 600; }
+  .src { border-left: 3px solid var(--amu-blue-2); background: #f7f9fd;
+         padding: 7px 10px; border-radius: 0 6px 6px 0; margin: 8px 0; }
+  .src .head { font-weight: 600; }
+  .src .score { color: var(--muted); font-weight: 400; }
+  .src .ex { color: #444; font-size: 12.5px; margin-top: 3px; }
+  .typing span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%;
+                 background: var(--amu-blue-2); animation: b 1s infinite; }
+  .typing span:nth-child(2){ animation-delay: .15s } .typing span:nth-child(3){ animation-delay: .3s }
+  @keyframes b { 0%,60%,100%{ transform: translateY(0); opacity:.5 } 30%{ transform: translateY(-5px); opacity:1 } }
+
+  footer { background: #fff; border-top: 1px solid #e3e7ef; padding: 12px 16px; }
+  .composer { display: flex; gap: 10px; align-items: flex-end; }
+  textarea {
+    flex: 1; resize: none; border: 1px solid #cfd6e4; border-radius: 12px;
+    padding: 11px 13px; font: inherit; max-height: 120px; outline: none;
+  }
+  textarea:focus { border-color: var(--amu-blue-2); box-shadow: 0 0 0 3px rgba(44,110,203,.15); }
+  select { border: 1px solid #cfd6e4; border-radius: 10px; padding: 10px; font: inherit; }
+  button.send {
+    background: var(--amu-blue); color: #fff; border: 0; border-radius: 12px;
+    padding: 11px 18px; font-weight: 700; cursor: pointer;
+  }
+  button.send:disabled { opacity: .5; cursor: default; }
+  .hint { max-width: 760px; margin: 6px auto 0; color: var(--muted); font-size: 11.5px; text-align: center; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="bar"></div>
+    <div class="logo">am<b>U</b></div>
+    <div>
+      <div class="title">AssistantAMU</div>
+      <div class="sub">Démo — RAG sur les documents publics d'Aix-Marseille Université</div>
+    </div>
+  </header>
+
+  <div id="chat"></div>
+
+  <footer>
+    <div class="wrap composer">
+      <textarea id="q" rows="1" placeholder="Posez votre question… (ex. Quelles sont les modalités de la césure ?)"></textarea>
+      <select id="k" title="Nombre d'extraits récupérés (k)">
+        <option>2</option><option>3</option><option selected>5</option><option>8</option>
+      </select>
+      <button class="send" id="send">Envoyer</button>
+    </div>
+    <div class="hint">Entrée = envoyer · Maj+Entrée = nouvelle ligne · l'assistant cite ses sources et refuse hors corpus</div>
+  </footer>
+
+<script>
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("q");
+  const kSel = document.getElementById("k");
+  const sendBtn = document.getElementById("send");
+  const history = [];              // {role, content} — envoyé à /ask pour la V2
+
+  const esc = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
+  const fmt = s => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[(S\d+)\]/g, '<span class="cite">$1</span>');
+
+  function bubble(role, htmlContent) {
+    const row = document.createElement("div");
+    row.className = "row wrap " + role;
+    const div = document.createElement("div");
+    div.className = "msg " + role;
+    div.innerHTML = htmlContent;
+    row.appendChild(div);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function sourcesHtml(sources) {
+    if (!sources || !sources.length) return "";
+    const items = sources.map((s, i) => {
+      const page = s.page != null ? ", p. " + s.page : "";
+      return `<div class="src"><div class="head">[S${i+1}] ${esc(s.title)}${page}
+        <span class="score">— score ${s.score.toFixed(2)}</span></div>
+        <div class="ex">${esc(s.excerpt)}…</div></div>`;
+    }).join("");
+    return `<details class="sources"><summary>Sources (${sources.length})</summary>${items}</details>`;
+  }
+
+  async function send() {
+    const question = input.value.trim();
+    if (!question) return;
+    input.value = ""; input.style.height = "auto";
+    sendBtn.disabled = true;
+    bubble("user", esc(question));
+    const typing = bubble("bot", '<span class="typing"><span></span><span></span><span></span></span>');
+    try {
+      const res = await fetch("/ask", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, k: parseInt(kSel.value, 10), history: history.length ? history : null })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || ("HTTP " + res.status));
+      let html = fmt(data.answer);
+      if (data.condensed_question)
+        html += `<div class="condensed">↳ compris comme : « ${esc(data.condensed_question)} »</div>`;
+      html += sourcesHtml(data.sources);
+      typing.innerHTML = html;
+      history.push({ role: "user", content: question });
+      history.push({ role: "assistant", content: data.answer });
+    } catch (e) {
+      typing.innerHTML = "⚠️ " + esc(e.message) + " — l'API est-elle lancée ?";
+    } finally {
+      sendBtn.disabled = false; input.focus(); chat.scrollTop = chat.scrollHeight;
+    }
+  }
+
+  sendBtn.addEventListener("click", send);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+  input.addEventListener("input", () => {
+    input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
+
+  bubble("bot", "Bonjour 👋 Je suis <strong>AssistantAMU</strong>. Posez-moi une question sur la scolarité "
+    + "ou la vie étudiante à AMU — césure, CVEC, MCC, inscription, régimes spéciaux… "
+    + "Je réponds en citant mes sources, et je refuse si l'information n'est pas dans mes documents.");
+  input.focus();
+</script>
+</body>
+</html>
