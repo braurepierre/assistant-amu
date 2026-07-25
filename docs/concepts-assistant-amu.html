@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssistantAMU — le RAG, brique par brique</title>
+<title>AssistantAMU — architecture d'un système RAG documentaire</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -226,15 +226,15 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
 <div id="topbar">
   <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — le RAG brique par brique</span>
+  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — architecture d'un système RAG</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 
 <header class="hero">
   <div class="in">
-    <p class="eyebrow">Assistant documentaire RAG · documents publics d'Aix-Marseille Université</p>
-    <h1>Tout ce que fait AssistantAMU, expliqué et manipulable</h1>
-    <p class="sub">Chaque terme <span style="border-bottom:1.5px dotted #6E80B8">souligné en pointillé</span> est cliquable et ouvre sa définition, reliée au fichier réel du projet. On part d'un corpus de documents AMU et on aboutit à une réponse <button class="term" data-term="refus">sourcée ou à un refus</button> — voici la chaîne complète.</p>
+    <p class="eyebrow">Assistant documentaire RAG · corpus public d'Aix-Marseille Université</p>
+    <h1>AssistantAMU : anatomie d'un système RAG documentaire</h1>
+    <p class="sub">Cette page présente la chaîne de traitement complète, du corpus de documents institutionnels jusqu'à la réponse <button class="term" data-term="refus">sourcée — ou au refus explicite</button>. Chaque terme <span style="border-bottom:1.5px dotted #6E80B8">souligné en pointillé</span> ouvre une définition rattachée au fichier correspondant du dépôt.</p>
     <div class="hero-tokens" id="heroTokens" aria-hidden="true"></div>
   </div>
 </header>
@@ -242,19 +242,19 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 <div class="layout">
 <aside id="sidebar" class="sidebar">
   <nav aria-label="Sommaire">
-    <div class="grp">Démarrer</div>
+    <div class="grp">Introduction</div>
     <a href="#s0" data-sec="s0">00 · Vue d'ensemble</a>
-    <div class="grp">Le pipeline RAG</div>
-    <a href="#s1" data-sec="s1">01 · Pourquoi RAG</a>
+    <div class="grp">Chaîne de traitement</div>
+    <a href="#s1" data-sec="s1">01 · Choix architectural</a>
     <a href="#s2" data-sec="s2">02 · Indexation</a>
-    <a href="#s3" data-sec="s3">03 · La requête RAG</a>
-    <div class="grp">Qualité &amp; itération</div>
+    <a href="#s3" data-sec="s3">03 · Pipeline de requête</a>
+    <div class="grp">Évaluation et qualité</div>
     <a href="#s4" data-sec="s4">04 · Évaluation</a>
     <a href="#s5" data-sec="s5">05 · Réécriture de requête</a>
-    <a href="#s6" data-sec="s6">06 · Embeddeurs comparés</a>
+    <a href="#s6" data-sec="s6">06 · Comparaison des encodeurs</a>
     <div class="grp">Ingénierie</div>
-    <a href="#s7" data-sec="s7">07 · Backends &amp; pièges</a>
-    <a href="#s8" data-sec="s8">08 · V2 · multi-tour</a>
+    <a href="#s7" data-sec="s7">07 · Backends et contraintes</a>
+    <a href="#s8" data-sec="s8">08 · Conversation multi-tour</a>
     <a href="#s9" data-sec="s9">09 · Pile logicielle</a>
     <div class="grp">Référence</div>
     <a href="#s10" data-sec="s10">10 · Glossaire</a>
@@ -265,42 +265,42 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 <main>
 
 <section id="s0">
-  <div class="sec-head"><span class="sec-num">00</span><h2>Vue d'ensemble : deux phases</h2></div>
-  <p class="lead">AssistantAMU est un système <button class="term" data-term="rag">RAG</button> (Retrieval-Augmented Generation) : on ne met pas la connaissance <em>dans</em> le modèle, on la lui <em>fournit</em> au moment de la question. Tout le projet tient en deux phases — une hors ligne qui prépare l'index, une en temps réel qui répond.</p>
+  <div class="sec-head"><span class="sec-num">00</span><h2>Vue d'ensemble : une architecture en deux phases</h2></div>
+  <p class="lead">AssistantAMU repose sur une architecture <button class="term" data-term="rag">RAG</button> (<em>Retrieval-Augmented Generation</em>) : la connaissance n'est pas inscrite <em>dans</em> le modèle par ré-entraînement, elle lui est <em>fournie</em> au moment de la question. Le système se décompose en deux phases — une phase hors ligne qui construit l'index documentaire, une phase en temps réel qui produit la réponse.</p>
   <div class="phases">
     <div class="phase idx">
       <b>Phase 1 · Indexation (hors ligne)</b>
-      <div class="flow">sources.yaml → <button class="term" data-term="extract">download / extract</button> → <button class="term" data-term="clean">clean</button> → <button class="term" data-term="chunking">chunk</button> (≤ 500 tk, ov. 50) → <button class="term" data-term="embedding">embed</button> (« passage: », <button class="term" data-term="e5">e5‑small</button>) → <button class="term" data-term="chromadb">ChromaDB</button> (<button class="term" data-term="cosine">cosine</button>)</div>
+      <div class="flow">sources.yaml → <button class="term" data-term="extract">download / extract</button> → <button class="term" data-term="clean">clean</button> → <button class="term" data-term="chunking">chunk</button> (≤ 500 tokens, chevauchement 50) → <button class="term" data-term="embedding">embed</button> (« passage: », <button class="term" data-term="e5">e5‑small</button>) → <button class="term" data-term="chromadb">ChromaDB</button> (<button class="term" data-term="cosine">métrique cosinus</button>)</div>
     </div>
     <div class="phase req">
       <b>Phase 2 · Requête (temps réel)</b>
-      <div class="flow">question → embed (« query: ») → ChromaDB <button class="term" data-term="topk">top‑k</button> → <button class="term" data-term="prompt">prompt RAG</button> (règles + &lt;sources&gt; + question) → <button class="term" data-term="backend">LLM</button> → réponse <button class="term" data-term="citation">+ citations</button> / <button class="term" data-term="refus">refus</button></div>
+      <div class="flow">question → embed (« query: ») → ChromaDB <button class="term" data-term="topk">top‑k</button> → <button class="term" data-term="prompt">prompt RAG</button> (règles, &lt;sources&gt;, question) → <button class="term" data-term="backend">modèle</button> → réponse <button class="term" data-term="citation">avec citations</button> ou <button class="term" data-term="refus">refus</button></div>
     </div>
   </div>
-  <p class="hint">Corpus réel : <b><span data-stat="corpus.docs">18</span> documents utilisables → <span data-stat="corpus.chunks">316</span> chunks</b> (central + composantes ALLSH, Droit, Sciences, IUT). Le calendrier scanné est exclu (pas d'<button class="term" data-term="ocr">OCR</button>). Chiffres et titres réels ; les scores de similarité et le texte des réponses ci‑dessous sont illustratifs.</p>
+  <p class="hint">Corpus de production : <b><span data-stat="corpus.docs">18</span> documents exploitables → <span data-stat="corpus.chunks">316</span> fragments</b> (établissement central et composantes ALLSH, Droit, Sciences, IUT). Le calendrier universitaire, disponible uniquement en version numérisée, est exclu faute de couche textuelle — la <button class="term" data-term="ocr">reconnaissance optique de caractères</button> est hors périmètre. Les volumétries et les intitulés de documents sont réels ; les scores de similarité et le texte des réponses présentés dans les démonstrations sont illustratifs.</p>
 </section>
 
 <section id="s1">
-  <div class="sec-head"><span class="sec-num">01</span><h2>Pourquoi RAG plutôt que « tout dans le contexte » ?</h2></div>
-  <p class="lead">Un <button class="term" data-term="llm">LLM</button> seul répond de façon plausible, pas forcément vraie : c'est l'<button class="term" data-term="hallucination">hallucination</button>. Pour un corpus &lt; ~200 k tokens on pourrait tout coller dans le <button class="term" data-term="prompt">prompt</button>. Ici le RAG reste le bon choix, pour quatre raisons assumées dans le projet.</p>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Choix architectural : RAG plutôt que contexte intégral</h2></div>
+  <p class="lead">Un <button class="term" data-term="llm">LLM</button> interrogé seul produit une réponse plausible, pas nécessairement exacte : c'est le phénomène d'<button class="term" data-term="hallucination">hallucination</button>. Pour un corpus inférieur à ~200 000 tokens, l'insertion de l'intégralité des documents dans le <button class="term" data-term="prompt">prompt</button> constitue une alternative légitime. L'architecture RAG a néanmoins été retenue, pour quatre raisons explicitées ci-dessous.</p>
   <div class="grid2">
-    <div class="piege"><div class="n">1</div><h3>Maîtriser la brique</h3><p>Le but du projet est de comprendre le RAG de bout en bout — chaque étape est écrite en Python pur avant tout framework.</p></div>
-    <div class="piege"><div class="n">2</div><h3>Backend local contraint</h3><p><button class="term" data-term="ollama">Ollama</button> sert <span class="mono">mistral</span> avec une fenêtre réduite par défaut (<button class="term" data-term="numctx">num_ctx</button>) : impossible d'y verser tout le corpus.</p></div>
-    <div class="piege"><div class="n">3</div><h3>Coût & latence</h3><p>Un contexte massif à chaque requête est incompatible avec un CPU et un <em>free tier</em> d'API.</p></div>
-    <div class="piege"><div class="n">4</div><h3>Citations natives</h3><p>Le cœur du produit — la <button class="term" data-term="citation">citation passage par passage</button> et le <button class="term" data-term="refus">refus hors corpus</button> — est naturel en RAG.</p></div>
+    <div class="piege"><div class="n">1</div><h3>Maîtrise de l'ingénierie</h3><p>L'objectif technique du projet est la maîtrise complète du pipeline RAG : chaque étape est implémentée en Python avant tout recours à un framework.</p></div>
+    <div class="piege"><div class="n">2</div><h3>Contrainte d'infrastructure</h3><p><button class="term" data-term="ollama">Ollama</button> expose le modèle <span class="mono">mistral</span> avec une fenêtre de contexte réduite par défaut (<button class="term" data-term="numctx">num_ctx</button>) : le corpus complet ne peut y être injecté.</p></div>
+    <div class="piege"><div class="n">3</div><h3>Coût et latence</h3><p>La transmission d'un contexte volumineux à chaque requête est incompatible avec une inférence sur CPU et avec les quotas d'un accès gratuit à l'API.</p></div>
+    <div class="piege"><div class="n">4</div><h3>Traçabilité native</h3><p>Les deux propriétés centrales du produit — la <button class="term" data-term="citation">citation passage par passage</button> et le <button class="term" data-term="refus">refus explicite hors corpus</button> — découlent directement de l'architecture RAG.</p></div>
   </div>
-  <p class="hint">Règle produit inscrite dans le <button class="term" data-term="prompt">prompt système</button> : répondre <b>exclusivement</b> à partir des extraits fournis, citer <span class="cite">[S1]</span> <span class="cite">[S2]</span>, et sinon refuser mot pour mot. La <button class="term" data-term="refus">fidélité aux sources</button> est un objectif mesurable, pas un vœu.</p>
+  <p class="hint">Règle produit inscrite dans le <button class="term" data-term="prompt">prompt système</button> : répondre <b>exclusivement</b> à partir des extraits fournis, référencer chaque affirmation par <span class="cite">[S1]</span> <span class="cite">[S2]</span>, et formuler à défaut un refus littéral. La <button class="term" data-term="refus">fidélité aux sources</button> constitue un objectif mesurable, et non une intention.</p>
 </section>
 
 <section id="s2">
-  <div class="sec-head"><span class="sec-num">02</span><h2>Indexation — du document au vecteur</h2></div>
-  <p class="lead">Chaque document passe par une chaîne de transformation. Cliquez une étape pour la définir ; le <button class="term" data-term="chunking">chunking</button> est manipulable juste en dessous.</p>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Indexation : du document au vecteur</h2></div>
+  <p class="lead">Chaque document traverse une chaîne de transformation. Cliquez sur une étape pour en afficher la définition ; le découpage en fragments (<button class="term" data-term="chunking"><em>chunking</em></button>) est manipulable dans l'encart ci-dessous.</p>
   <div class="pipe" id="pipe">
     <div class="stage" data-term="extract"><b>extract</b><span>pdfplumber / BeautifulSoup</span></div>
     <div class="arrowrow">→</div>
-    <div class="stage" data-term="clean"><b>clean</b><span>en‑têtes, TOC, espaces</span></div>
+    <div class="stage" data-term="clean"><b>clean</b><span>en‑têtes, sommaires, espaces</span></div>
     <div class="arrowrow">→</div>
-    <div class="stage" data-term="chunking"><b>chunk</b><span>≤ 500 tk · overlap 50</span></div>
+    <div class="stage" data-term="chunking"><b>chunk</b><span>≤ 500 tokens · chevauchement 50</span></div>
     <div class="arrowrow">→</div>
     <div class="stage" data-term="embedding"><b>embed</b><span>« passage: » + e5‑small</span></div>
     <div class="arrowrow">→</div>
@@ -308,8 +308,8 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   </div>
 
   <div class="card" style="margin-top:18px">
-    <p style="margin:0 0 6px;font-weight:600;font-size:15px">Découpage en chunks <span class="tag">chunk.py</span></p>
-    <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink-soft)">Le texte est coupé sur des frontières de phrases, sans jamais dépasser le budget de tokens — <span class="chip-prefix">passage: </span>compris. Un <button class="term" data-term="chunking">overlap</button> recopie la fin d'un chunk au début du suivant (surligné en jaune) pour ne pas perdre le contexte à la coupe.</p>
+    <p style="margin:0 0 6px;font-weight:600;font-size:15px">Découpage en fragments <span class="tag">chunk.py</span></p>
+    <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink-soft)">Le texte est segmenté sur des frontières de phrases, sans jamais dépasser le budget de tokens alloué — préfixe <span class="chip-prefix">passage: </span>inclus. Un <button class="term" data-term="chunking">chevauchement</button> reprend la fin d'un fragment au début du suivant (surligné en jaune) afin de préserver le contexte à la jointure.</p>
     <div class="controls">
       <label>max_tokens : <span class="val" id="mtVal">70</span>
         <input type="range" id="mt" min="30" max="140" value="70" step="5"></label>
@@ -319,12 +319,12 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <textarea id="chunkIn" rows="4">La césure est une période durant laquelle l'étudiant suspend temporairement ses études. Elle dure un ou deux semestres et l'étudiant conserve son statut. La demande se dépose auprès de la composante, avec l'accord du responsable de formation. Pendant la césure, l'étudiant peut réaliser un projet personnel, un stage, un service civique ou une expérience à l'étranger. À l'issue de la césure, l'étudiant retrouve de droit sa place dans la formation.</textarea>
     <div class="chunks" id="chunkOut"></div>
   </div>
-  <p class="hint">Compteur de tokens simplifié ici (≈ 1,3 token/mot) ; en production c'est le <button class="term" data-term="tokenizer">tokenizer</button> réel de <button class="term" data-term="e5">e5‑small</button> qui compte — d'où la marge de sécurité, le modèle tronquant silencieusement au‑delà de 512 tokens.</p>
+  <p class="hint">Le compteur de tokens employé dans cette démonstration est simplifié (≈ 1,3 token par mot) ; en production, le décompte s'appuie sur le <button class="term" data-term="tokenizer">tokenizer</button> réel d'<button class="term" data-term="e5">e5‑small</button>. La marge de sécurité s'explique par la troncature silencieuse du modèle au‑delà de 512 tokens.</p>
 </section>
 
 <section id="s3">
-  <div class="sec-head"><span class="sec-num">03</span><h2>La requête RAG en temps réel</h2></div>
-  <p class="lead">C'est le cœur du système. La question est <button class="term" data-term="embedding">vectorisée</button> (préfixe « query: »), comparée par <button class="term" data-term="cosine">similarité cosinus</button> à tous les chunks, on garde les <button class="term" data-term="topk">top‑k</button>, on les injecte dans le <button class="term" data-term="prompt">prompt</button>, le LLM répond en citant — ou refuse. Choisissez une question et regardez le corpus réagir.</p>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Pipeline de requête en temps réel</h2></div>
+  <p class="lead">Cette phase constitue le cœur du système. La question est <button class="term" data-term="embedding">vectorisée</button> (préfixe « query: »), puis comparée par <button class="term" data-term="cosine">similarité cosinus</button> à l'ensemble des fragments indexés. Les <button class="term" data-term="topk">k meilleurs passages</button> sont retenus et injectés dans le <button class="term" data-term="prompt">prompt</button> ; le modèle rédige alors une réponse citant ses sources — ou formule un refus. Sélectionnez une question pour observer le comportement du corpus.</p>
   <div class="card">
     <div class="qbtns">
       <button onclick="ask(0)">Comment demander une césure ?</button>
@@ -335,44 +335,44 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <div id="docs"></div>
     <div class="promptbox" id="promptbox"></div>
     <div class="answer" id="ans">
-      <p class="who" id="answho">Réponse du LLM · ancrée dans les sources</p>
+      <p class="who" id="answho">Réponse du modèle · ancrée dans les sources</p>
       <p id="anstxt"></p>
     </div>
   </div>
-  <p class="hint">Les barres représentent la similarité cosinus entre la question et chaque chunk. Les <b>2 meilleurs</b> (surlignés) sont injectés en balises <span class="mono">&lt;source id="S1" …&gt;</span> ; le modèle ne cite <em>que</em> ce qu'il a lu. La 4<sup>e</sup> question, hors corpus, déclenche le <button class="term" data-term="refus">refus</button> exact — c'est l'exemple littéral du prompt système. Corpus (7 docs affichés sur <span data-stat="corpus.docs">18</span>) et titres réels ; scores et réponses illustratifs.</p>
+  <p class="hint">Les barres représentent la similarité cosinus entre la question et chaque fragment. Les <b>deux meilleurs</b> (surlignés) sont injectés sous forme de balises <span class="mono">&lt;source id="S1" …&gt;</span> : le modèle ne peut citer que ce qui lui a été transmis. La 4<sup>e</sup> question, extérieure au corpus, déclenche le <button class="term" data-term="refus">refus littéral</button> — l'exemple est repris tel quel du prompt système. Corpus (7 documents affichés sur <span data-stat="corpus.docs">18</span>) et intitulés réels ; scores et réponses illustratifs.</p>
 </section>
 
 <section id="s4">
-  <div class="sec-head"><span class="sec-num">04</span><h2>Évaluation : mesurer, ne pas deviner</h2></div>
-  <p class="lead">Comment savoir si la récupération marche ? Un <button class="term" data-term="harness">harnais reproductible</button> mesure le <button class="term" data-term="recall">recall@k</button> (proxy de <em>context recall</em>, vocabulaire <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">16</span> questions, et produit un rapport Markdown daté.</p>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Évaluation : mesurer plutôt que présumer</h2></div>
+  <p class="lead">Comment établir la qualité de la récupération ? Un <button class="term" data-term="harness">harnais d'évaluation reproductible</button> mesure le <button class="term" data-term="recall">taux de rappel à k</button> (<em>recall@k</em>, proxy du <em>context recall</em> au sens du référentiel <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">16</span> questions annotées, et produit un rapport Markdown daté.</p>
   <div class="card">
-    <div class="evalrow"><span class="lbl">sémantique</span><div class="track"><div class="fill f-sem" data-w="94">0.94</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="bm25">BM25</button></span><div class="track"><div class="fill f-bm" data-w="81">0.81</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="rrf">RRF</button></span><div class="track"><div class="fill f-rrf" data-w="88">0.88</div></div></div>
-    <p class="hint" style="margin-top:14px">Baseline (corpus <span data-stat="corpus.docs">18</span> docs / <span data-stat="corpus.chunks">316</span> chunks, k=<span data-stat="k_default">5</span>). Le sémantique <b>domine</b> → le pipeline <span class="mono">/ask</span> reste <b>sémantique pur</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, pas branchées</b> — comme la <button class="term" data-term="rewrite">réécriture</button> ci‑dessous. La seule question que le sémantique rate (q04, logement) est justement rattrapée par la RRF : argument concret pour l'hybride, gardé tel quel plutôt que gonflé.</p>
+    <div class="evalrow"><span class="lbl">sémantique</span><div class="track"><div class="fill f-sem" data-w="94">0,94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="bm25">BM25</button></span><div class="track"><div class="fill f-bm" data-w="81">0,81</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="rrf">RRF</button></span><div class="track"><div class="fill f-rrf" data-w="88">0,88</div></div></div>
+    <p class="hint" style="margin-top:14px">Mesure de référence (corpus de <span data-stat="corpus.docs">18</span> documents / <span data-stat="corpus.chunks">316</span> fragments, k = <span data-stat="k_default">5</span>). La recherche sémantique <b>domine</b> : le pipeline <span class="mono">/ask</span> demeure <b>strictement sémantique</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, non intégrées</b> — au même titre que la <button class="term" data-term="rewrite">réécriture de requête</button> présentée ci‑dessous. L'unique question que la recherche sémantique manque (q04, logement) est précisément rattrapée par la RRF : argument concret en faveur d'une approche hybride, restitué tel quel plutôt que surinterprété.</p>
   </div>
 
   <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Sensibilité à k — pourquoi k = 5 ?<span class="tag">eval/reports · recall_sensitivity_k</span></p>
-    <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft)">Le <button class="term" data-term="recall">recall@k</button> de chaque méthode quand on fait varier le nombre de passages récupérés. Le compromis se lit d'un coup d'œil.</p>
-    <div id="recallChart" class="recall-chart" role="img" aria-label="Courbe recall@k : sémantique 0.88→0.94, RRF 0.75→0.88, BM25 0.69→0.81, pour k de 2 à 8"></div>
-    <p class="hint" style="margin-top:4px"><b>La RRF atteint son plateau dès k=3</b> ; le sémantique domine partout et gagne encore à k=5 (0.94). Au‑delà, plus rien ne bouge — inutile de gonfler k (et sur Ollama, <button class="term" data-term="numctx">num_ctx</button> l'interdit). D'où le choix <b>k = 5</b>.</p>
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Sensibilité à k : justification du choix k = 5<span class="tag">eval/reports · recall_sensitivity_k</span></p>
+    <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft)">Le <button class="term" data-term="recall">taux de rappel</button> de chaque méthode en fonction du nombre de passages récupérés. Le compromis se lit directement sur la courbe.</p>
+    <div id="recallChart" class="recall-chart" role="img" aria-label="Courbe du taux de rappel : sémantique 0,88→0,94, RRF 0,75→0,88, BM25 0,69→0,81, pour k de 2 à 8"></div>
+    <p class="hint" style="margin-top:4px"><b>La fusion RRF atteint son plateau dès k = 3</b> ; la recherche sémantique domine sur toute la plage et progresse encore à k = 5 (0,94). Au‑delà, les valeurs sont stables : augmenter k n'apporte plus rien, et la fenêtre <button class="term" data-term="numctx">num_ctx</button> d'Ollama l'interdit en pratique. D'où le choix de <b>k = 5</b>.</p>
 
-    <p style="margin:20px 0 6px;font-weight:600;font-size:15px">Désaccords sémantique ↔ BM25 ↔ RRF</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les questions où une seule méthode remonte le bon chunk — c'est exactement là que se joue l'arbitrage hybride.</p>
+    <p style="margin:20px 0 6px;font-weight:600;font-size:15px">Divergences entre méthodes : sémantique ↔ BM25 ↔ RRF</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les questions pour lesquelles une seule méthode remonte le fragment attendu : c'est précisément là que se joue l'arbitrage en faveur d'une approche hybride.</p>
     <div class="disagree">
       <div class="dis"><div class="dq">« Puis-je interrompre mes études un an puis les reprendre ? »</div><span class="mtag sem">sémantique seul</span></div>
       <div class="dis"><div class="dq">« Quels aménagements pour un étudiant salarié ou sportif de haut niveau ? »</div><span class="mtag sem">sémantique seul</span></div>
       <div class="dis"><div class="dq">« Où puis-je me loger en tant qu'étudiant ? »</div><span class="mtag rrf">RRF seule</span></div>
     </div>
-    <p class="hint" style="margin-top:10px">Deux questions <em>reformulées</em> (« interrompre mes études un an » plutôt que « césure ») ne sont retrouvées que par le <button class="term" data-term="cosine">sens</button> — le lexical (<button class="term" data-term="bm25">BM25</button>) passe à côté. À l'inverse, « se loger » n'est rattrapée que par la fusion <button class="term" data-term="rrf">RRF</button>. Le sémantique reste devant globalement (0.94), mais ces cas justifient de <b>garder la RRF sous le coude</b> pour une éventuelle bascule hybride.</p>
+    <p class="hint" style="margin-top:10px">Deux questions <em>reformulées</em> (« interrompre mes études un an » au lieu de « césure ») ne sont retrouvées que par le <button class="term" data-term="cosine">sens</button> : la recherche lexicale (<button class="term" data-term="bm25">BM25</button>) les manque. Inversement, la question relative au logement n'est rattrapée que par la fusion <button class="term" data-term="rrf">RRF</button>. La recherche sémantique reste globalement supérieure (0,94), mais ces cas justifient de <b>conserver la RRF disponible</b> en vue d'une éventuelle bascule hybride.</p>
   </div>
-  <p class="hint">Honnêteté chiffrée : la baseline vient d'un raffinage <em>diagnostiqué</em> (0.81 → 0.94), pas d'un réglage opportuniste — une annotation trop stricte corrigée (q03) et une vraie lacune de données comblée (ajout des PDF « Cadrage M3C »).</p>
+  <p class="hint">Transparence des mesures : le résultat de référence procède d'un raffinement <em>diagnostiqué</em> (0,81 → 0,94) et non d'un réglage opportuniste — correction d'une annotation excessivement stricte (q03) et comblement d'une lacune documentaire avérée (ajout des PDF « Cadrage M3C »).</p>
 </section>
 
 <section id="s5">
   <div class="sec-head"><span class="sec-num">05</span><h2>Réécriture de requête <span class="tag">rewrite.py · mesurée</span></h2></div>
-  <p class="lead">Une formulation conversationnelle (« Parle‑moi de… ») pousse le vecteur de la question dans le bruit et fait manquer le bon document — et augmenter k n'y change rien : le problème est au niveau de la <em>requête</em>. La stratégie <span class="mono">strip</span> retire l'ouverture impérative ; elle est <b>déterministe</b> et ne touche jamais une question définitionnelle (« Qu'est‑ce que… ») : elle ne peut donc pas régresser.</p>
+  <p class="lead">Une formulation conversationnelle (« Parle‑moi de… ») déplace le vecteur de la question vers le bruit et fait manquer le document pertinent ; augmenter k n'y remédie pas, car le problème se situe au niveau de la <em>requête</em> elle-même. La stratégie <span class="mono">strip</span> supprime l'ouverture impérative. <b>Déterministe</b>, elle laisse intactes les questions définitionnelles (« Qu'est‑ce que… ») et ne peut donc entraîner aucune régression.</p>
   <div class="card">
     <div class="qbtns">
       <button onclick="doStrip(0)">Parle-moi des régimes spéciaux</button>
@@ -381,60 +381,60 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
       <button onclick="doStrip(3)">Qu'est-ce que la CVEC ?</button>
     </div>
     <input type="text" id="stripIn" value="Parle-moi des régimes spéciaux" aria-label="Requête à réécrire">
-    <div style="margin-top:10px"><button class="primary" onclick="doStrip()">Appliquer strip</button></div>
+    <div style="margin-top:10px"><button class="primary" onclick="doStrip()">Appliquer la stratégie strip</button></div>
     <div class="reform-out">
       <div class="box"><div class="lb">Requête d'origine</div><div class="tx" id="stripBefore">—</div></div>
       <div class="ar">→</div>
-      <div class="box after"><div class="lb">Requête recherchée</div><div class="tx" id="stripAfter">—</div></div>
+      <div class="box after"><div class="lb">Requête transmise à la recherche</div><div class="tx" id="stripAfter">—</div></div>
     </div>
     <p class="hint" id="stripNote" style="margin-top:12px"></p>
   </div>
-  <p class="hint">Résultat mesuré sur un jeu « dur » de 8 formulations : recall@5 <b><span data-stat="rewrite_hard_recall5.raw">0.62</span> → <span data-stat="rewrite_hard_recall5.strip">0.88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu « facile ». La variante <span class="mono">llm</span> (réécriture par Mistral) répare autant mais paraphrase, coûte un appel et casse 2 questions faciles → écartée. Comme la RRF, la réécriture est mesurée puis proposée en option de <span class="mono">/ask</span> (défaut = comportement V1 inchangé).</p>
+  <p class="hint">Résultat mesuré sur un jeu de 8 formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,62</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence. La variante <span class="mono">llm</span> (réécriture confiée à Mistral) obtient un gain comparable mais paraphrase la question, requiert un appel supplémentaire et dégrade 2 questions simples : elle est écartée. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
 </section>
 
 <section id="s6">
-  <div class="sec-head"><span class="sec-num">06</span><h2>Quel encodeur ? e5 vs CamemBERT vs FlauBERT <span class="tag">embedder_comparison.py · mesurée</span></h2></div>
-  <p class="lead">Le choix de l'<button class="term" data-term="embedding">embeddeur</button> décide de ce que la recherche sémantique est <em>capable</em> de retrouver. Plutôt que de le trancher à la réputation, on le mesure : les <b>mêmes</b> chunks sont ré-encodés par trois modèles français, puis évalués sur les <b>mêmes</b> <span data-stat="eval_questions">16</span> questions annotées. Les collections de test sont éphémères — la collection de production n'est jamais touchée.</p>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Comparaison des encodeurs : e5, CamemBERT, FlauBERT <span class="tag">embedder_comparison.py · mesurée</span></h2></div>
+  <p class="lead">Le choix de l'<button class="term" data-term="embedding">encodeur</button> détermine ce que la recherche sémantique est <em>capable</em> de retrouver. Plutôt que de le fonder sur la réputation des modèles, il est mesuré : les <b>mêmes</b> fragments sont ré-encodés par trois modèles francophones, puis évalués sur les <b>mêmes</b> <span data-stat="eval_questions">16</span> questions annotées. Les collections de test sont éphémères ; la collection de production n'est jamais modifiée.</p>
   <div class="card">
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="e5">e5-small</button></span><div class="track"><div class="fill f-e5" data-w="94">0.94</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">CamemBERT</button></span><div class="track"><div class="fill f-cam" data-w="94">0.94</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">FlauBERT</button></span><div class="track"><div class="fill f-fla" data-w="81">0.81</div></div></div>
-    <p class="hint" style="margin-top:14px">Recall@<span data-stat="k_default">5</span> sémantique. <b>e5 et CamemBERT sont à égalité</b> (<span data-stat="embedders.camembert.r5">0.94</span>) ; FlauBERT décroche (<span data-stat="embedders.flaubert.r5">0.81</span>). Mais la lecture change avec k : à k=8, CamemBERT récupère <b>tout</b> (<span data-stat="embedders.camembert.r8">1.00</span>) là où e5 plafonne à <span data-stat="embedders.e5.r8">0.94</span>. Autrement dit, e5 est le plus <b>régulier</b>, CamemBERT celui qui monte le plus haut si l'on élargit la fenêtre.</p>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="e5">e5-small</button></span><div class="track"><div class="fill f-e5" data-w="94">0,94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">CamemBERT</button></span><div class="track"><div class="fill f-cam" data-w="94">0,94</div></div></div>
+    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">FlauBERT</button></span><div class="track"><div class="fill f-fla" data-w="81">0,81</div></div></div>
+    <p class="hint" style="margin-top:14px">Taux de rappel sémantique à k = <span data-stat="k_default">5</span>. <b>e5 et CamemBERT sont à égalité</b> (<span data-stat="embedders.camembert.r5">0,94</span>) ; FlauBERT décroche (<span data-stat="embedders.flaubert.r5">0,81</span>). La lecture évolue toutefois avec k : à k = 8, CamemBERT récupère <b>la totalité</b> des fragments attendus (<span data-stat="embedders.camembert.r8">1,00</span>) là où e5 plafonne à <span data-stat="embedders.e5.r8">0,94</span>. Autrement dit, e5 se distingue par sa <b>régularité</b>, CamemBERT par son plafond supérieur lorsque la fenêtre s'élargit.</p>
   </div>
 
   <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Qui rate quoi — et pourquoi c'est instructif</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les moyennes cachent l'essentiel : les trois modèles n'échouent pas sur les mêmes questions.</p>
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Répartition des échecs et enseignements</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les moyennes masquent l'essentiel : les trois modèles n'échouent pas sur les mêmes questions.</p>
     <div class="disagree">
       <div class="dis"><div class="dq">« Où puis-je me loger en tant qu'étudiant ? »</div><span class="mtag rrf">e5 seul échoue</span></div>
       <div class="dis"><div class="dq">« Quels aménagements pour un étudiant salarié ou sportif de haut niveau ? »</div><span class="mtag sem">e5 seul réussit</span></div>
       <div class="dis"><div class="dq">« Qu'est-ce que la CVEC ? » · « Qu'est-ce que le RSE ? »</div><span class="mtag sem">FlauBERT échoue</span></div>
     </div>
-    <p class="hint" style="margin-top:10px">FlauBERT décroche précisément sur les <b>sigles et définitions</b> (CVEC, RSE) — là où le signal utile est un terme rare plutôt qu'une paraphrase. À l'inverse, la seule question que e5 manque (« se loger ») est rattrapée par les deux autres... et l'était déjà par la <button class="term" data-term="rrf">fusion RRF</button>. Ces écarts valent 1 à 2 questions, soit l'ordre de la <b>granularité</b> du jeu (1/16 ≈ 0.06) : réels, mais à ne pas surinterpréter.</p>
+    <p class="hint" style="margin-top:10px">FlauBERT décroche précisément sur les <b>sigles et les définitions</b> (CVEC, RSE), c'est-à-dire là où le signal utile réside dans un terme rare plutôt que dans une paraphrase. Inversement, l'unique question manquée par e5 (le logement) est rattrapée par les deux autres modèles — et l'était déjà par la <button class="term" data-term="rrf">fusion RRF</button>. Ces écarts représentent 1 à 2 questions, soit l'ordre de grandeur de la <b>granularité</b> du jeu d'évaluation (1/16 ≈ 0,06) : réels, mais à ne pas surinterpréter.</p>
   </div>
 
-  <p class="hint"><b>Décision : on garde e5.</b> À recall équivalent, il est deux fois plus compact (384 dimensions contre 768) donc plus rapide sur CPU, et il est déjà en production — changer d'embeddeur imposerait de ré-indexer tout le corpus pour un gain non démontré. La mesure garde malgré tout sa valeur : elle dit <em>quand</em> il faudrait rebasculer (si l'on montait k, CamemBERT deviendrait le bon choix). Piège rencontré : le FlauBERT <em>cased</em> de référence refuse de se charger sous sentence-transformers 5.6.1 (son tokenizer Moses n'expose pas <code>basic_tokenizer</code>) — c'est la variante <em>uncased</em> qui est mesurée ici.</p>
+  <p class="hint"><b>Décision : e5 est conservé.</b> À taux de rappel équivalent, le modèle est deux fois plus compact (384 dimensions contre 768), donc plus rapide sur CPU, et il est déjà déployé — un changement d'encodeur imposerait une ré-indexation complète du corpus pour un gain non démontré. La mesure conserve néanmoins sa valeur : elle indique <em>à quelles conditions</em> une bascule deviendrait pertinente (un élargissement de k rendrait CamemBERT préférable). Contrainte technique rencontrée : la variante <em>cased</em> de référence de FlauBERT ne se charge pas sous sentence-transformers 5.6.1, son tokenizer Moses n'exposant pas <code>basic_tokenizer</code> ; la mesure porte donc sur la variante <em>uncased</em>.</p>
 </section>
 
 <section id="s7">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Deux backends & trois pièges neutralisés</h2></div>
-  <p class="lead">Le système est <button class="term" data-term="backend">LLM‑agnostique</button> : le même code parle à un modèle <b>local</b> ou à une <b>API</b>, commuté par une variable d'environnement. Trois pièges silencieux — repérés et neutralisés — expliquent pourquoi le RAG « marchait à moitié » sans qu'aucune erreur ne remonte.</p>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Backends d'inférence et contraintes techniques neutralisées</h2></div>
+  <p class="lead">Le système est <button class="term" data-term="backend">indépendant du modèle de langage</button> : le même code s'adresse à un modèle <b>local</b> ou à une <b>API</b>, la commutation s'effectuant par variable d'environnement. Trois contraintes silencieuses — identifiées puis neutralisées — expliquent pourquoi le pipeline ne fonctionnait initialement qu'en partie, sans qu'aucune erreur ne soit remontée.</p>
   <table class="cmp">
-    <tr><th>Backend</th><th>Modèle</th><th>Latence /ask</th><th>Refus hors corpus</th></tr>
+    <tr><th>Backend</th><th>Modèle</th><th>Latence par requête</th><th>Refus hors corpus</th></tr>
     <tr><td><span class="pill api">API</span> <button class="term" data-term="mistral">Mistral</button></td><td><span class="mono" data-stat="backends.mistral.model">mistral-small-latest</span></td><td data-stat="backends.mistral.latency">~3 s / question</td><td><span data-stat="backends.mistral.refusals">4/4</span> corrects</td></tr>
     <tr><td><span class="pill local">local</span> <button class="term" data-term="ollama">Ollama</button></td><td><span class="mono" data-stat="backends.ollama.model">mistral 7B (CPU)</span></td><td data-stat="backends.ollama.latency">&gt; 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3</td><td>—</td></tr>
   </table>
   <div class="grid2" style="margin-top:16px">
-    <div class="piege"><div class="n">piège n°1</div><h3>Préfixes E5</h3><p>Les modèles <button class="term" data-term="e5">E5</button> exigent <code>query: </code> et <code>passage: </code>. Sans eux, les performances chutent <b>sans erreur</b>. Une table {famille → préfixes} centralise la règle.</p></div>
-    <div class="piege"><div class="n">piège n°2</div><h3>Métrique ChromaDB</h3><p><button class="term" data-term="chromadb">Chroma</button> indexe en <b>L2 par défaut</b>. La collection est créée avec <code>{"hnsw:space":"cosine"}</code> pour coller à des embeddings normalisés.</p></div>
-    <div class="piege"><div class="n">piège n°3</div><h3>num_ctx Ollama</h3><p><button class="term" data-term="numctx">Ollama</button> tronque le prompt à <code>num_ctx</code> (souvent 2048/4096), pas à la capacité du modèle, <b>en silence</b> — perdant des sources. Fixé explicitement à 8192.</p></div>
+    <div class="piege"><div class="n">contrainte n° 1</div><h3>Préfixes E5</h3><p>Les modèles de la famille <button class="term" data-term="e5">E5</button> exigent les préfixes <code>query: </code> et <code>passage: </code>. En leur absence, les performances se dégradent <b>sans qu'aucune erreur ne soit levée</b>. Une table {famille → préfixes} centralise cette règle.</p></div>
+    <div class="piege"><div class="n">contrainte n° 2</div><h3>Métrique ChromaDB</h3><p><button class="term" data-term="chromadb">Chroma</button> indexe en <b>distance L2 par défaut</b>. La collection est explicitement créée avec <code>{"hnsw:space":"cosine"}</code>, conformément à des embeddings normalisés.</p></div>
+    <div class="piege"><div class="n">contrainte n° 3</div><h3>Fenêtre de contexte Ollama</h3><p><button class="term" data-term="numctx">Ollama</button> tronque le prompt à la valeur de <code>num_ctx</code> (fréquemment 2048 ou 4096), et non à la capacité réelle du modèle, <b>sans émettre d'erreur</b> — des sources sont alors perdues. La valeur est fixée explicitement à 8192.</p></div>
   </div>
-  <p class="hint">Les échecs de backend (timeout, connexion, auth, quota) sont normalisés en <span class="mono">LLMBackendError</span> et remontés en <b>503</b> propre par l'API — jamais une stack trace à l'utilisateur.</p>
+  <p class="hint">Les défaillances de backend (délai dépassé, connexion, authentification, quota) sont normalisées en <span class="mono">LLMBackendError</span> et traduites par l'API en réponse <b>503</b> ; aucune trace d'exécution n'est exposée à l'utilisateur.</p>
 </section>
 
 <section id="s8">
-  <div class="sec-head"><span class="sec-num">08</span><h2>V2 — conversation multi‑tour par condensation</h2></div>
-  <p class="lead">Une question de suivi (« Et comment la demander ? ») est incompréhensible seule : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule d'abord le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> de chercher. L'endpoint <span class="mono">/prepare</span> l'expose pour un aperçu en direct sous la question.</p>
+  <div class="sec-head"><span class="sec-num">08</span><h2>Version 2 : conversation multi‑tour par condensation</h2></div>
+  <p class="lead">Une question de suivi (« Et comment la demander ? ») est inexploitable isolément : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> la phase de recherche. L'endpoint <span class="mono">/prepare</span> expose cette reformulation afin d'en afficher un aperçu sous la question.</p>
   <div class="card">
     <div class="dlg">
       <div class="bub u">Qu'est-ce que la césure ?</div>
@@ -444,42 +444,42 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
       <div class="bub a">La demande se dépose auprès de la composante, avec l'accord du responsable de formation. <span class="cite">[S1]</span></div>
     </div>
   </div>
-  <p class="hint">V2 rétrocompatible : sans <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> la V1. La reformulation calculée une seule fois par <span class="mono">/prepare</span> est réutilisée par <span class="mono">/ask</span> — l'aperçu ne peut donc jamais différer de ce qui est réellement recherché.</p>
+  <p class="hint">La V2 demeure rétrocompatible : en l'absence de <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> le comportement V1. La reformulation, calculée une seule fois par <span class="mono">/prepare</span>, est réutilisée par <span class="mono">/ask</span> : l'aperçu ne peut donc jamais différer de la requête effectivement recherchée.</p>
 
   <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Ce que l'évaluation conversationnelle révèle <span class="tag">eval · mode conversation</span></p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesuré sur <span data-stat="conversation.scenarios">3</span> scénarios, <span data-stat="conversation.turns">6</span> tours : recall <b><span data-stat="conversation.recall">3/6</span></b>. Un chiffre bas — et c'est le plus intéressant de la page, à condition de savoir ce qu'il mesure vraiment.</p>
-    <p class="hint" style="margin-top:0">La condensation, elle, <b>fonctionne</b> (le dialogue ci‑dessus est réel). Le 3/6 vient d'ailleurs, et de deux causes qu'il faut séparer :</p>
-    <p class="hint" style="margin-top:8px"><b>1 · Une vraie faiblesse de récupération.</b> Sur « les modalités de la césure », les <span data-stat="k_default">5</span> passages remontés viennent <em>tous</em> de la page d'une seule composante (l'IUT), pendant que la page institutionnelle « La césure à AMU » — celle qui porte la réponse — reste hors du top‑k. Cause aggravante mesurée : <b><span data-stat="chunk_hygiene.under50_pct">11.7</span> %</b> de l'index fait moins de 50 caractères (« FAQ », « Césure », « Bonus » — des fragments de navigation devenus unités indexées, contre une médiane de <span data-stat="chunk_hygiene.median_chars">786</span>). Or un chunk minuscule quasi identique à une requête courte décroche une <button class="term" data-term="cosine">similarité</button> très élevée : il truste une place du top‑k sans rien apporter.</p>
-    <p class="hint" style="margin-top:8px"><b>2 · Un artefact de la métrique.</b> Un tour annoté « répondable » <b>refuse correctement</b> — le corpus n'a pas de règle de césure propre au droit — mais un <button class="term" data-term="refus">refus</button> vide les sources par conception. Il compte donc mécaniquement comme un raté de recall, alors que c'est le comportement <em>souhaité</em>.</p>
-    <p class="hint" style="margin-top:8px">Le premier diagnostic — « les annotations sont trop strictes » — s'est révélé <b>faux</b> après lecture du contenu réel des chunks. C'est consigné tel quel dans le journal du projet : un jeu de scénarios encore à l'état de premier jet, et un chiffre qu'on préfère expliquer plutôt que maquiller.</p>
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Enseignements de l'évaluation conversationnelle <span class="tag">eval · mode conversation</span></p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesure établie sur <span data-stat="conversation.scenarios">3</span> scénarios et <span data-stat="conversation.turns">6</span> tours : taux de rappel de <b><span data-stat="conversation.recall">3/6</span></b>. Une valeur basse, et l'observation la plus instructive de cette page — à condition d'identifier précisément ce qu'elle mesure.</p>
+    <p class="hint" style="margin-top:0">La condensation, quant à elle, <b>fonctionne</b> : le dialogue ci‑dessus est authentique. Le résultat de 3/6 provient de deux causes distinctes, qu'il convient de séparer.</p>
+    <p class="hint" style="margin-top:8px"><b>1 · Une faiblesse réelle de la récupération.</b> Sur la requête relative aux modalités de la césure, les <span data-stat="k_default">5</span> passages remontés proviennent <em>tous</em> de la page d'une seule composante (l'IUT), tandis que la page institutionnelle « La césure à AMU » — celle qui porte la réponse — demeure hors du top‑k. Cause aggravante mesurée : <b><span data-stat="chunk_hygiene.under50_pct">11,7</span> %</b> des entrées de l'index comptent moins de 50 caractères (« FAQ », « Césure », « Bonus » — des fragments de navigation devenus unités indexées), pour une médiane de <span data-stat="chunk_hygiene.median_chars">786</span> caractères. Or un fragment très court, quasi identique à une requête brève, obtient une <button class="term" data-term="cosine">similarité</button> élevée : il occupe une position du top‑k sans apporter d'information.</p>
+    <p class="hint" style="margin-top:8px"><b>2 · Un artefact de la métrique.</b> Un tour annoté comme « répondable » <b>refuse à juste titre</b> — le corpus ne comporte aucune règle de césure propre à la composante Droit — mais un <button class="term" data-term="refus">refus</button> vide les sources par conception. Il est donc comptabilisé mécaniquement comme un échec de rappel, alors qu'il correspond au comportement <em>attendu</em>.</p>
+    <p class="hint" style="margin-top:8px">Le diagnostic initial — « les annotations sont trop strictes » — s'est révélé <b>erroné</b> après examen du contenu réel des fragments. Il est consigné comme tel dans le journal du projet : un jeu de scénarios encore à l'état d'ébauche, et un résultat que l'on choisit d'expliquer plutôt que de dissimuler.</p>
   </div>
 </section>
 
 <section id="s9">
-  <div class="sec-head"><span class="sec-num">09</span><h2>La pile logicielle du projet</h2></div>
-  <p class="lead">De l'API jusqu'au socle, chaque couche s'appuie sur celle du dessous. C'est la carte mentale du dépôt.</p>
+  <div class="sec-head"><span class="sec-num">09</span><h2>Pile logicielle du projet</h2></div>
+  <p class="lead">De l'interface API jusqu'au socle d'exécution, chaque couche s'appuie sur la précédente. Cette représentation constitue la carte du dépôt.</p>
   <div class="card">
-    <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> + la page démo servie sur <span class="mono">/</span></span></div>
-    <div class="layer l-mid"><button class="term" data-term="pipeline">RagPipeline</button><span>Orchestration : prepare (condensation + réécriture) → retrieve top‑k → prompt → generate</span></div>
+    <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> et la page de démonstration servie sur <span class="mono">/</span></span></div>
+    <div class="layer l-mid"><button class="term" data-term="pipeline">RagPipeline</button><span>Orchestration : prepare (condensation et réécriture) → récupération des k passages → prompt → génération</span></div>
     <div class="layer l-mid"><button class="term" data-term="sbert">sentence-transformers</button> + <button class="term" data-term="chromadb">ChromaDB</button><span>Embeddings <button class="term" data-term="e5">e5‑small</button> · base vectorielle cosinus persistante</span></div>
-    <div class="layer l-api"><button class="term" data-term="backend">Ollama · Mistral</button><span>Génération, commutable par <span class="mono">LLM_BACKEND</span></span></div>
-    <div class="layer l-base"><b>Python 3.12 (uv)</b><span>Socle · <span data-stat="tests">90</span> tests pytest, aucun n'appelle un vrai LLM ni le réseau</span></div>
-    <pre class="code"><span class="c"># Une question de bout en bout, en trois lignes</span>
+    <div class="layer l-api"><button class="term" data-term="backend">Ollama · Mistral</button><span>Génération, commutable par la variable <span class="mono">LLM_BACKEND</span></span></div>
+    <div class="layer l-base"><b>Python 3.12 (uv)</b><span>Socle d'exécution · <span data-stat="tests">90</span> tests pytest, dont aucun n'appelle un modèle réel ni le réseau</span></div>
+    <pre class="code"><span class="c"># Une question traitée de bout en bout, en trois lignes</span>
 <span class="k">from</span> assistant_amu.generation.rag <span class="k">import</span> RagPipeline
 
 pipe = RagPipeline.from_settings()
 res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"</span>, k=<span class="s">5</span>)
 <span class="c"># res.answer  -> réponse citant [S1], [S2]…</span>
-<span class="c"># res.sources -> les chunks réellement utilisés (vide si refus)</span></pre>
+<span class="c"># res.sources -> les fragments réellement utilisés (vide en cas de refus)</span></pre>
   </div>
-  <p class="hint">Un <button class="term" data-term="langchain">port LangChain</button> du pipeline de requête existe sur une branche dédiée, pour comparer « ce que le framework abstrait » — et ce qu'on perd en lisibilité et contrôle. L'équivalence n'est pas postulée mais <b>mesurée</b> : les mêmes <span data-stat="langchain_parity.questions">20</span> questions rejouées dans les deux implémentations, même base vectorielle, même prompt, même backend → <b><span data-stat="langchain_parity.refusals">19/20</span></b> de parité de refus (dont les 4 questions hors corpus), <span data-stat="langchain_parity.citations">15/20</span> sur les citations, recouvrement lexical moyen <span data-stat="langchain_parity.overlap">0.75</span>. L'unique divergence tient à la <em>génération</em> sur une question limite, pas au câblage.</p>
-  <p class="hint">Ce que LangChain n'abstrait <b>pas</b>, et qu'il faut écrire de toute façon : la chaîne rend une simple chaîne de caractères, là où <span class="mono">/ask</span> doit produire un résultat structuré — sources citées, refus qui vide les sources, erreur backend traduite en <span class="mono">503</span>. Et les préfixes <button class="term" data-term="e5">E5</button> restent à la charge du développeur : l'embeddeur générique du framework ne les ajoute pas.</p>
+  <p class="hint">Un <button class="term" data-term="langchain">portage LangChain</button> du pipeline de requête est disponible sur une branche dédiée, afin de comparer ce que le framework abstrait à ce qu'il coûte en lisibilité et en contrôle. L'équivalence n'est pas postulée mais <b>mesurée</b> : les mêmes <span data-stat="langchain_parity.questions">20</span> questions rejouées dans les deux implémentations, avec la même base vectorielle, le même prompt et le même backend, produisent <b><span data-stat="langchain_parity.refusals">19/20</span></b> de parité sur les refus (dont les 4 questions hors corpus), <span data-stat="langchain_parity.citations">15/20</span> sur les citations, et un recouvrement lexical moyen de <span data-stat="langchain_parity.overlap">0,75</span>. L'unique divergence relève de la <em>génération</em> sur une question limite, non du câblage du pipeline.</p>
+  <p class="hint">Ce que LangChain n'abstrait <b>pas</b>, et qu'il faut implémenter dans tous les cas : la chaîne renvoie une simple chaîne de caractères, là où <span class="mono">/ask</span> doit produire un résultat structuré — sources citées, refus vidant les sources, erreur de backend traduite en <span class="mono">503</span>. Les préfixes <button class="term" data-term="e5">E5</button> restent par ailleurs à la charge du développeur, l'encodeur générique du framework ne les appliquant pas.</p>
 </section>
 
 <section id="s10">
   <div class="sec-head"><span class="sec-num">10</span><h2>Glossaire complet</h2></div>
-  <p class="lead">Tous les termes de cette page, chacun relié au(x) fichier(s) réel(s) du projet.</p>
+  <p class="lead">L'ensemble des termes employés dans cette page, chacun rattaché au(x) fichier(s) correspondant(s) du dépôt.</p>
   <div class="chips" id="chips"></div>
 </section>
 
@@ -487,7 +487,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 </div>
 
 <footer>
-  Carte pédagogique du projet <b>AssistantAMU</b> · pipeline, chiffres et titres de corpus réels · scores de similarité et texte des réponses illustratifs, à but explicatif.
+  Support pédagogique du projet <b>AssistantAMU</b> · architecture, volumétries et intitulés de corpus réels · scores de similarité et texte des réponses illustratifs, à visée explicative.
   <div id="updatedStamp" style="margin-top:8px;font-size:12px;opacity:.8"></div>
 </footer>
 
@@ -518,8 +518,8 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
    ============================================================================ */
 /* STATS:START */
 var STATS = {
-  "updated": "2026-07-24",
-  "commit": "d96dba5",
+  "updated": "2026-07-26",
+  "commit": "0fdc81a",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -610,41 +610,41 @@ var STATS = {
 /* STATS:END */
 
 var G={
- rag:{t:"RAG",c:"Concept central",d:["Retrieval-Augmented Generation : au lieu de mettre la connaissance <em>dans</em> le modèle (ré-entraînement coûteux), on la lui fournit au moment de la question. Deux phases : indexation hors ligne (extraction, chunking, embeddings, base vectorielle) puis requête en temps réel (vectoriser la question, récupérer les top-k passages, les injecter dans le prompt, générer une réponse sourcée).","Dans AssistantAMU, le RAG apporte deux propriétés produit non négociables : la citation passage par passage et le refus explicite quand l'information est absente du corpus."],r:["embedding","topk","prompt","refus","chromadb"],f:"generation/rag.py"},
- llm:{t:"LLM",c:"Modèles",d:["Grand modèle de langage : un réseau Transformer décodeur entraîné à prédire le token suivant. Il absorbe grammaire, connaissances et capacités de raisonnement, mais génère du texte <em>plausible</em>, pas nécessairement vrai.","AssistantAMU ne l'utilise que pour <b>rédiger</b> à partir d'extraits fournis — jamais comme source de vérité. Deux backends interchangeables : Mistral (API) et Ollama (local)."],r:["backend","hallucination","prompt","mistral"]},
- hallucination:{t:"Hallucination",c:"Limites des LLM",d:["Un LLM peut inventer avec assurance une date, une référence ou un article de règlement quand il ignore la réponse : il n'a aucune notion interne de vérité.","C'est la motivation directe du RAG ici : en ancrant la réponse dans des extraits et en imposant le refus hors corpus, on réduit fortement les inventions et on peut citer les sources. La fidélité aux sources est un axe d'évaluation explicite."],r:["rag","refus","prompt"]},
- embedding:{t:"Embedding",c:"Représentation du texte",d:["Vecteur de nombres (384 dimensions pour e5-small) qui représente le <em>sens</em> d'un texte. Propriété clé : deux textes de sens proche produisent des vecteurs proches. C'est ce qui permet de retrouver « droits parentaux » à partir de « congé maternité », sans mot commun.","Tout passe par une seule classe <code>Embedder</code> : questions et passages y sont encodés avec le bon préfixe, puis normalisés."],r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
- e5:{t:"multilingual-e5-small",c:"Modèle d'embedding",d:["Le modèle d'embedding du projet : multilingue (utile pour un corpus 100 % français), léger (~470 Mo), 384 dimensions. Chargé paresseusement au premier usage.","Particularité E5 (piège n°1) : il faut préfixer les entrées — <code>query: </code> pour une question, <code>passage: </code> pour un chunk. Sans ces préfixes, la qualité de récupération chute <b>silencieusement</b>. Une table {famille → préfixes} centralise la règle et n'applique aucun préfixe à un modèle non-E5 (voir la comparaison mesurée CamemBERT / FlauBERT)."],r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
- camembert:{t:"CamemBERT & FlauBERT",c:"Modèles d'embedding",d:["Les deux grands modèles de langue entraînés <em>spécifiquement</em> sur du français (là où e5 est multilingue). Utilisés ici dans leurs variantes affinées pour la <b>similarité de phrases</b> (approche <button class=\"term\" data-term=\"sbert\">SBERT</button>) : <code>sentence-camembert-base</code> et une variante <em>uncased</em> de FlauBERT. Tous deux produisent des vecteurs de 768 dimensions, contre 384 pour e5-small.","Mesurés contre e5 sur les mêmes chunks et les mêmes questions : CamemBERT fait jeu égal à k=5 et récupère tout à k=8 ; FlauBERT décroche sur les sigles (CVEC, RSE). Point d'attention : ce sont des modèles <b>non-E5</b>, donc la table par famille ne leur applique <b>aucun préfixe</b> — leur en ajouter un dégraderait la mesure."],r:["e5","embedding","sbert","recall"],f:"eval/embedder_comparison.py"},
- cosine:{t:"Similarité cosinus",c:"Recherche sémantique",d:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, entre -1 et 1 ; proche de 1 = sens très proche. C'est la métrique standard pour comparer des embeddings.","Piège n°2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>. Le score exposé à l'utilisateur est <code>1 - distance</code>, ramené dans [0, 1]."],r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
- chromadb:{t:"ChromaDB",c:"Base vectorielle",d:["Base de données spécialisée dans le stockage d'embeddings et la recherche des plus proches voisins. Persistante en local ici (dossier <code>chroma_db/</code>), une seule collection <code>amu_docs</code>.","Les chunks sont dédupliqués par identifiant à la ré-indexation (idempotence : « 0 doublon »), et le <code>doc_id</code> est stocké en métadonnée pour la déduplication au niveau document (le 409 de <code>/ingest</code>)."],r:["cosine","hnsw","embedding","topk"],f:"retrieval/vector_store.py"},
- hnsw:{t:"HNSW",c:"Base vectorielle",d:["Hierarchical Navigable Small World : l'index de graphe approximatif qu'utilise Chroma pour trouver les voisins proches en millisecondes même avec beaucoup de vecteurs. Une petite perte de précision contre une recherche très rapide.","C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où le piège cosinus/L2."],r:["cosine","chromadb"]},
- chunking:{t:"Chunking & overlap",c:"Indexation",d:["Découpage des documents en unités de récupération de quelques centaines de tokens. Trop court : on perd le contexte ; trop long : on dilue l'information et on sature la fenêtre du modèle.","Ici : coupe sur frontières de paragraphes puis de phrases, budget dur de <b>500 tokens préfixe compris</b>, jamais au milieu d'une phrase (sauf phrase géante, coupée en dernier recours). Un <b>overlap</b> de 50 tokens recopie la fin d'un chunk au début du suivant pour ne pas casser une idée à la jointure. Les blocs partageant (page, section) sont fusionnés avant découpe."],r:["e5","tokenizer","embedding","extract"],f:"ingestion/chunk.py"},
- tokenizer:{t:"Tokenizer & tokens",c:"Représentation du texte",d:["Un modèle ne lit pas des mots mais des <em>tokens</em> (sous-mots). Le texte « anticonstitutionnellement » devient plusieurs fragments connus, ce qui permet de traiter des mots jamais vus.","Le chunking mesure ses budgets avec le <b>vrai</b> tokenizer de e5-small (via <code>transformers.AutoTokenizer</code>), pas une approximation — car e5 tronque au-delà de 512 tokens. Ordre de grandeur en français : ~1,3 token par mot."],r:["e5","chunking","embedding"],f:"ingestion/chunk.py"},
- extract:{t:"Extraction (PDF / HTML)",c:"Indexation",d:["PDF : <code>pdfplumber</code> page par page, avec escalade optionnelle vers <b>Docling</b> (mise en page, tableaux) pour les documents complexes. Un PDF sans couche de texte (scanné) lève une erreur dédiée : il est exclu et journalisé — <b>pas d'OCR</b>.","HTML : <code>BeautifulSoup</code>, contenu principal seulement (on retire nav/footer/scripts), la hiérarchie de titres <code>h1&gt;h2&gt;h3</code> est conservée comme <em>section</em> — provenance utile pour les citations."],r:["clean","chunking","ocr","docling"],f:"ingestion/extract.py"},
- clean:{t:"Nettoyage",c:"Indexation",d:["Après extraction : suppression des en-têtes/pieds de page répétés (lignes courtes apparaissant sur ≥ 3 pages), retrait des lignes de sommaire (points de suite + numéro de page), normalisation des espaces et des lignes vides.","La provenance (page, section) et l'identité du document (son hash de contenu) sont préservées : une source garde son <code>doc_id</code>."],r:["extract","chunking"],f:"ingestion/clean.py"},
- docling:{t:"Docling",c:"Indexation",d:["Bibliothèque d'IBM pour parser les PDF complexes (mise en page multi-colonnes, tableaux) en Markdown structuré. Dépendance <b>optionnelle</b>, activée par document via <code>extractor: docling</code> dans sources.yaml.","C'est une escalade : le PDF simple part sur pdfplumber, on ne paie Docling que là où c'est nécessaire."],r:["extract"],x:["Docling (GitHub)","https://github.com/docling-project/docling"]},
- ocr:{t:"OCR (hors périmètre)",c:"Choix de périmètre",d:["Reconnaissance optique de caractères : lire le texte d'une image. Volontairement <b>hors périmètre</b> du projet.","Conséquence concrète : le calendrier universitaire n'existe qu'en PDF scanné → détecté comme sans couche de texte, exclu et signalé plutôt qu'ingéré à moitié. C'est un choix assumé, pas un oubli."],r:["extract"]},
- topk:{t:"Top-k",c:"Requête",d:["Le nombre de chunks les mieux classés que l'on garde après la recherche par similarité — <b>k = 5 par défaut</b> ici. Ces k passages sont injectés dans le prompt du LLM.","Trop petit : on risque de manquer l'information ; trop grand : on dilue les bons passages et on gonfle le coût (et sur Ollama, on dépasse num_ctx). Le bon réglage se trouve par l'évaluation — la courbe recall@k montre un plateau dès k=3."],r:["cosine","recall","numctx","prompt"]},
- prompt:{t:"Prompt RAG (système + user)",c:"Requête",d:["Deux messages. Le <b>système</b> fixe les règles : répondre exclusivement à partir des extraits, citer [S1]/[S2], signaler les contradictions, traiter séparément les cas multiples, et sinon refuser mot pour mot.","Le message <b>user</b> place les sources en balises XML <code>&lt;source id=\"S1\" titre=…&gt;</code> <b>d'abord</b>, puis la question <b>en dernier</b> : meilleure obéissance sur contexte long, et le XML sépare sans ambiguïté les données des instructions."],r:["rag","citation","refus","backend"],f:"generation/rag.py · prompts/rag_system.md"},
- citation:{t:"Citations [S1] [S2]",c:"Requête",d:["Chaque affirmation factuelle porte au moins une citation renvoyant à l'identifiant d'une balise <code>&lt;source&gt;</code>. Le modèle a pour consigne de ne jamais citer un identifiant qu'il n'a pas réellement utilisé.","C'est la traçabilité du produit : l'utilisateur peut remonter à la source exacte. L'interface affiche le titre du document, la page et un extrait sous chaque réponse."],r:["prompt","refus","rag"]},
- refus:{t:"Refus & fidélité aux sources",c:"Requête",d:["Si les extraits ne permettent pas de répondre, le modèle renvoie <b>exactement</b> : « Je ne trouve pas cette information dans les documents disponibles. » — seule, sans rien ajouter.","La détection du refus se fait par comparaison <b>normalisée</b> (minuscules, sans ponctuation) : les petites variations d'un modèle 7B comptent quand même comme un refus. Un refus ne cite aucune source. C'est la même normalisation qu'utilise le harnais d'évaluation."],r:["prompt","citation","hallucination","recall"],f:"generation/rag.py"},
- backend:{t:"Backend LLM-agnostique",c:"Génération",d:["Un seul protocole <code>LLMBackend</code> (un nom + une méthode <code>generate</code>), deux implémentations sélectionnées par <code>LLM_BACKEND</code> : <code>OllamaBackend</code> (local) et <code>MistralBackend</code> (API). Pas de streaming, pas d'état, pas de retry élaboré.","Les échecs sont normalisés en <code>LLMBackendError</code> avec une cause (timeout, connexion, auth, quota) que l'API traduit en 503 propre. Changer de fournisseur ne touche pas le reste du code."],r:["ollama","mistral","numctx","llm"],f:"generation/llm.py"},
- ollama:{t:"Ollama (backend local)",c:"Génération",d:["Serveur local qui sert des modèles open-source (ici <code>mistral</code> 7B) via HTTP. Contrôle total, données qui ne sortent pas de la machine, pas de coût par requête — mais lent sur CPU.","Piège n°3 neutralisé : Ollama tronque le prompt à <code>num_ctx</code> (souvent 2048/4096), pas à la capacité du modèle, <b>sans erreur</b> — on perd des sources en silence. Le projet fixe <code>OLLAMA_NUM_CTX=8192</code> explicitement, avec repli documenté 4096/k=3."],r:["numctx","backend","mistral"],f:"generation/llm.py"},
- mistral:{t:"Mistral La Plateforme (API)",c:"Génération",d:["L'API de Mistral (société française, modèles open-weight). Modèle <code>mistral-small-latest</code>. Les meilleures performances sans infrastructure, ~3 s par question, mais les données transitent chez un tiers et chaque appel se paie.","L'arbitrage assumé du projet : <b>développer sur l'API</b> (rapide, fiable), <b>démontrer en local</b> (Ollama). La clé vit dans <code>.env</code> ; sans elle, le backend API échoue au démarrage (fail-fast)."],r:["ollama","backend","llm"],f:"generation/llm.py"},
- numctx:{t:"num_ctx (fenêtre Ollama)",c:"Pièges",d:["Nombre maximal de tokens qu'Ollama donne au modèle. Le piège : sa valeur par défaut est petite et <b>silencieuse</b> — au-delà, le prompt (donc des sources) est tronqué sans aucune erreur, et le modèle répond sur un contexte amputé.","Conséquence pour le RAG : k et la taille des chunks doivent tenir dans num_ctx. D'où le repli documenté (num_ctx 4096, k=3) quand le CPU est trop lent à 8192."],r:["ollama","topk","chunking"]},
- recall:{t:"recall@k (context recall)",c:"Évaluation",d:["La métrique de récupération du projet : sur k passages remontés, le bon chunk est-il présent ? Moyennée sur 16 questions annotées. C'est un proxy du <em>context recall</em> au sens RAGAS.","On mesure la <b>récupération</b> séparément de la <b>génération</b> : si le bon chunk n'est jamais remonté, aucun LLM ne pourra répondre correctement. Baseline k=5 : sémantique 0.94, BM25 0.81, RRF 0.88."],r:["ragas","bm25","rrf","harness","topk"],f:"evaluation.py · eval/evaluate.py"},
- ragas:{t:"RAGAS (vocabulaire)",c:"Évaluation",d:["Cadre d'évaluation des systèmes RAG. Le projet en emprunte le <b>vocabulaire</b> — <em>context recall</em> (le contexte contient-il la réponse ?), <em>faithfulness</em> (la réponse est-elle fidèle au contexte ?) — sans automatiser l'outil complet en V1.","Cela ancre les mesures maison dans une terminologie reconnue ; l'évaluation RAGAS automatisée est notée comme évolution future."],r:["recall","refus","harness"],x:["Documentation RAGAS","https://docs.ragas.io"]},
- bm25:{t:"BM25 (recherche lexicale)",c:"Évaluation",d:["Recherche par mots-clés classique : compte les termes communs pondérés. L'opposé de la recherche sémantique — forte sur les sigles et termes exacts (BCC, CVEC, M3C), faible sur les reformulations.","Ici : index BM25 en mémoire (<code>rank_bm25</code>) construit à la volée depuis les <b>mêmes</b> chunks que l'index sémantique, <b>pour l'évaluation seulement</b>. Le pipeline /ask reste sémantique pur."],r:["recall","rrf","cosine"],f:"retrieval/bm25_store.py"},
- rrf:{t:"RRF (fusion de rangs)",c:"Évaluation",d:["Reciprocal Rank Fusion : combine les classements sémantique et BM25 en additionnant l'inverse des rangs. Recherche « hybride » simple et robuste, sans réglage de poids.","Mesurée (recall@5 = 0.88), <b>pas branchée</b> dans /ask : le sémantique la dépasse ici (0.94). Mais elle rattrape la seule question que le sémantique rate (q04, logement) — argument gardé pour une bascule hybride si les chiffres la justifient un jour."],r:["bm25","recall","cosine"],f:"evaluation.py"},
- harness:{t:"Harnais d'évaluation",c:"Évaluation",d:["Un script qui rejoue un jeu de questions annotées et produit un <b>rapport Markdown daté</b> : recall@k par méthode, détail par question, et une section « désaccords » (questions où une seule méthode trouve le bon chunk).","Reproductible et versionné (<code>eval/reports/</code>) : les progrès sont chiffrés et traçables, pas ressentis. Aucun test unitaire n'appelle un vrai LLM ni le réseau."],r:["recall","ragas","rewrite"],f:"eval/evaluate.py · eval/reports/"},
- rewrite:{t:"Réécriture de requête",c:"Requête",d:["Trois stratégies pour la requête envoyée à la recherche : <code>raw</code> (identité, défaut V1), <code>strip</code> (retrait heuristique déterministe de l'ouverture conversationnelle), <code>llm</code> (réécriture par le modèle en requête factuelle).","<code>strip</code> est l'identité sur les questions définitionnelles (« Qu'est-ce que… ») : il ne peut donc pas les régresser. Mesuré puis proposé en <b>option</b> de /ask (défaut raw ⇒ comportement V1 inchangé)."],r:["strip","topk","harness","condensation"],f:"generation/rewrite.py"},
- strip:{t:"Stratégie strip",c:"Requête",d:["Retire par expression régulière l'ouverture impérative/conversationnelle (« parle-moi de », « je voudrais des infos sur »…) et l'article qui la suit, en gardant la queue informative. « Parle-moi des régimes spéciaux » → « régimes spéciaux ».","Déterministe, aucun appel LLM, jamais destructif sur une question définitionnelle. Résultat mesuré sur le jeu « dur » : recall@5 0.62 → 0.88, sans régression ailleurs."],r:["rewrite","recall"],f:"generation/rewrite.py"},
- condensation:{t:"Condensation (V2)",c:"Requête",d:["Reformule une question de suivi en question <b>autonome</b> à partir de l'historique, <em>avant</em> la recherche : « Et comment la demander ? » → « Comment demander une césure ? ». Sans elle, le vecteur d'un tour elliptique ne retrouverait rien.","Exposée par <code>/prepare</code> pour un aperçu en direct sous la question ; la reformulation, calculée une fois, est réutilisée par <code>/ask</code> pour ne jamais diverger de ce qui est recherché. Rétrocompatible : sans historique, on retombe exactement sur la V1."],r:["rewrite","prompt","pipeline"],f:"generation/rag.py · prompts/condense_system.md"},
- pipeline:{t:"RagPipeline",c:"Orchestration",d:["La classe qui orchestre un tour : <code>prepare</code> (condensation + réécriture ⇒ requête de recherche) puis <code>answer</code> (récupérer top-k, assembler le prompt, générer, détecter un refus).","Injection de dépendances partout (store, backend) : les tests substituent des faux — aucun test ne télécharge un modèle ni ne touche le réseau. C'est le point d'entrée unique de la logique RAG."],r:["rag","condensation","backend","fastapi"],f:"generation/rag.py"},
- fastapi:{t:"FastAPI",c:"Ingénierie",d:["Le framework qui expose le système en API HTTP : <code>POST /ask</code>, <code>POST /prepare</code>, <code>POST /ingest</code> (upload multipart), <code>GET /health</code>, et la page démo sur <code>/</code>. Documentation interactive auto-générée sur <code>/docs</code>.","La configuration est validée <b>au démarrage</b> (fail-fast) : un backend mal configuré fait échouer le lancement, pas la première requête. Store, backend et pipeline sont des singletons paresseux surchargeables par les tests."],r:["pipeline","backend"],f:"api/main.py"},
- sbert:{t:"sentence-transformers",c:"Bibliothèques",d:["La bibliothèque qui charge et fait tourner le modèle d'embedding (e5-small) : quelques lignes pour transformer une liste de textes en vecteurs normalisés, sur CPU ou GPU.","Encapsulée dans une seule classe <code>Embedder</code> : aucun autre module n'encode de texte directement, ce qui garantit que les préfixes E5 sont toujours appliqués au bon endroit."],r:["e5","embedding","chromadb"],f:"retrieval/embedder.py"},
- langchain:{t:"Port LangChain",c:"Comparaison",d:["Le pipeline de requête est réimplémenté avec LangChain sur une branche dédiée (<code>langchain-port</code>), à des fins de comparaison honnête : ce que le framework abstrait vs ce qu'on perd en lisibilité et en contrôle.","La démarche du projet est « le pipeline d'abord, le framework ensuite » — pour pouvoir expliquer chaque brique avant de la déléguer."],r:["pipeline","rag"]}
+ rag:{t:"RAG",c:"Concept central",d:["Retrieval-Augmented Generation : plutôt que d'inscrire la connaissance <em>dans</em> le modèle par un ré-entraînement coûteux, le système la lui fournit au moment de la question. L'architecture se décompose en deux phases : une indexation hors ligne (extraction, découpage en fragments, calcul des embeddings, stockage vectoriel), puis une phase de requête en temps réel (vectorisation de la question, récupération des k meilleurs passages, injection dans le prompt, génération d'une réponse sourcée).","Dans AssistantAMU, cette architecture garantit deux propriétés produit non négociables : la citation passage par passage et le refus explicite lorsque l'information est absente du corpus."],r:["embedding","topk","prompt","refus","chromadb"],f:"generation/rag.py"},
+ llm:{t:"LLM",c:"Modèles",d:["Grand modèle de langage : un réseau Transformer de type décodeur, entraîné à prédire le token suivant. Il acquiert la grammaire, des connaissances et des capacités de raisonnement, mais génère un texte <em>plausible</em>, pas nécessairement exact.","AssistantAMU ne l'emploie que pour <b>rédiger</b> à partir d'extraits fournis, jamais comme source de vérité. Deux backends interchangeables sont disponibles : Mistral (API) et Ollama (local)."],r:["backend","hallucination","prompt","mistral"]},
+ hallucination:{t:"Hallucination",c:"Limites des LLM",d:["Un LLM peut affirmer avec assurance une date, une référence ou un article de règlement qu'il ignore : il ne dispose d'aucune notion interne de vérité.","C'est la motivation directe de l'architecture retenue : en ancrant la réponse dans des extraits et en imposant le refus hors corpus, le système réduit fortement les inventions et rend les sources vérifiables. La fidélité aux sources constitue un axe d'évaluation explicite."],r:["rag","refus","prompt"]},
+ embedding:{t:"Embedding",c:"Représentation du texte",d:["Vecteur numérique (384 dimensions pour e5-small) représentant le <em>sens</em> d'un texte. Propriété essentielle : deux textes de sens proche produisent des vecteurs proches. C'est ce qui permet de retrouver « droits parentaux » à partir de « congé maternité », en l'absence de tout mot commun.","L'ensemble des encodages transite par une classe unique <code>Embedder</code> : questions et passages y sont encodés avec le préfixe approprié, puis normalisés."],r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
+ e5:{t:"multilingual-e5-small",c:"Modèle d'embedding",d:["Le modèle d'embedding retenu pour le projet : multilingue (pertinent pour un corpus intégralement francophone), léger (~470 Mo), 384 dimensions. Il est chargé paresseusement, au premier usage.","Spécificité de la famille E5 (contrainte n° 1) : les entrées doivent être préfixées — <code>query: </code> pour une question, <code>passage: </code> pour un fragment. En l'absence de ces préfixes, la qualité de récupération se dégrade <b>silencieusement</b>. Une table {famille → préfixes} centralise la règle et n'applique aucun préfixe à un modèle non-E5 (voir la comparaison mesurée avec CamemBERT et FlauBERT)."],r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
+ camembert:{t:"CamemBERT et FlauBERT",c:"Modèles d'embedding",d:["Les deux principaux modèles de langue entraînés <em>spécifiquement</em> sur le français, là où e5 est multilingue. Ils sont employés ici dans leurs variantes affinées pour la <b>similarité de phrases</b> (approche <button class=\"term\" data-term=\"sbert\">SBERT</button>) : <code>sentence-camembert-base</code> et une variante <em>uncased</em> de FlauBERT. Tous deux produisent des vecteurs de 768 dimensions, contre 384 pour e5-small.","Mesurés face à e5 sur les mêmes fragments et les mêmes questions : CamemBERT fait jeu égal à k = 5 et récupère la totalité des passages attendus à k = 8 ; FlauBERT décroche sur les sigles (CVEC, RSE). Point d'attention : s'agissant de modèles <b>non-E5</b>, la table par famille ne leur applique <b>aucun préfixe</b> — en ajouter un dégraderait la mesure."],r:["e5","embedding","sbert","recall"],f:"eval/embedder_comparison.py"},
+ cosine:{t:"Similarité cosinus",c:"Recherche sémantique",d:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, compris entre -1 et 1 ; une valeur proche de 1 traduit une forte proximité de sens. C'est la métrique standard de comparaison des embeddings.","Contrainte n° 2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>. Le score exposé à l'utilisateur vaut <code>1 - distance</code>, ramené dans l'intervalle [0, 1]."],r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
+ chromadb:{t:"ChromaDB",c:"Base vectorielle",d:["Base de données spécialisée dans le stockage d'embeddings et la recherche des plus proches voisins. Elle est ici persistée localement (répertoire <code>chroma_db/</code>), avec une collection unique <code>amu_docs</code>.","Les fragments sont dédupliqués par identifiant lors de la ré-indexation (idempotence : aucun doublon), et le <code>doc_id</code> est conservé en métadonnée pour assurer la déduplication au niveau du document (code 409 renvoyé par <code>/ingest</code>)."],r:["cosine","hnsw","embedding","topk"],f:"retrieval/vector_store.py"},
+ hnsw:{t:"HNSW",c:"Base vectorielle",d:["Hierarchical Navigable Small World : l'index de graphe approximatif employé par Chroma pour identifier les voisins proches en quelques millisecondes, y compris sur un grand nombre de vecteurs. Le compromis consiste en une légère perte de précision au profit de la vitesse de recherche.","C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où la contrainte cosinus / L2."],r:["cosine","chromadb"]},
+ chunking:{t:"Chunking et chevauchement",c:"Indexation",d:["Découpage des documents en unités de récupération de quelques centaines de tokens. Un fragment trop court perd son contexte ; un fragment trop long dilue l'information et sature la fenêtre du modèle.","Implémentation retenue : segmentation sur les frontières de paragraphes puis de phrases, budget strict de <b>500 tokens préfixe inclus</b>, sans jamais couper au milieu d'une phrase (sauf phrase exceptionnellement longue, découpée en dernier recours). Un <b>chevauchement</b> de 50 tokens reprend la fin d'un fragment au début du suivant afin de ne pas rompre une idée à la jointure. Les blocs partageant le même couple (page, section) sont fusionnés avant découpe."],r:["e5","tokenizer","embedding","extract"],f:"ingestion/chunk.py"},
+ tokenizer:{t:"Tokenizer et tokens",c:"Représentation du texte",d:["Un modèle ne traite pas des mots mais des <em>tokens</em> (sous-mots). Le terme « anticonstitutionnellement » est ainsi décomposé en plusieurs fragments connus, ce qui permet de traiter des mots jamais rencontrés.","Le découpage en fragments calcule ses budgets à l'aide du <b>véritable</b> tokenizer d'e5-small (via <code>transformers.AutoTokenizer</code>) et non d'une approximation, le modèle tronquant au-delà de 512 tokens. Ordre de grandeur en français : environ 1,3 token par mot."],r:["e5","chunking","embedding"],f:"ingestion/chunk.py"},
+ extract:{t:"Extraction (PDF / HTML)",c:"Indexation",d:["PDF : traitement page par page avec <code>pdfplumber</code>, assorti d'une escalade optionnelle vers <b>Docling</b> (mise en page, tableaux) pour les documents complexes. Un PDF dépourvu de couche textuelle (document numérisé) lève une erreur dédiée : il est exclu et journalisé — <b>aucun traitement OCR n'est effectué</b>.","HTML : extraction par <code>BeautifulSoup</code> du contenu principal uniquement (navigation, pied de page et scripts sont retirés) ; la hiérarchie de titres <code>h1&gt;h2&gt;h3</code> est conservée en tant que <em>section</em>, information de provenance utile aux citations."],r:["clean","chunking","ocr","docling"],f:"ingestion/extract.py"},
+ clean:{t:"Nettoyage",c:"Indexation",d:["Après extraction : suppression des en-têtes et pieds de page répétés (lignes courtes présentes sur au moins 3 pages), retrait des lignes de sommaire (points de conduite suivis d'un numéro de page), normalisation des espaces et des lignes vides.","La provenance (page, section) et l'identité du document (empreinte de son contenu) sont préservées : une source conserve son <code>doc_id</code>."],r:["extract","chunking"],f:"ingestion/clean.py"},
+ docling:{t:"Docling",c:"Indexation",d:["Bibliothèque développée par IBM pour analyser les PDF complexes (mise en page multi-colonnes, tableaux) et les convertir en Markdown structuré. Dépendance <b>optionnelle</b>, activée document par document via <code>extractor: docling</code> dans sources.yaml.","Il s'agit d'une escalade : les PDF simples sont traités par pdfplumber, Docling n'étant sollicité que là où il est nécessaire."],r:["extract"],x:["Docling (GitHub)","https://github.com/docling-project/docling"]},
+ ocr:{t:"OCR (hors périmètre)",c:"Choix de périmètre",d:["Reconnaissance optique de caractères : extraction du texte contenu dans une image. Cette fonction est délibérément <b>hors périmètre</b> du projet.","Conséquence concrète : le calendrier universitaire n'existe qu'en PDF numérisé ; détecté comme dépourvu de couche textuelle, il est exclu et signalé plutôt qu'ingéré partiellement. Il s'agit d'un choix documenté, non d'un oubli."],r:["extract"]},
+ topk:{t:"Top-k",c:"Requête",d:["Nombre de fragments les mieux classés conservés à l'issue de la recherche par similarité — <b>k = 5 par défaut</b> dans ce projet. Ces k passages sont injectés dans le prompt transmis au modèle.","Une valeur trop faible expose au risque de manquer l'information ; une valeur trop élevée dilue les passages pertinents et accroît le coût (et, sous Ollama, dépasse la fenêtre num_ctx). Le réglage adéquat s'établit par l'évaluation : la courbe du taux de rappel présente un plateau dès k = 3."],r:["cosine","recall","numctx","prompt"]},
+ prompt:{t:"Prompt RAG (système et utilisateur)",c:"Requête",d:["Le prompt se compose de deux messages. Le message <b>système</b> fixe les règles : répondre exclusivement à partir des extraits, référencer par [S1] / [S2], signaler les contradictions, traiter séparément les cas multiples et, à défaut, formuler un refus littéral.","Le message <b>utilisateur</b> place les sources en balises XML <code>&lt;source id=\"S1\" titre=…&gt;</code> <b>en premier</b>, puis la question <b>en dernier</b> : cette disposition améliore le respect des consignes sur contexte long, et le balisage XML sépare sans ambiguïté les données des instructions."],r:["rag","citation","refus","backend"],f:"generation/rag.py · prompts/rag_system.md"},
+ citation:{t:"Citations [S1] [S2]",c:"Requête",d:["Chaque affirmation factuelle porte au moins une citation renvoyant à l'identifiant d'une balise <code>&lt;source&gt;</code>. Le modèle a pour consigne de ne jamais citer un identifiant qu'il n'a pas effectivement exploité.","C'est le mécanisme de traçabilité du produit : l'utilisateur peut remonter à la source exacte. L'interface affiche sous chaque réponse l'intitulé du document, la page et un extrait."],r:["prompt","refus","rag"]},
+ refus:{t:"Refus et fidélité aux sources",c:"Requête",d:["Lorsque les extraits ne permettent pas de répondre, le modèle renvoie <b>exactement</b> : « Je ne trouve pas cette information dans les documents disponibles. », sans aucun ajout.","La détection du refus s'effectue par comparaison <b>normalisée</b> (mise en minuscules, suppression de la ponctuation) : les variations mineures produites par un modèle 7B sont ainsi correctement reconnues comme des refus. Un refus ne cite aucune source. Le harnais d'évaluation applique la même normalisation."],r:["prompt","citation","hallucination","recall"],f:"generation/rag.py"},
+ backend:{t:"Backend indépendant du modèle",c:"Génération",d:["Un protocole unique <code>LLMBackend</code> (un nom et une méthode <code>generate</code>), et deux implémentations sélectionnées par la variable <code>LLM_BACKEND</code> : <code>OllamaBackend</code> (local) et <code>MistralBackend</code> (API). Ni diffusion en continu, ni état conservé, ni mécanisme de reprise élaboré.","Les défaillances sont normalisées en <code>LLMBackendError</code>, assorties d'une cause (délai dépassé, connexion, authentification, quota) que l'API traduit en réponse 503. Un changement de fournisseur n'affecte aucune autre partie du code."],r:["ollama","mistral","numctx","llm"],f:"generation/llm.py"},
+ ollama:{t:"Ollama (backend local)",c:"Génération",d:["Serveur local exposant des modèles open source (ici <code>mistral</code> 7B) via HTTP. Il offre un contrôle complet, garantit que les données ne quittent pas la machine et n'engendre aucun coût par requête, au prix d'une lenteur marquée sur CPU.","Contrainte n° 3 neutralisée : Ollama tronque le prompt à la valeur de <code>num_ctx</code> (fréquemment 2048 ou 4096) et non à la capacité du modèle, <b>sans lever d'erreur</b> — des sources sont alors perdues silencieusement. Le projet fixe explicitement <code>OLLAMA_NUM_CTX=8192</code>, avec un repli documenté à 4096 / k = 3."],r:["numctx","backend","mistral"],f:"generation/llm.py"},
+ mistral:{t:"Mistral La Plateforme (API)",c:"Génération",d:["L'API de Mistral, société française éditant des modèles à poids ouverts. Modèle utilisé : <code>mistral-small-latest</code>. Elle offre les meilleures performances sans infrastructure dédiée, environ 3 s par question, mais les données transitent par un tiers et chaque appel est facturé.","Arbitrage retenu pour le projet : <b>développement sur l'API</b> (rapide et fiable), <b>démonstration en local</b> (Ollama). La clé d'accès est stockée dans <code>.env</code> ; en son absence, le backend API échoue dès le démarrage (validation immédiate)."],r:["ollama","backend","llm"],f:"generation/llm.py"},
+ numctx:{t:"num_ctx (fenêtre Ollama)",c:"Contraintes techniques",d:["Nombre maximal de tokens qu'Ollama transmet au modèle. La difficulté tient à sa valeur par défaut, faible et <b>silencieuse</b> : au-delà, le prompt — et donc des sources — est tronqué sans aucune erreur, et le modèle répond sur un contexte amputé.","Conséquence pour l'architecture RAG : k et la taille des fragments doivent tenir dans num_ctx. D'où le repli documenté (num_ctx 4096, k = 3) lorsque le CPU s'avère trop lent à 8192."],r:["ollama","topk","chunking"]},
+ recall:{t:"Taux de rappel à k (recall@k)",c:"Évaluation",d:["La métrique de récupération du projet : parmi les k passages remontés, le fragment attendu figure-t-il ? La valeur est moyennée sur 16 questions annotées. Elle constitue un proxy du <em>context recall</em> au sens du référentiel RAGAS.","La <b>récupération</b> est mesurée indépendamment de la <b>génération</b> : si le fragment pertinent n'est jamais remonté, aucun modèle ne peut répondre correctement. Mesure de référence à k = 5 : sémantique 0,94, BM25 0,81, RRF 0,88."],r:["ragas","bm25","rrf","harness","topk"],f:"evaluation.py · eval/evaluate.py"},
+ ragas:{t:"RAGAS (vocabulaire)",c:"Évaluation",d:["Cadre d'évaluation des systèmes RAG. Le projet en reprend le <b>vocabulaire</b> — <em>context recall</em> (le contexte contient-il la réponse ?) et <em>faithfulness</em> (la réponse est-elle fidèle au contexte ?) — sans automatiser l'outil complet en V1.","Ce choix ancre les mesures internes dans une terminologie reconnue ; l'automatisation de l'évaluation RAGAS est identifiée comme évolution ultérieure."],r:["recall","refus","harness"],x:["Documentation RAGAS","https://docs.ragas.io"]},
+ bm25:{t:"BM25 (recherche lexicale)",c:"Évaluation",d:["Recherche par mots-clés classique, fondée sur le décompte pondéré des termes communs. Approche opposée à la recherche sémantique : performante sur les sigles et les termes exacts (BCC, CVEC, M3C), faible sur les reformulations.","Mise en œuvre : index BM25 en mémoire (<code>rank_bm25</code>) construit à la volée à partir des <b>mêmes</b> fragments que l'index sémantique, <b>à des fins d'évaluation uniquement</b>. Le pipeline /ask demeure strictement sémantique."],r:["recall","rrf","cosine"],f:"retrieval/bm25_store.py"},
+ rrf:{t:"RRF (fusion de rangs)",c:"Évaluation",d:["Reciprocal Rank Fusion : combinaison des classements sémantique et BM25 par addition de l'inverse des rangs. Approche « hybride » simple et robuste, ne nécessitant aucun réglage de pondération.","Mesurée (taux de rappel à 5 : 0,88), elle n'est <b>pas intégrée</b> à /ask, la recherche sémantique la dépassant ici (0,94). Elle rattrape toutefois l'unique question manquée par le sémantique (q04, logement) : argument conservé en vue d'une bascule hybride si les mesures venaient à la justifier."],r:["bm25","recall","cosine"],f:"evaluation.py"},
+ harness:{t:"Harnais d'évaluation",c:"Évaluation",d:["Script rejouant un jeu de questions annotées et produisant un <b>rapport Markdown daté</b> : taux de rappel par méthode et par valeur de k, détail question par question, et une section « divergences » recensant les questions pour lesquelles une seule méthode identifie le fragment attendu.","Reproductible et versionné (<code>eval/reports/</code>), il rend les progrès chiffrés et traçables plutôt qu'estimés. Aucun test unitaire n'appelle un modèle réel ni le réseau."],r:["recall","ragas","rewrite"],f:"eval/evaluate.py · eval/reports/"},
+ rewrite:{t:"Réécriture de requête",c:"Requête",d:["Trois stratégies régissent la requête transmise à la recherche : <code>raw</code> (identité, comportement par défaut en V1), <code>strip</code> (suppression heuristique déterministe de l'ouverture conversationnelle) et <code>llm</code> (réécriture de la question en requête factuelle par le modèle).","<code>strip</code> se comporte comme l'identité sur les questions définitionnelles (« Qu'est-ce que… ») et ne peut donc les dégrader. La stratégie est mesurée, puis exposée en <b>option</b> de /ask, le défaut <code>raw</code> préservant le comportement V1."],r:["strip","topk","harness","condensation"],f:"generation/rewrite.py"},
+ strip:{t:"Stratégie strip",c:"Requête",d:["Suppression par expression régulière de l'ouverture impérative ou conversationnelle (« parle-moi de », « je voudrais des infos sur »…) ainsi que de l'article qui la suit, la partie informative étant conservée : « Parle-moi des régimes spéciaux » devient « régimes spéciaux ».","Déterministe, sans appel à un modèle, et sans effet destructeur sur une question définitionnelle. Résultat mesuré sur le jeu de formulations difficiles : taux de rappel à 5 de 0,62 à 0,88, sans régression par ailleurs."],r:["rewrite","recall"],f:"generation/rewrite.py"},
+ condensation:{t:"Condensation (V2)",c:"Requête",d:["Reformulation d'une question de suivi en question <b>autonome</b> à partir de l'historique, <em>préalablement</em> à la recherche : « Et comment la demander ? » devient « Comment demander une césure ? ». Sans cette étape, le vecteur d'un tour elliptique ne retrouverait rien.","La reformulation est exposée par <code>/prepare</code> pour un aperçu affiché sous la question ; calculée une seule fois, elle est réutilisée par <code>/ask</code> afin de ne jamais diverger de la requête effectivement recherchée. Le mécanisme est rétrocompatible : en l'absence d'historique, le comportement V1 s'applique à l'identique."],r:["rewrite","prompt","pipeline"],f:"generation/rag.py · prompts/condense_system.md"},
+ pipeline:{t:"RagPipeline",c:"Orchestration",d:["La classe qui orchestre un tour de dialogue : <code>prepare</code> (condensation et réécriture, produisant la requête de recherche) puis <code>answer</code> (récupération des k passages, assemblage du prompt, génération, détection d'un éventuel refus).","L'injection de dépendances est systématique (base vectorielle, backend) : les tests y substituent des doubles, de sorte qu'aucun test ne télécharge de modèle ni n'accède au réseau. C'est le point d'entrée unique de la logique RAG."],r:["rag","condensation","backend","fastapi"],f:"generation/rag.py"},
+ fastapi:{t:"FastAPI",c:"Ingénierie",d:["Le framework qui expose le système sous forme d'API HTTP : <code>POST /ask</code>, <code>POST /prepare</code>, <code>POST /ingest</code> (dépôt de fichier en multipart), <code>GET /health</code>, ainsi que la page de démonstration servie sur <code>/</code>. La documentation interactive est générée automatiquement sur <code>/docs</code>.","La configuration est validée <b>au démarrage</b> : un backend mal configuré fait échouer le lancement du service, et non la première requête. Base vectorielle, backend et pipeline sont des singletons paresseux, substituables par les tests."],r:["pipeline","backend"],f:"api/main.py"},
+ sbert:{t:"sentence-transformers",c:"Bibliothèques",d:["La bibliothèque qui charge et exécute le modèle d'embedding (e5-small) : quelques lignes suffisent à transformer une liste de textes en vecteurs normalisés, sur CPU comme sur GPU.","Elle est encapsulée dans une classe unique <code>Embedder</code> : aucun autre module n'encode directement de texte, ce qui garantit que les préfixes E5 sont toujours appliqués au bon endroit."],r:["e5","embedding","chromadb"],f:"retrieval/embedder.py"},
+ langchain:{t:"Portage LangChain",c:"Comparaison",d:["Le pipeline de requête est réimplémenté avec LangChain sur une branche dédiée (<code>langchain-port</code>), à des fins de comparaison rigoureuse : ce que le framework abstrait au regard de ce qu'il coûte en lisibilité et en contrôle.","La démarche du projet consiste à implémenter le pipeline avant d'adopter un framework, afin de pouvoir expliquer chaque composant avant de le déléguer."],r:["pipeline","rag"]}
 };
 
 var CATS={};
@@ -728,7 +728,7 @@ function renderChunks(){
     var tail=[],tt=0;for(var j=sents.length-1;j>=0;j--){var jt=approxTokens(sents[j]);if(tt+jt>ov)break;tail.unshift(sents[j]);tt+=jt;}
     prevTail=tail;
     var full='passage: '+sents.join(' ');
-    return '<div class="chunk"><div class="ch-h"><span>chunk #'+idx+'</span><span>'+approxTokens(full)+' tokens (préfixe compris)</span></div>'+
+    return '<div class="chunk"><div class="ch-h"><span>fragment n° '+(idx+1)+'</span><span>'+approxTokens(full)+' tokens, préfixe inclus</span></div>'+
       '<div class="ch-t"><span class="chip-prefix">passage: </span>'+body+'</div></div>';
   }).join('');
   document.getElementById('chunkOut').innerHTML=html;
@@ -791,13 +791,13 @@ function ask(qi){
   setTimeout(function(){
     var pb=document.getElementById('promptbox');
     if(d.refuse){
-      pb.innerHTML='<span class="c"># aucun chunk pertinent (scores faibles) — mais on tente quand même :</span>\n'+
-        '<span class="k">système</span> : réponds UNIQUEMENT d\'après &lt;sources&gt;, sinon refuse mot pour mot.\n'+
-        '<span class="k">user</span> : &lt;sources&gt; … &lt;/sources&gt;\n\nQuestion : '+d.q;
+      pb.innerHTML='<span class="c"># aucun fragment pertinent (scores faibles) — la requête est néanmoins soumise :</span>\n'+
+        '<span class="k">système</span> : répondre EXCLUSIVEMENT d\'après &lt;sources&gt;, sinon refuser littéralement.\n'+
+        '<span class="k">utilisateur</span> : &lt;sources&gt; … &lt;/sources&gt;\n\nQuestion : '+d.q;
     }else{
       var s1=DOCS[top[0]], s2=DOCS[top[1]];
-      pb.innerHTML='<span class="k">système</span> : réponds UNIQUEMENT d\'après &lt;sources&gt;, cite [S1]/[S2], sinon refuse.\n'+
-        '<span class="k">user</span> :\n&lt;sources&gt;\n'+
+      pb.innerHTML='<span class="k">système</span> : répondre EXCLUSIVEMENT d\'après &lt;sources&gt;, référencer par [S1] / [S2], sinon refuser.\n'+
+        '<span class="k">utilisateur</span> :\n&lt;sources&gt;\n'+
         '  &lt;source id=<span class="s">"S1"</span> titre=<span class="s">"'+s1.t+'"</span>&gt; … &lt;/source&gt;\n'+
         '  &lt;source id=<span class="s">"S2"</span> titre=<span class="s">"'+s2.t+'"</span>&gt; … &lt;/source&gt;\n'+
         '&lt;/sources&gt;\n\nQuestion : '+d.q;
@@ -808,7 +808,7 @@ function ask(qi){
   setTimeout(function(){
     var ans=document.getElementById('ans'),who=document.getElementById('answho');
     ans.className='answer'+(d.refuse?' refuse':'');
-    who.textContent=d.refuse?'Refus · information absente du corpus':'Réponse du LLM · ancrée dans les sources';
+    who.textContent=d.refuse?'Refus · information absente du corpus':'Réponse du modèle · ancrée dans les sources';
     document.getElementById('anstxt').innerHTML=d.a.replace(/\[(S\d+)\]/g,'<span class="cite">$1</span>');
     ans.style.display='block';
   },1500);
@@ -828,8 +828,23 @@ window.addEventListener('scroll',function(){
 });
 
 /* ---------- STATS -> DOM (source unique de vérité, câblée depuis le bloc STATS) ---------- */
-function fmtStat(v){
-  if(typeof v==='number')return Number.isInteger(v)?String(v):v.toFixed(2);
+/* Typographie française : la virgule est le séparateur décimal. */
+function fr(n,d){return n.toFixed(d).replace('.',',');}
+var MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function dateFr(iso){
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');
+  if(!m)return iso;
+  var j=parseInt(m[3],10);
+  return (j===1?'1er':j)+' '+MOIS[parseInt(m[2],10)-1]+' '+m[1];
+}
+/* Chemins STATS portant un score : toujours deux décimales (0,94 · 1,00). */
+var SCORE_PATH=/^(recall_at_5\.|recall_curve\.|embedders\.|rewrite_hard_recall5\.|langchain_parity\.overlap$)/;
+function fmtStat(v,path){
+  if(typeof v==='number'){
+    if(path&&SCORE_PATH.test(path))return fr(v,2);
+    return Number.isInteger(v)?String(v):fr(v,2);
+  }
+  if(typeof v==='string')return v.replace(/^(\d+)\.(\d+)$/,'$1,$2');
   return v;
 }
 function resolveStat(path){
@@ -837,17 +852,18 @@ function resolveStat(path){
 }
 function applyStats(){
   document.querySelectorAll('[data-stat]').forEach(function(el){
-    var v=resolveStat(el.getAttribute('data-stat'));
-    if(v!==undefined&&v!==null)el.textContent=fmtStat(v);
+    var path=el.getAttribute('data-stat');
+    var v=resolveStat(path);
+    if(v!==undefined&&v!==null)el.textContent=fmtStat(v,path);
   });
   [['.f-sem',STATS.recall_at_5.semantic],['.f-bm',STATS.recall_at_5.bm25],['.f-rrf',STATS.recall_at_5.rrf],
    ['.f-e5',STATS.embedders.e5.r5],['.f-cam',STATS.embedders.camembert.r5],['.f-fla',STATS.embedders.flaubert.r5]].forEach(function(b){
     var el=document.querySelector(b[0]);if(!el)return;
     el.setAttribute('data-w',Math.round(b[1]*100));
-    el.textContent=b[1].toFixed(2);
+    el.textContent=fr(b[1],2);
   });
   var stamp=document.getElementById('updatedStamp');
-  if(stamp)stamp.textContent='Instantané du projet au '+STATS.updated+((STATS.commit&&STATS.commit!=='local')?' · commit '+STATS.commit:'');
+  if(stamp)stamp.textContent='État du projet au '+dateFr(STATS.updated)+((STATS.commit&&STATS.commit!=='local')?' · commit '+STATS.commit:'');
 }
 applyStats();
 
@@ -868,19 +884,19 @@ function buildRecallChart(){
   for(var g=0.6;g<=1.0001;g+=0.1){
     var y=yv(g);
     svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(padL+plotW)+'" y2="'+y+'" stroke="#E1E5F0" stroke-width="1"/>';
-    svg+='<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6B7290">'+g.toFixed(1)+'</text>';
+    svg+='<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6B7290">'+fr(g,1)+'</text>';
   }
   var bx=xi(2);
   svg+='<line x1="'+bx+'" y1="'+padT+'" x2="'+bx+'" y2="'+(padT+plotH)+'" stroke="#143b8f" stroke-width="1" stroke-dasharray="4 4" opacity="0.35"/>';
-  svg+='<text x="'+bx+'" y="'+(padT-5)+'" text-anchor="middle" font-size="10.5" fill="#143b8f">k=5 · retenu</text>';
-  ks.forEach(function(k,i){svg+='<text x="'+xi(i)+'" y="'+(padT+plotH+21)+'" text-anchor="middle" font-size="11.5" fill="#33406B">k='+k+'</text>';});
+  svg+='<text x="'+bx+'" y="'+(padT-5)+'" text-anchor="middle" font-size="10.5" fill="#143b8f">k = 5 · valeur retenue</text>';
+  ks.forEach(function(k,i){svg+='<text x="'+xi(i)+'" y="'+(padT+plotH+21)+'" text-anchor="middle" font-size="11.5" fill="#33406B">k = '+k+'</text>';});
   svg+='<text x="'+(padL+plotW/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11" fill="#6B7290">passages récupérés (k)</text>';
   series.forEach(function(s){
     var pts=s.v.map(function(r,i){return xi(i)+','+yv(r);}).join(' ');
     svg+='<polyline points="'+pts+'" fill="none" stroke="'+s.color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
     s.v.forEach(function(r,i){svg+='<circle cx="'+xi(i)+'" cy="'+yv(r)+'" r="3.5" fill="'+s.color+'"/>';});
     var last=s.v[s.v.length-1];
-    svg+='<text x="'+(xi(ks.length-1)+9)+'" y="'+(yv(last)+4)+'" font-size="12" font-weight="600" fill="'+s.color+'">'+s.name+' '+last.toFixed(2)+'</text>';
+    svg+='<text x="'+(xi(ks.length-1)+9)+'" y="'+(yv(last)+4)+'" font-size="12" font-weight="600" fill="'+s.color+'">'+s.name+' '+fr(last,2)+'</text>';
   });
   svg+='</svg>';
   el.innerHTML=svg;
@@ -947,9 +963,9 @@ function doStrip(exi){
   document.getElementById('stripAfter').textContent='« '+r.out+' »';
   var note=document.getElementById('stripNote');
   if(r.changed){
-    note.innerHTML='Ouverture conversationnelle retirée : la requête recherchée est désormais un groupe nominal factuel, bien plus proche du bon document.';
+    note.innerHTML='Ouverture conversationnelle supprimée : la requête transmise à la recherche est désormais un groupe nominal factuel, sensiblement plus proche du document pertinent.';
   }else{
-    note.innerHTML='<span class="identity">Question définitionnelle : aucune ouverture à retirer → requête <b>inchangée</b>.</span> C\'est la garantie de non-régression de <span class="mono">strip</span>.';
+    note.innerHTML='<span class="identity">Question définitionnelle : aucune ouverture à supprimer, la requête demeure <b>inchangée</b>.</span> C\'est la garantie de non-régression de la stratégie <span class="mono">strip</span>.';
   }
 }
 doStrip(0);
