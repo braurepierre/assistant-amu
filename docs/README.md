@@ -1,9 +1,14 @@
 # docs/ — carte pédagogique du projet
 
-`concepts-assistant-amu.html` est une page autonome (aucune dépendance, aucun
-serveur) qui explique **ce que fait réellement AssistantAMU**, brique par brique,
+`concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
+de build) qui explique **ce que fait réellement AssistantAMU**, brique par brique,
 avec des démos manipulables (chunking, requête RAG, réécriture) et un glossaire
 relié aux fichiers du code. Ouvrir en double-cliquant.
+
+Deux ressources sont chargées depuis un CDN — les polices et **KaTeX**, qui
+compose les formules des blocs « En savoir plus ». Hors ligne, la page reste
+entièrement lisible : les formules retombent sur leur source TeX en monospace
+(repli géré dans `renderMath`).
 
 > Support pédagogique / de présentation — **hors périmètre produit** (PRD §5).
 > Aucune dépendance runtime, non branché dans l'application.
@@ -51,8 +56,23 @@ cohérent avec le reste de la page :
 2. **Sidebar** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
    groupe. Le surlignage au défilement (scroll-spy) le prend en charge tout seul.
 3. **Glossaire** — si la rubrique introduit un terme, ajouter une entrée dans
-   l'objet `G` (`t/c/d/r/f`, `f` = fichier réel du dépôt) ; il apparaît
-   automatiquement dans la puce du glossaire et dans les renvois « Termes liés ».
+   l'objet `G` ; elle apparaît automatiquement dans la puce du glossaire et dans
+   les renvois « Termes liés ». Chaque fiche se lit en deux temps :
+
+   | champ | rôle |
+   | --- | --- |
+   | `t` / `c` | intitulé et catégorie affichés en tête du tiroir |
+   | `def[]` | **définition formelle** — le concept en lui-même, hors projet |
+   | `math{}` | *facultatif* — bloc repliable « En savoir plus », marque l'entrée d'un `ƒ` |
+   | `impl[]` | **mise en œuvre** — ce qu'AssistantAMU en fait, les contraintes rencontrées |
+   | `f` | fichier réel du dépôt, affiché sous le bloc `impl[]` |
+   | `r[]` / `x[]` | termes liés (clés de `G`) et lien externe |
+
+   Le bloc `math{}` se compose dans l'ordre `intro → formula → note → h1 →
+   worked → h2 → p2` ; tous les champs sont facultatifs. `formula` est du **TeX**
+   rendu par KaTeX, `worked` un bloc monospace admettant `<span class="hl">` et
+   `<span class="cm">` pour surligner et commenter. Le `ƒ` se réserve aux entrées
+   portant réellement une formule — au-delà, la marque devient décorative.
 4. **Chiffres** — si la rubrique affiche des mesures, les ajouter à
    `concepts.facts.yaml` (+ `data-stat="…"` dans le HTML) et régénérer.
 
