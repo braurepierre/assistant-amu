@@ -1,265 +1,211 @@
 # AssistantAMU
 
-Assistant documentaire **RAG** (Retrieval-Augmented Generation) construit sur les
-documents publics d'Aix-Marseille Université (règlements de scolarité, guides
-étudiants, pages des composantes). On lui pose une question en français, il répond
-en **citant les passages sources** et **refuse explicitement** de répondre quand
-l'information est absente du corpus.
+**AssistantAMU** est un système documentaire fondé sur une architecture **RAG** (*Retrieval-Augmented Generation*), conçu pour interroger les documents publics d'Aix-Marseille Université (règlements de scolarité, guides étudiants, pages des composantes). À partir d'une requête formulée en français, le système produit une réponse construite exclusivement à partir du corpus indexé, **cite explicitement les passages sources** et **formule un refus** lorsque l'information demandée est absente de la base documentaire.
 
-Le système est **LLM-agnostique** (backend local Ollama ↔ API Mistral, commutable
-par variable d'environnement) et livré avec un **harnais d'évaluation
-reproductible** comparant recherche sémantique, BM25 et leur fusion RRF.
+Le système est **indépendant du modèle de langage utilisé** (commutation par variable d'environnement entre un backend local sous Ollama et l'API Mistral) et intègre un **harnais d'évaluation reproductible** comparant les performances de la recherche sémantique, de l'approche lexicale BM25 et de leur fusion par classement réciproque (*Reciprocal Rank Fusion* — RRF).
 
-> Développé d'après un PRD versionné ([`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md)),
-> en Python pur (le pipeline d'abord, le framework ensuite — voir le port
-> LangChain). Objectif : pouvoir expliquer **chaque brique**.
+> **Note de conception :** ce projet a été développé conformément aux spécifications d'un document d'exigences produit versionné ([`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md)), en Python pur — le pipeline d'abord, le framework ensuite (voir la branche d'expérimentation LangChain). L'objectif explicite est de garantir la transparence complète de chaque composant.
 
 ---
 
-## Pourquoi RAG plutôt que « tout mettre dans le contexte » ?
+## Motivation architecturale : RAG et fenêtre de contexte étendue
 
-Anthropic recommande, pour une base < ~200 000 tokens, de placer tout le corpus
-dans le prompt (avec prompt caching) plutôt que de faire du RAG. Le RAG reste le
-bon choix ici, pour quatre raisons :
+Pour des corpus de taille modérée (< ~200 000 tokens), Anthropic recommande d'insérer l'intégralité des documents dans le prompt système (*in-context learning* avec mise en cache) plutôt que de recourir au RAG. L'approche RAG a néanmoins été retenue pour ce projet, pour quatre raisons structurelles :
 
-1. **Maîtrise de bout en bout** — maîtriser le RAG de bout en bout est l'objectif
-   du projet.
-2. **Contrainte du backend local** — Ollama sert `mistral` avec une fenêtre réduite
-   par défaut (voir *piège n°3*).
-3. **Coût et latence** — un contexte massif à chaque requête, incompatible avec un
-   CPU et un free tier.
-4. **Citations passage par passage** — cœur du produit, natives en RAG.
+1. **Maîtrise de l'ingénierie RAG** — l'implémentation et la maîtrise explicite du pipeline d'indexation et de recherche constituent l'objectif technique principal.
+2. **Contraintes d'infrastructure locale** — Ollama expose le modèle `mistral` avec une fenêtre de contexte réduite par défaut (voir *Gestion du contexte Ollama*).
+3. **Optimisation des ressources** — l'envoi récurrent d'un contexte volumineux induit des coûts d'API et une latence d'inférence CPU incompatibles avec les contraintes du projet.
+4. **Précision du sourçage** — le découpage en fragments (*chunks*) permet une attribution contextuelle et une citation exacte des passages sources, fonction centrale du produit.
 
 ---
 
-## Architecture
+## Architecture du système
 
-```
-INDEXATION (hors ligne)
-sources.yaml → download → extract (pdfplumber/bs4) → clean → chunk (≤ 500 tk, ov. 50)
-     → embed ("passage: " + texte, e5-small) → ChromaDB (cosine)
-     → [pour l'éval : index BM25 en mémoire depuis les mêmes chunks]
+```text
+TRAITEMENT ET INDEXATION (hors ligne)
+sources.yaml ──> Téléchargement ──> Extraction (pdfplumber/bs4) ──> Nettoyage ──> Chunking (≤ 500 tk, chevauchement : 50)
+     └──> Vectorisation ("passage: " + texte, e5-small) ──> Stockage ChromaDB (distance cosinus)
+     └──> [Évaluation] Génération de l'index BM25 en mémoire à partir des mêmes fragments
 
-REQUÊTE V1 (temps réel)
-question → embed ("query: " + question) → ChromaDB top-k
-     → prompt RAG (règles en système ; sources XML puis question en user)
-     → LLMBackend.generate → réponse + sources
+PIPELINE DE REQUÊTE V1 (temps réel)
+Requête utilisateur ──> Vectorisation ("query: " + question) ──> Recherche k-NN ChromaDB
+     └──> Construction du prompt RAG (consignes système + contexte XML + requête)
+     └──> Inférence via LLMBackend ──> Génération de la réponse et restitution des références
 ```
 
-### Trois pièges documentés et neutralisés
+### Contraintes techniques identifiées et résolutions
 
-1. **Préfixes E5** — les modèles E5 exigent `"query: "` (questions) et
-   `"passage: "` (chunks) ; sans eux les performances chutent silencieusement.
-   `embedder.py` porte une table {famille → préfixes} et n'applique **aucun**
-   préfixe à `sentence-camembert-base` (comparaison Phase 5).
-2. **Métrique ChromaDB** — la collection est créée avec
-   `metadata={"hnsw:space": "cosine"}` (Chroma est en L2 par défaut).
-3. **`num_ctx` Ollama** — Ollama tronque le prompt à `num_ctx` (souvent 2048/4096),
-   pas à la capacité du modèle, **sans erreur**. `OLLAMA_NUM_CTX=8192` par défaut.
+* **Formatage des préfixes E5** — les modèles de la famille E5 requièrent impérativement les préfixes `"query: "` pour les requêtes et `"passage: "` pour les documents. Leur absence dégrade silencieusement la qualité des représentations vectorielles. Le module `embedder.py` gère ces spécificités au moyen d'une table {famille de modèles → préfixes} et désactive tout préfixe pour les modèles non concernés (`sentence-camembert-base`, comparaison de la Phase 5).
+* **Espace métrique ChromaDB** — la collection est explicitement initialisée avec le paramètre `metadata={"hnsw:space": "cosine"}`, afin de remplacer la métrique euclidienne L2 appliquée par défaut par ChromaDB.
+* **Gestion du contexte Ollama** — Ollama tronque silencieusement, et sans erreur, les prompts dépassant la variable `num_ctx` (fixée par défaut à 2048 ou 4096 tokens) plutôt que la capacité réelle du modèle. Cette variable a été portée à `OLLAMA_NUM_CTX=8192` afin de prévenir toute perte involontaire d'information lors de l'injection des contextes.
 
 ---
 
-## Stack
+## Spécifications technologiques
 
-| Composant | Choix |
-|---|---|
-| Langage | Python ≥ 3.11 (développé/testé sous 3.12) |
-| Embeddings | `sentence-transformers` + `intfloat/multilingual-e5-small` |
-| Base vectorielle | `chromadb` (persistant local, cosinus) |
-| Recherche lexicale | `rank_bm25` (comparaison d'évaluation) |
-| LLM local | Ollama (`mistral` 7B) |
-| LLM API | Mistral La Plateforme (`mistral-small-latest`) |
-| Extraction | `pdfplumber` (+ `docling` en escalade), `beautifulsoup4` |
-| API | `fastapi` + `uvicorn` + `pydantic` v2 |
-| Tests | `pytest` (aucun test n'appelle un vrai LLM ni le réseau) |
+| Composant | Technologie retenue |
+| :--- | :--- |
+| **Langage** | Python ≥ 3.11 (environnement de référence : 3.12) |
+| **Embeddings** | `sentence-transformers` (`intfloat/multilingual-e5-small`) |
+| **Base de données vectorielle** | `chromadb` (instance locale persistante, métrique cosinus) |
+| **Recherche lexicale** | `rank_bm25` (utilisé à des fins d'évaluation comparative) |
+| **Inférence LLM (local)** | Ollama (modèle `mistral` 7B) |
+| **Inférence LLM (API)** | Mistral La Plateforme (`mistral-small-latest`) |
+| **Extraction de texte** | `pdfplumber` (escalade sur `docling`), `beautifulsoup4` |
+| **Interface API** | `fastapi`, `uvicorn`, `pydantic` v2 |
+| **Suite de tests** | `pytest` (isolation stricte : aucun appel réseau ni LLM en exécution de test) |
 
 ---
 
-## Installation
+## Guide d'installation et d'exécution
 
-Prérequis : Python ≥ 3.11 ; pour le backend local, [Ollama](https://ollama.com)
-avec `ollama pull mistral`.
+### Prérequis
+
+* Python ≥ 3.11
+* Backend local (optionnel) : [Ollama](https://ollama.com) initialisé avec le modèle `mistral` (`ollama pull mistral`).
+
+### Initialisation de l'environnement
 
 ```bash
-# Avec uv (recommandé — gère aussi la version de Python)
+# Configuration via le gestionnaire 'uv' (recommandé — gère également la version de Python)
 uv venv --python 3.12
 uv pip install -e ".[dev]"
 
-# Ou avec pip standard
-python -m venv .venv && source .venv/bin/activate   # Windows : .venv\Scripts\activate
+# Configuration via pip standard
+python -m venv .venv
+source .venv/bin/activate  # Sous Windows : .venv\Scripts\activate
 pip install -e ".[dev]"
 
-cp .env.example .env    # renseigner MISTRAL_API_KEY si backend API
+# Initialisation des variables d'environnement
+cp .env.example .env       # Renseigner MISTRAL_API_KEY en cas d'utilisation de l'API
 pytest
 ```
 
----
-
-## Utilisation
+### Processus d'exécution
 
 ```bash
-# 1. Constituer corpus/sources.yaml (15-30 URLs), puis :
-python -m assistant_amu.ingestion.download          # télécharge dans corpus/raw/
-python -m assistant_amu.ingestion stats             # documents/exclusions/chunks
-python -m assistant_amu.ingestion dump -n 5         # inspection visuelle des chunks
-python -m assistant_amu.ingestion index             # embeddings → ChromaDB (idempotent)
-python -m assistant_amu.ingestion search "césure ?" # top-k (contrôle de pertinence)
+# 1. Traitement et indexation du corpus (sur la base de corpus/sources.yaml, 15-30 URL)
+python -m assistant_amu.ingestion.download          # Téléchargement des ressources dans corpus/raw/
+python -m assistant_amu.ingestion stats             # Métriques du corpus (documents/exclusions/fragments)
+python -m assistant_amu.ingestion dump -n 5         # Inspection structurale des fragments
+python -m assistant_amu.ingestion index             # Génération des embeddings et indexation ChromaDB (idempotent)
+python -m assistant_amu.ingestion search "césure ?" # Validation de la recherche k-NN (top-k)
 
-# 2. Question de bout en bout (retrieval + génération)
+# 2. Inférence de bout en bout (recherche + génération)
 python -m assistant_amu.generation ask "Quelles sont les modalités de césure ?"
 
-# 3. API
-uvicorn assistant_amu.api.main:app --reload         # docs interactives sur /docs
+# 3. Lancement du service API
+uvicorn assistant_amu.api.main:app --reload         # Documentation OpenAPI accessible sur /docs
 
-# 4. Évaluation
+# 4. Évaluation des performances
 python eval/evaluate.py --mode retrieval --method all --k 5
 python eval/evaluate.py --mode end-to-end --k 5
 python eval/evaluate.py --mode retrieval --embedding-model dangvantuan/sentence-camembert-base
 ```
 
-Basculer de backend : `LLM_BACKEND=mistral` (API) ou `ollama` (local) dans `.env`.
+*Pour basculer d'un backend à l'autre, modifier la variable `LLM_BACKEND` (`mistral` ou `ollama`) dans le fichier `.env`.*
 
 ---
 
-## API (contrats)
+## Contrats d'interface API
 
-| Endpoint | Méthode | Rôle |
-|---|---|---|
-| `/ask` | `POST` | `{question, k}` → `{answer, sources[], model, retrieved_chunks, condensed_question}` ; `503` si backend indisponible |
-| `/ingest` | `POST` | multipart (`file`, `title`, `url?`, `category?`) → `{document_id, chunks_added}` ; `409` si doublon |
-| `/health` | `GET` | `{chroma, llm_backend, documents, chunks}` |
-
----
-
-## Évaluation
-
-Le harnais mesure le **recall@k** (proxy de *context recall*, terminologie RAGAS)
-pour trois méthodes — sémantique, BM25 et leur fusion **RRF** — et produit un
-rapport Markdown daté dans `eval/reports/`, avec une section « désaccords »
-(questions où une seule méthode trouve le bon chunk). La fusion RRF est **mesurée
-seulement** ; le pipeline `/ask` reste sémantique pur en V1.
-
-> **Baseline** (2026-07-23 — corpus 18 docs / 316 chunks, 16 questions, k=5) :
-> recall@5 **sémantique 0.94**, **BM25 0.81**, **RRF 0.88**. Obtenue après un
-> raffinage **diagnostiqué** (0.81 → 0.94) : q03 était une annotation trop stricte
-> (le chunk RSE dit « RSE », pas « régime spécial »), q10 une **lacune de données**
-> (la page M3C n'était qu'un index de liens → ajout des PDF « Cadrage M3C »). La
-> seule question que le sémantique rate encore (q04, logement) est **récupérée par
-> la RRF** — argument concret pour l'hybride, laissé tel quel plutôt que gonflé.
-> Courbe recall@k ∈ {2,3,5,8} et détail par question : `eval/reports/`.
-
-**Comparaison d'embeddeurs** (recall@k sémantique, mêmes 16 questions et mêmes
-chunks, mesure seule — le pipeline `/ask` garde l'embeddeur de production) :
-
-| Embeddeur | @3 | @5 | @8 |
-|---|---|---|---|
-| `intfloat/multilingual-e5-small` (production, 384 dims) | 0.88 | 0.94 | 0.94 |
-| `dangvantuan/sentence-camembert-base` (768 dims) | 0.81 | 0.94 | **1.00** |
-| `hugorosen/flaubert_base_uncased-xnli-sts` (768 dims) | 0.81 | 0.81 | 0.94 |
-
-e5 et CamemBERT sont **à égalité en moyenne (0.92)** : CamemBERT récupère tout au
-rang 8, e5 est le plus régulier — et le plus léger. FlauBERT est en retrait,
-surtout sur les sigles/définitions (rate RSE et CVEC). Les écarts (1-2 questions
-≈ granularité 0.06) ne justifient pas de changer l'embeddeur de production. Le
-modèle *cased* `Lajavaness/sentence-flaubert-base` ne se charge pas sous
-sentence-transformers 5.6.1 (tokenizer Moses sans `basic_tokenizer`), d'où la
-variante *uncased*. Script : `eval/embedder_comparison.py`, rapport daté dans
-`eval/reports/`.
-
-**End-to-end & latences par backend** (mesuré le 2026-07-23, corpus réel) :
-
-| Backend | Latence `/ask` | Refus (end-to-end) |
-|---|---|---|
-| Mistral API (`mistral-small-latest`) | ~3 s/question | **4/4** questions hors-corpus refusées correctement |
-| Ollama local (mistral 7B, CPU) | > 120 s à `num_ctx=8192`/`k=5` (timeout géré) ; ~190 s à chaud avec repli `num_ctx=4096`/`k=3` | — |
-
-Sur cette machine (CPU), Ollama est lent : conforme à l'arbitrage du PRD
-(*développer sur l'API, démontrer en local*) et au repli documenté `num_ctx=4096`,
-`k≤5`. Le dépassement de délai remonte proprement en `LLMBackendError(timeout)`
-→ `503` (F5). Rapport : `eval/reports/2026-07-23_end-to-end_k5.md`.
+| Point d'entrée | Méthode | Description | Réponses / Codes HTTP |
+| :--- | :--- | :--- | :--- |
+| `/ask` | `POST` | Traitement complet d'une requête `{question, k}` | `{answer, sources[], model, retrieved_chunks, condensed_question}`<br/>`503 Service Unavailable` si le backend est injoignable. |
+| `/ingest` | `POST` | Ingestion d'un document en multipart (`file`, `title`, `url?`, `category?`) | `{document_id, chunks_added}`<br/>`409 Conflict` en cas de doublon. |
+| `/health` | `GET` | Contrôle de l'état des services et métriques | `{chroma, llm_backend, documents, chunks}` |
 
 ---
 
-## Périmètre et limites (assumés)
+## Métriques et évaluation
 
-Des choix de périmètre (§3 du PRD), **pas des oublis** :
+Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équivalent au *context recall* du framework RAGAS) selon trois stratégies de recherche : sémantique, lexicale (BM25) et hybride (RRF). Un rapport Markdown daté est automatiquement généré dans `eval/reports/`, incluant une section « désaccords » recensant les questions pour lesquelles une seule méthode identifie le fragment attendu. La fusion RRF fait l'objet d'une **mesure comparative uniquement** : le pipeline `/ask` demeure purement sémantique en V1.
 
-- Pas d'authentification, pas de déploiement/Docker/CI, pas de streaming.
-- Pas de reranking ni de recherche hybride dans `/ask` (RRF est **mesuré, pas
-  branché**).
-- Pas d'OCR (PDF scannés exclus et signalés) ; français uniquement.
-
-Évolutions futures documentées :
-
-1. **Contextual Retrieval** — candidate n°1 pour une V2.1.
-2. Bascule hybride si les chiffres la justifient.
-3. Reranking cross-encoder.
-4. Évaluation RAGAS automatisée.
-
----
-
-## Feuille de route
-
-- [x] **Phase 0** — Squelette
-- [x] **Phase 1** — Corpus & ingestion (F1, F2)
-- [x] **Phase 2** — Indexation & retrieval (F3, F4)
-- [x] **Phase 3** — Génération sourcée + itérations de prompt (F5, F6)
-- [x] **Phase 4** — API FastAPI (F7)
-- [x] **Phase 5** — Harnais d'évaluation (F8)
-- [x] **Phase 6** — Port LangChain (branche `langchain-port`, F9)
-- [x] **Phase 7 (V2)** — Multi-turn par condensation (F10-F12)
-
-> **Statut** : phases 0-7 implémentées, testées et **validées sur le corpus réel**
-> (18 docs / 316 chunks) avec les deux backends — baseline de retrieval, latences
-> `/ask`, comparaison d'embeddeurs et équivalence du port LangChain sont toutes
-> mesurées et reportées ci-dessus.
+> **Résultats de référence (2026-07-23)**
+> *Corpus de test : 18 documents, 316 fragments, 16 questions d'évaluation, k=5.*
 >
-> Le rapport conversationnel V2 (F12) est produit
-> (`eval/reports/2026-07-23_conversation_k5.md`) : recall **3/6** sur les tours
-> answerable. Diagnostic (détail dans `JOURNAL.md`) : c'est un **signal réel de
-> retrieval**, pas un défaut d'annotation. Sur la césure, les 5 chunks récupérés
-> viennent tous de « IUT — Services de la scolarité » — la césure vue par *une*
-> composante — tandis que la page institutionnelle « La césure à AMU », qui porte la
-> réponse, est **absente du top-5** : le même motif d'éviction de la page centrale
-> que celui déjà relevé sur le RSE. Cause aggravante mesurée : **11.7 % de l'index
-> fait moins de 50 caractères** (`FAQ`, `Césure`, `Bonus`… — fragments de navigation
-> devenus unités indexées, contre une médiane de 786 caractères) ; un chunk
-> ultra-court quasi identique à une requête courte obtient une similarité très
-> élevée, truste une place du top-k et évince du vrai contenu. Un second biais, lui,
-> relève bien de l'annotation : un tour marqué `answerable` **refuse correctement**
-> (pas de règle de césure propre au droit dans le corpus), or le refus vide les
-> sources (F6) et compte donc mécaniquement comme un raté.
+> * **Rappel sémantique @5 :** 0,94
+> * **Rappel BM25 @5 :** 0,81
+> * **Rappel RRF @5 :** 0,88
 >
-> La V2 reste rétrocompatible : sans `history`, `/ask` reproduit exactement la V1.
-> Voir `JOURNAL.md`.
+> *Analyse des résultats :* la progression du rappel sémantique (de 0,81 à 0,94) résulte d'un raffinage diagnostiqué et documenté. La requête `q03` relevait d'une annotation excessivement stricte (le fragment pertinent emploie le sigle « RSE » et non la forme développée « régime spécial ») ; la requête `q10` révélait une lacune du corpus (la page M3C se limitait à un index de liens, corrigé par l'ajout des documents « Cadrage M3C »). L'unique requête non couverte par la recherche sémantique seule (`q04`, relative au logement) est correctement identifiée par la méthode RRF, ce qui documente concrètement l'intérêt d'une approche hybride — résultat conservé en l'état plutôt que corrigé artificiellement. La courbe recall@k pour k ∈ {2, 3, 5, 8} et le détail par question sont consignés dans `eval/reports/`.
+
+### Analyse comparative des modèles d'embeddings
+
+Mesures de rappel sémantique effectuées sur les mêmes 16 questions et les mêmes fragments. Cette comparaison relève d'une démarche d'évaluation : le pipeline `/ask` conserve le modèle d'embeddings de production.
+
+| Modèle d'embeddings | @3 | @5 | @8 |
+| :--- | :---: | :---: | :---: |
+| `intfloat/multilingual-e5-small` (production, 384 dimensions) | 0,88 | 0,94 | 0,94 |
+| `dangvantuan/sentence-camembert-base` (768 dimensions) | 0,81 | 0,94 | **1,00** |
+| `hugorosen/flaubert_base_uncased-xnli-sts` (768 dimensions) | 0,81 | 0,81 | 0,94 |
+
+Les modèles e5 et CamemBERT présentent des performances **équivalentes en moyenne (0,92)** : CamemBERT atteint une couverture complète au rang 8, tandis que e5 offre la plus grande régularité pour une empreinte mémoire nettement inférieure. FlauBERT se situe en retrait, en particulier sur les sigles et les définitions (échecs sur les requêtes RSE et CVEC). Les écarts observés (1 à 2 questions, soit une granularité de 0,06) ne justifient pas de modifier le modèle d'embeddings de production. Le modèle *cased* `Lajavaness/sentence-flaubert-base` ne s'initialise pas sous `sentence-transformers` 5.6.1 (tokenizer Moses dépourvu de `basic_tokenizer`), d'où le recours à la variante *uncased*. Script d'évaluation : `eval/embedder_comparison.py` ; rapport daté dans `eval/reports/`.
+
+### Performances d'inférence et latence
+
+*Mesures effectuées le 2026-07-23 sur le corpus de référence :*
+
+| Backend LLM | Latence moyenne (`/ask`) | Taux de rejet contextuel (hors-corpus) |
+| :--- | :--- | :--- |
+| **Mistral API** (`mistral-small-latest`) | ~3,0 s / requête | **100 % (4/4)** des requêtes hors-corpus rejetées |
+| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | — |
+
+*Note sur l'exécution locale :* l'inférence du modèle local en environnement CPU présente des latences élevées. Ce comportement est conforme aux arbitrages du PRD (*développement sur API, démonstration en local*) ainsi qu'au repli documenté `num_ctx=4096`, `k ≤ 5`. Les dépassements de délai sont interceptés et remontent une exception `LLMBackendError(timeout)`, traduite par un code HTTP `503` (F5). Rapport détaillé : `eval/reports/2026-07-23_end-to-end_k5.md`.
 
 ---
 
-## Port LangChain (branche `langchain-port`)
+## Périmètre fonctionnel et limitations
 
-Le pipeline de requête est réimplémenté avec LangChain sur la branche dédiée
-`langchain-port`, à des fins de comparaison. Le README de cette branche détaille
-« ce que LangChain abstrait » — et ce que l'on perd en lisibilité/contrôle.
+Les choix d'implémentation suivants découlent des spécifications initiales (§3 du PRD) et constituent des décisions de périmètre assumées, non des omissions :
 
-L'équivalence est **mesurée**, pas postulée : `eval/compare_pipelines.py` (sur la
-branche) rejoue les mêmes questions dans les deux implémentations, avec la même
-collection Chroma, le même prompt système et le même backend. Résultat (2026-07-23,
-`mistral-small-latest`, k=5, 20 questions) : **parité de refus 19/20** (dont les 4
-questions hors-corpus), parité de citations 15/20, recouvrement lexical moyen 0.75.
-L'unique divergence (q16) se situe au niveau de la *génération* sur une question
-limite, pas dans le câblage. Ce que LangChain **n'abstrait pas** reste visible : la
-chaîne LCEL rend une `str`, là où `/ask` doit encore produire un `RagResult`
-structuré (sources, refus → sources vidées, erreur backend → `503`).
+* **Inclus :** architecture RAG complète, gestion des refus, traçabilité des citations, API REST, harnais d'évaluation.
+* **Exclus du périmètre V1 :** authentification, conteneurisation (Docker/CI), traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
+
+**Perspectives d'évolution (V2+) :**
+
+1. Intégration du *Contextual Retrieval* (indexation enrichie par le contexte global du document) — candidate prioritaire pour une version 2.1.
+2. Activation de la recherche hybride (sémantique + BM25 via RRF) au niveau du pipeline de production, sous réserve de validation par les mesures.
+3. Module de ré-ordonnancement (*reranking*) par cross-encoder.
+4. Automatisation du calcul des métriques RAGAS.
 
 ---
 
-## Références (état de l'art)
+## État du projet et feuille de route
 
-- Anthropic — [Contextual Retrieval](https://www.anthropic.com/engineering/contextual-retrieval)
-- [Claude Cookbook — Contextual Embeddings](https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide)
-- [RAGAS](https://docs.ragas.io) — vocabulaire d'évaluation (faithfulness, context recall…)
-- [Docling](https://github.com/docling-project/docling) (IBM) — parsing PDF (layout, tableaux)
-- Étalons « produit » : [RAGFlow](https://github.com/infiniflow/ragflow), kotaemon
+- [x] **Phase 0** — Structure et socle logiciel
+- [x] **Phase 1** — Acquisition et ingestion des données (F1, F2)
+- [x] **Phase 2** — Indexation vectorielle et moteur de recherche (F3, F4)
+- [x] **Phase 3** — Pipeline de génération sourcée et ingénierie de prompt (F5, F6)
+- [x] **Phase 4** — Déploiement de l'interface API FastAPI (F7)
+- [x] **Phase 5** — Implémentation du harnais d'évaluation (F8)
+- [x] **Phase 6** — Implémentation alternative LangChain (branche `langchain-port`, F9)
+- [x] **Phase 7 (V2)** — Support de la recherche multi-tour par condensation de requêtes (F10-F12)
 
-> AssistantAMU ne concurrence pas ces moteurs : il en réimplémente le cœur en
-> quelques centaines de lignes pour pouvoir en expliquer chaque brique.
+> **Statut actuel :** l'ensemble des fonctionnalités des phases 0 à 7 est développé, couvert par les tests unitaires et **validé sur le corpus réel** (18 documents, 316 fragments) avec les deux backends. Les résultats de référence en recherche, les latences `/ask`, la comparaison des modèles d'embeddings et l'équivalence du port LangChain ont tous fait l'objet de mesures rapportées ci-dessus.
+>
+> **Évaluation conversationnelle V2 (F12).** Le rapport est disponible (`eval/reports/2026-07-23_conversation_k5.md`) et fait état d'un rappel de **3/6** sur les tours de conversation annotés comme répondables. L'analyse diagnostique (détaillée dans `JOURNAL.md`) attribue ce résultat à une **limitation avérée de la recherche**, et non à un défaut d'annotation. Sur la requête relative à la césure, les cinq fragments retournés proviennent tous du document « IUT — Services de la scolarité », soit le traitement de la césure par une composante unique, tandis que la page institutionnelle « La césure à AMU », qui porte la réponse attendue, est **absente du top-5** : il s'agit du même mécanisme d'éviction de la page centrale que celui déjà observé sur la requête RSE.
+>
+> Un facteur aggravant a été quantifié : **11,7 % de l'index est constitué de fragments de moins de 50 caractères** (`FAQ`, `Césure`, `Bonus`, etc. — éléments de navigation devenus unités indexées), contre une médiane de 786 caractères. Un fragment très court et quasi identique à une requête courte obtient un score de similarité élevé, occupe une position du top-k et évince du contenu substantiel. Un second biais, de nature différente, relève effectivement de l'annotation : un tour annoté `answerable` **produit un refus correct** (le corpus ne contient aucune règle de césure propre à la filière droit), or un refus vide la liste des sources (F6) et se comptabilise donc mécaniquement comme un échec de recherche.
+>
+> L'architecture V2 maintient une rétrocompatibilité descendante complète : en l'absence d'historique de conversation (`history`), le point d'entrée `/ask` reproduit exactement le comportement de la V1. Voir `JOURNAL.md`.
+
+---
+
+## Expérimentation LangChain (branche `langchain-port`)
+
+Une réimplémentation parallèle du pipeline de requête est disponible sur la branche dédiée `langchain-port`, à des fins d'analyse comparative. Le README de cette branche détaille les abstractions apportées par LangChain ainsi que leur impact sur la lisibilité et le contrôle fin des composants du RAG.
+
+L'équivalence fonctionnelle des deux implémentations est **mesurée et non postulée** : le script `eval/compare_pipelines.py` (disponible sur la branche) rejoue le même jeu de questions dans les deux implémentations, avec une collection ChromaDB, un prompt système et un backend identiques. Résultats (2026-07-23, `mistral-small-latest`, k=5, 20 questions) : **parité des refus de 19/20** (incluant les 4 requêtes hors-corpus), parité des citations de 15/20, recouvrement lexical moyen de 0,75. L'unique divergence observée (`q16`) se situe au niveau de la *génération*, sur une question limite, et non dans l'agencement du pipeline. Les limites de l'abstraction restent apparentes : la chaîne LCEL retourne une chaîne de caractères, là où le point d'entrée `/ask` doit produire un objet `RagResult` structuré (sources, refus entraînant la remise à zéro des sources, erreur backend traduite en `503`).
+
+---
+
+## Références bibliographiques et état de l'art
+
+* Anthropic — [*Contextual Retrieval*](https://www.anthropic.com/engineering/contextual-retrieval)
+* Claude Cookbook — [*Contextual Embeddings Guide*](https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide)
+* Framework RAGAS — [*Automated Evaluation of Retrieval Augmented Generation*](https://docs.ragas.io) : vocabulaire d'évaluation (*faithfulness*, *context recall*)
+* Projet Docling (IBM) — [*Structured Document Parsing*](https://github.com/docling-project/docling) : analyse de documents PDF (mise en page, tableaux)
+* Références applicatives : [RAGFlow](https://github.com/infiniflow/ragflow), kotaemon
+
+> AssistantAMU ne se positionne pas en concurrence de ces moteurs : le projet en réimplémente le cœur fonctionnel en quelques centaines de lignes, dans un objectif de maîtrise et d'explicabilité de chaque composant.
