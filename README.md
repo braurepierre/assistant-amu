@@ -149,7 +149,9 @@ Les modèles e5 et CamemBERT présentent des performances **équivalentes en moy
 | Backend LLM | Latence moyenne (`/ask`) | Taux de rejet contextuel (hors-corpus) |
 | :--- | :--- | :--- |
 | **Mistral API** (`mistral-small-latest`) | ~3,0 s / requête | **100 % (4/4)** des requêtes hors-corpus rejetées |
-| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | — |
+| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | **100 % (4/4)** des requêtes hors-corpus rejetées *(mesure du 2026-07-26)* |
+
+Le taux de rejet du backend local a été mesuré le 2026-07-26 sur les quatre requêtes hors-corpus de `eval/questions.yaml` (q17 à q20), dans la configuration de repli `num_ctx=4096` / `k=3`, modèle maintenu chaud. Les quatre réponses reproduisent le refus canonique à l'identique, sans source associée ; le verdict est établi par la fonction `is_refusal()` du projet, sur comparaison normalisée. La latence propre à ces refus (31 à 135 s, moyenne 103 s) n'est pas comparable aux valeurs de la colonne précédente : un refus ne génère qu'une douzaine de tokens, contre plusieurs centaines pour une réponse complète. Le préchauffage du modèle a requis 306 s, ce qui confirme le coût du chargement à froid documenté pour ce backend.
 
 *Note sur l'exécution locale :* l'inférence du modèle local en environnement CPU présente des latences élevées. Ce comportement est conforme aux arbitrages du PRD (*développement sur API, démonstration en local*) ainsi qu'au repli documenté `num_ctx=4096`, `k ≤ 5`. Les dépassements de délai sont interceptés et remontent une exception `LLMBackendError(timeout)`, traduite par un code HTTP `503` (F5). Rapport détaillé : `eval/reports/2026-07-23_end-to-end_k5.md`.
 

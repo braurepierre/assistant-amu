@@ -374,3 +374,40 @@ pendant que la page institutionnelle reste dehors.
   tour 2 de s1 est marqué `answerable` alors qu'il **refuse correctement** (le
   corpus n'a pas de règle de césure propre au droit) ; or un refus vide les sources
   (F6), donc il compte mécaniquement comme un raté de recall.
+
+## 2026-07-26 — F6 sur le backend local : la case vide de la table des backends
+
+**Fait.** Le taux de refus hors corpus n'avait jamais été mesuré sur Ollama : depuis
+le 23 juillet, la table des backends (README et page pédagogique) affichait `4/4`
+pour Mistral et `—` pour le local. Seules la latence et la remontée propre du
+timeout (F5) avaient été vérifiées côté Ollama. Mesure faite sur les 4 questions
+`answerable: false` de `eval/questions.yaml` (q17-q20), repli **num_ctx=4096, k=3**,
+modèle gardé chaud, verdict rendu par `is_refusal()` du projet — comparaison
+normalisée, pas un jugement à l'œil. Résultat : **4/4**, les quatre réponses
+reproduisant le refus canonique au mot près, avec `sources` vide dans les quatre cas.
+
+**Problème → solution : le timeout par défaut rendait la mesure impossible.**
+`OLLAMA_TIMEOUT_S` vaut **120 s** par défaut (`config.py`), soit *moins* que la
+latence de ce backend telle qu'elle est documentée (~190 s à chaud). Toute mesure
+un peu longue se serait donc soldée par un `LLMBackendError(timeout)` — non pas un
+échec du garde-fou, mais un artefact de configuration qu'on aurait pu prendre pour
+tel. Relevé à 600 s **pour la durée de la mesure uniquement** ; `.env` n'est pas
+touché, le défaut reste volontairement bas pour que l'API échoue vite en usage réel.
+
+**Latences — deux chiffres à ne pas confondre.** Préchauffage : **306 s**, ce qui
+confirme le coût du chargement à froid du 7B déjà relevé le 23 juillet. Refus, à
+chaud : 120 s, 126 s, 135 s et 31 s, soit une moyenne de **103 s**. Cette moyenne
+n'infirme pas les ~190 s consignés pour ce backend : un refus ne génère qu'une
+douzaine de tokens là où une vraie réponse en génère plusieurs centaines — les deux
+mesures ne portent pas sur la même charge de génération. La ligne de latence de la
+table reste donc inchangée. Le cas q20 (31 s) sort du lot et n'est pas expliqué à ce
+stade ; à regarder si la question revient.
+
+**Ce que ça vaut.** Le garde-fou anti-hallucination ne dépend pas du fournisseur :
+il tient sur un 7B local exactement comme sur l'API. C'est cohérent avec sa
+conception — la règle vit dans le prompt système et la détection dans une
+comparaison normalisée, pas dans les capacités d'un modèle particulier. La colonne
+est désormais renseignée dans `concepts.facts.yaml`, la page et le README.
+
+**Au passage.** `tests: 90` dans `concepts.facts.yaml` était périmé : `pytest -q`
+en compte **119**. Corrigé et régénéré.

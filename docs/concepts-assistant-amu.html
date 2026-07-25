@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   <table class="cmp">
     <tr><th>Backend</th><th>Modèle</th><th>Latence par requête</th><th>Refus hors corpus</th></tr>
     <tr><td><span class="pill api">API</span> <button class="term" data-term="mistral">Mistral</button></td><td><span class="mono" data-stat="backends.mistral.model">mistral-small-latest</span></td><td data-stat="backends.mistral.latency">~3 s / question</td><td><span data-stat="backends.mistral.refusals">4/4</span> corrects</td></tr>
-    <tr><td><span class="pill local">local</span> <button class="term" data-term="ollama">Ollama</button></td><td><span class="mono" data-stat="backends.ollama.model">mistral 7B (CPU)</span></td><td data-stat="backends.ollama.latency">&gt; 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3</td><td>—</td></tr>
+    <tr><td><span class="pill local">local</span> <button class="term" data-term="ollama">Ollama</button></td><td><span class="mono" data-stat="backends.ollama.model">mistral 7B (CPU)</span></td><td data-stat="backends.ollama.latency">&gt; 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3</td><td><span data-stat="backends.ollama.refusals">4/4</span> corrects</td></tr>
   </table>
   <div class="grid2" style="margin-top:16px">
     <div class="piege"><div class="n">contrainte n° 1</div><h3>Préfixes E5</h3><p>Les modèles de la famille <button class="term" data-term="e5">E5</button> exigent les préfixes <code>query: </code> et <code>passage: </code>. En leur absence, les performances se dégradent <b>sans qu'aucune erreur ne soit levée</b>. Une table {famille → préfixes} centralise cette règle.</p></div>
@@ -519,7 +519,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 /* STATS:START */
 var STATS = {
   "updated": "2026-07-26",
-  "commit": "0fdc81a",
+  "commit": "9f97b61",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -527,7 +527,7 @@ var STATS = {
   "eval_questions": 16,
   "k_default": 5,
   "embedding_model": "intfloat/multilingual-e5-small",
-  "tests": 90,
+  "tests": 119,
   "recall_at_5": {
     "semantic": 0.94,
     "bm25": 0.81,
@@ -603,7 +603,8 @@ var STATS = {
     },
     "ollama": {
       "model": "mistral 7B (CPU)",
-      "latency": "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3"
+      "latency": "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3",
+      "refusals": "4/4"
     }
   }
 };

@@ -16,7 +16,7 @@ corpus:            # `python -m assistant_amu.ingestion stats`
   chunks: 316
 
 eval_questions: 16 # taille du jeu answerable (eval/questions.yaml)
-tests: 90          # `pytest -q` -> nombre de tests verts
+tests: 119         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-26)
 
 recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5)
   semantic: 0.94
@@ -59,3 +59,8 @@ backends:          # latences/refus MESURÉS (les noms de modèles viennent de c
     refusals: "4/4"
   ollama:
     latency: "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3"
+    # Mesuré le 2026-07-26 (q17-q20, repli num_ctx=4096/k=3, modèle gardé chaud) :
+    # 4 refus canoniques au mot près, sources vides. Latence des refus 31-135 s
+    # (moyenne 103 s) — non comparable à la latence ci-dessus, qui porte sur de
+    # vraies réponses : un refus ne génère qu'une douzaine de tokens.
+    refusals: "4/4"
