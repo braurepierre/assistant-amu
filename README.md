@@ -14,16 +14,23 @@ reproductible** comparant recherche sémantique, BM25 et leur fusion RRF.
 > en Python pur (le pipeline d'abord, le framework ensuite — voir le port
 > LangChain). Objectif : pouvoir expliquer **chaque brique**.
 
+---
+
 ## Pourquoi RAG plutôt que « tout mettre dans le contexte » ?
 
 Anthropic recommande, pour une base < ~200 000 tokens, de placer tout le corpus
 dans le prompt (avec prompt caching) plutôt que de faire du RAG. Le RAG reste le
-bon choix ici, pour quatre raisons : (1) maîtriser le RAG de bout en bout est
-l'objectif du projet ; (2) le
-backend local est contraint — Ollama sert `mistral` avec une fenêtre réduite par
-défaut (voir *piège n°3*) ; (3) coût/latence d'un contexte massif à chaque requête
-incompatibles avec un CPU et un free tier ; (4) les **citations passage par
-passage**, cœur du produit, sont natives en RAG.
+bon choix ici, pour quatre raisons :
+
+1. **Maîtrise de bout en bout** — maîtriser le RAG de bout en bout est l'objectif
+   du projet.
+2. **Contrainte du backend local** — Ollama sert `mistral` avec une fenêtre réduite
+   par défaut (voir *piège n°3*).
+3. **Coût et latence** — un contexte massif à chaque requête, incompatible avec un
+   CPU et un free tier.
+4. **Citations passage par passage** — cœur du produit, natives en RAG.
+
+---
 
 ## Architecture
 
@@ -39,7 +46,7 @@ question → embed ("query: " + question) → ChromaDB top-k
      → LLMBackend.generate → réponse + sources
 ```
 
-### Deux pièges documentés et neutralisés
+### Trois pièges documentés et neutralisés
 
 1. **Préfixes E5** — les modèles E5 exigent `"query: "` (questions) et
    `"passage: "` (chunks) ; sans eux les performances chutent silencieusement.
@@ -49,6 +56,8 @@ question → embed ("query: " + question) → ChromaDB top-k
    `metadata={"hnsw:space": "cosine"}` (Chroma est en L2 par défaut).
 3. **`num_ctx` Ollama** — Ollama tronque le prompt à `num_ctx` (souvent 2048/4096),
    pas à la capacité du modèle, **sans erreur**. `OLLAMA_NUM_CTX=8192` par défaut.
+
+---
 
 ## Stack
 
@@ -63,6 +72,8 @@ question → embed ("query: " + question) → ChromaDB top-k
 | Extraction | `pdfplumber` (+ `docling` en escalade), `beautifulsoup4` |
 | API | `fastapi` + `uvicorn` + `pydantic` v2 |
 | Tests | `pytest` (aucun test n'appelle un vrai LLM ni le réseau) |
+
+---
 
 ## Installation
 
@@ -81,6 +92,8 @@ pip install -e ".[dev]"
 cp .env.example .env    # renseigner MISTRAL_API_KEY si backend API
 pytest
 ```
+
+---
 
 ## Utilisation
 
@@ -106,13 +119,17 @@ python eval/evaluate.py --mode retrieval --embedding-model dangvantuan/sentence-
 
 Basculer de backend : `LLM_BACKEND=mistral` (API) ou `ollama` (local) dans `.env`.
 
+---
+
 ## API (contrats)
 
-| Endpoint | Rôle |
-|---|---|
-| `POST /ask` | `{question, k}` → `{answer, sources[], model, retrieved_chunks, condensed_question}` ; `503` si backend indisponible |
-| `POST /ingest` | multipart (`file`, `title`, `url?`, `category?`) → `{document_id, chunks_added}` ; `409` si doublon |
-| `GET /health` | `{chroma, llm_backend, documents, chunks}` |
+| Endpoint | Méthode | Rôle |
+|---|---|---|
+| `/ask` | `POST` | `{question, k}` → `{answer, sources[], model, retrieved_chunks, condensed_question}` ; `503` si backend indisponible |
+| `/ingest` | `POST` | multipart (`file`, `title`, `url?`, `category?`) → `{document_id, chunks_added}` ; `409` si doublon |
+| `/health` | `GET` | `{chroma, llm_backend, documents, chunks}` |
+
+---
 
 ## Évaluation
 
@@ -161,14 +178,25 @@ Sur cette machine (CPU), Ollama est lent : conforme à l'arbitrage du PRD
 `k≤5`. Le dépassement de délai remonte proprement en `LLMBackendError(timeout)`
 → `503` (F5). Rapport : `eval/reports/2026-07-23_end-to-end_k5.md`.
 
+---
+
 ## Périmètre et limites (assumés)
 
-Pas d'authentification, pas de déploiement/Docker/CI, pas de streaming, pas de
-reranking ni de recherche hybride dans `/ask` (RRF est mesuré, pas branché), pas
-d'OCR (PDF scannés exclus et signalés), français uniquement. Ce sont des choix
-de périmètre (§3 du PRD), pas des oublis. Évolutions futures documentées :
-**Contextual Retrieval** (candidate n°1 pour une V2.1), bascule hybride si les
-chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
+Des choix de périmètre (§3 du PRD), **pas des oublis** :
+
+- Pas d'authentification, pas de déploiement/Docker/CI, pas de streaming.
+- Pas de reranking ni de recherche hybride dans `/ask` (RRF est **mesuré, pas
+  branché**).
+- Pas d'OCR (PDF scannés exclus et signalés) ; français uniquement.
+
+Évolutions futures documentées :
+
+1. **Contextual Retrieval** — candidate n°1 pour une V2.1.
+2. Bascule hybride si les chiffres la justifient.
+3. Reranking cross-encoder.
+4. Évaluation RAGAS automatisée.
+
+---
 
 ## Feuille de route
 
@@ -205,6 +233,8 @@ chiffres la justifient, reranking cross-encoder, évaluation RAGAS automatisée.
 > La V2 reste rétrocompatible : sans `history`, `/ask` reproduit exactement la V1.
 > Voir `JOURNAL.md`.
 
+---
+
 ## Port LangChain (branche `langchain-port`)
 
 Le pipeline de requête est réimplémenté avec LangChain sur la branche dédiée
@@ -220,6 +250,8 @@ L'unique divergence (q16) se situe au niveau de la *génération* sur une questi
 limite, pas dans le câblage. Ce que LangChain **n'abstrait pas** reste visible : la
 chaîne LCEL rend une `str`, là où `/ask` doit encore produire un `RagResult`
 structuré (sources, refus → sources vidées, erreur backend → `503`).
+
+---
 
 ## Références (état de l'art)
 
