@@ -1,9 +1,18 @@
-# docs/ — carte pédagogique du projet
+# docs/ — documentation du projet
+
+| Fichier | Objet |
+| --- | --- |
+| `concepts-assistant-amu.html` | Page pédagogique autonome (voir ci-dessous). |
+| `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
+| `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
+| `revue-2026-07-26_contextual_retrieval.md` | Revue de cohérence du lot §5.3.1 — constats classés par gravité. |
+
+## La page pédagogique
 
 `concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
 de build) qui explique **ce que fait réellement AssistantAMU**, brique par brique,
-avec des démos manipulables (chunking, requête RAG, réécriture) et un glossaire
-relié aux fichiers du code. Ouvrir en double-cliquant.
+avec des démonstrations manipulables (chunking, requête RAG, réécriture) et un
+glossaire relié aux fichiers du code. Elle s'ouvre directement dans un navigateur.
 
 Deux ressources sont chargées depuis un CDN — les polices et **KaTeX**, qui
 compose les formules des blocs « En savoir plus ». Hors ligne, la page reste
@@ -24,9 +33,9 @@ Les faits qui bougent (corpus, recall, latences, k, tests…) sont centralisés 
 
 Deux façons de le mettre à jour :
 
-1. **À la main** — éditer les valeurs dans le bloc `STATS` (édition d'un seul
-   endroit, 1 minute). Les `data-stat="…"` disséminés dans la page se
-   re-remplissent tout seuls au chargement.
+1. **À la main** — éditer les valeurs dans le bloc `STATS` : un seul endroit à
+   modifier. Les `data-stat="…"` disséminés dans la page sont renseignés
+   automatiquement au chargement.
 
 2. **Généré** (recommandé) — éditer `concepts.facts.yaml` puis lancer :
 
@@ -48,23 +57,24 @@ Deux façons de le mettre à jour :
    Le script relit **`config.py`** pour `k`, le modèle d'embedding et les noms de
    modèles backend (jamais dupliqués : le code fait foi), prend la **date du jour**
    et le **commit git court**, et signale toute dérive entre `concepts.facts.yaml`
-   et `config.py`. Il ne touche **que** le bloc `STATS` — jamais tes sections.
+   et `config.py`. Il ne modifie **que** le bloc `STATS` — jamais les sections
+   rédigées.
 
 D'où viennent les chiffres de `concepts.facts.yaml` : des **rapports datés** de
 `eval/reports/` (recall, sensibilité à k, réécriture) et de
-`python -m assistant_amu.ingestion stats` (corpus). On recopie depuis la mesure —
-on n'invente pas.
+`python -m assistant_amu.ingestion stats` (corpus). Les valeurs sont recopiées
+depuis la mesure, jamais estimées.
 
-## Ajouter une rubrique (ex. « e5 vs CamemBERT ») en 4 gestes
+## Ajouter une rubrique (par exemple « e5 vs CamemBERT ») en quatre étapes
 
-Le contenu conceptuel s'écrit à la main (ça ne se génère pas). Pour rester
+Le contenu conceptuel est rédigé à la main : il ne se génère pas. Pour rester
 cohérent avec le reste de la page :
 
 1. **Section** — dupliquer un bloc `<section id="sN">` avec son `sec-num`, son
    titre et ses cartes. Réutiliser les classes existantes (`.card`, `.evalrow`,
-   `.recall-chart`, `.grid2`…) pour garder l'unité visuelle.
+   `.recall-chart`, `.grid2`…) pour conserver l'unité visuelle.
 2. **Sidebar** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
-   groupe. Le surlignage au défilement (scroll-spy) le prend en charge tout seul.
+   groupe. Le surlignage au défilement (scroll-spy) s'en charge automatiquement.
 3. **Glossaire** — si la rubrique introduit un terme, ajouter une entrée dans
    l'objet `G` ; elle apparaît automatiquement dans la puce du glossaire et dans
    les renvois « Termes liés ». Chaque fiche se lit en deux temps :

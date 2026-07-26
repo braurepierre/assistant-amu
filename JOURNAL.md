@@ -918,3 +918,100 @@ quelques fragments à la quasi-totalité de ceux du document — leur IDF s'effo
 tandis que `avgdl` croît d'environ 25 tokens. Vérifiable sans nouvelle dépense, en
 comparant l'IDF des termes de titre entre les deux collections, ou en mesurant le
 recall BM25 sur un index bâti depuis `metadata["text_raw"]`.
+
+## 2026-07-27 — Le README rendu lisible, la démo rendue reproductible, et un point de registre dont la prémisse était fausse
+
+**Fait.** Une note de travail non versionnée réunissait sept demandes
+d'allègement et de cohérence documentaire. Toutes sont traitées sauf une, qui
+demandait un arbitrage. `README.md` passe de 295 à 243 lignes ; le détail des
+mesures part dans `docs/mesures.md` (299 lignes). Sont également repris
+`DEMO.md`, `docs/README.md`, `demo.html`, `CLAUDE.md`, plus un README et un
+`.env.example` sur la branche `worktree-compare-anythingllm`.
+
+**Ce que l'allègement déplace réellement.** Le README ne portait pas seulement
+un volume de chiffres : il portait l'argumentation complète de cinq études —
+tables par question, désaccords commentés, diagnostics de concurrence, triage
+des bascules. Publier cela sous un fichier d'accueil revenait à demander au
+lecteur de traverser une revue de mesures avant d'atteindre le mode d'emploi. Le
+partage retenu : le README garde la table recall@k et une conclusion d'une ligne
+par étude, `docs/mesures.md` reçoit l'argumentation **intégrale**, sans coupe.
+S'y ajoute un index des rapports datés, qui n'existait nulle part. Une table
+« Documentation du projet » en tête recense enfin les cinq entrées du dépôt — la
+page pédagogique `docs/concepts-assistant-amu.html` n'était référencée depuis
+aucun document.
+
+**Problème → solution : la démo n'était pas reproductible, mais pas pour la
+raison annoncée.** La note visait un chemin absolu personnel en tête de
+`DEMO.md`. Le vrai obstacle était ailleurs : `chroma_db/` et `corpus/raw/` sont
+gitignorés — à juste titre, ce sont des données dérivées — et `DEMO.md`
+démarrait directement sur `uvicorn`. Un tiers clonant le dépôt lançait donc une
+API sur un index vide. Les étapes de premier lancement (téléchargement,
+indexation) sont désormais explicites, et le contrôle par `/health` est indiqué
+avec les valeurs attendues. Vérification faite en exécutant réellement la
+chaîne, non en la relisant : `/health` à 18 documents et 316 fragments, réponse
+sourcée à 5 extraits, refus canonique à 0 source.
+
+**Ce que le point sur le registre supposait, et ce qu'il en était.** La demande
+annonçait une passe corrective sur les commentaires de code et le
+conversationnel du CLI. Vérification faite, il n'y avait rien à y corriger : le
+code est commenté en anglais, les libellés `argparse` sont neutres, et
+`demo.html` est déjà en vouvoiement. La dérive réelle était dans les documents
+français destinés au lecteur — tutoiement dans `docs/README.md` (« jamais tes
+sections ») et `DEMO.md` (« Tape ta question », « géré pour toi »), tournures
+d'oralité (« en 4 gestes », « ça ne se génère pas », « tout seuls »), et un
+emoji ornemental dans le message d'accueil de l'interface. Je le consigne parce
+que la prémisse était fausse dans une direction utile : le soupçon portait sur
+la surface la plus visible, le défaut était sur celle qu'on relit le moins.
+
+La règle correspondante est ajoutée à `CLAUDE.md`, avec deux exceptions
+nommées — les fichiers de `prompts/`, qui tutoient le modèle par convention
+d'ingénierie de prompt, et ce journal, qui garde son registre d'analyse à la
+première personne. Un troisième point a été précisé après coup : la règle
+proscrivait les emoji, ce qui aurait condamné `🔎` et `⚠️` dans `demo.html`. Ces
+deux-là signalent — requête réellement recherchée, erreur — là où le `👋`
+d'accueil ornait. La règle distingue désormais les deux.
+
+**Une correction faite en avance, et pourquoi.** Le constat n°1 de la revue du
+26 juillet — `README.md` affirmant à la fois que la contextualisation « gagne
+nettement plus qu'elle ne perd » et qu'elle « constitue un arbitrage
+défavorable » — a été corrigé ici, hors de son lot. Recopier dans un fichier
+neuf une phrase que la même page contredit n'était pas défendable : le
+déplacement aurait pérennisé l'erreur au lieu de la laisser visible. La
+justification de non-intégration s'appuie désormais sur le principe « mesurer
+n'est pas brancher » (§40) plutôt que sur un verdict de mesure défavorable —
+ce que la revue reprochait par ailleurs aux deux rapports.
+
+**Un constat incident, à verser au lot revue.** `corpus/contexts.jsonl` est
+gitignoré, au même titre que les autres données dérivées du corpus. Or
+`eval/repro_contextual_retrieval.py`, dont l'entrée précédente signalait qu'il
+rend la reprise des rapports gratuite, reconstruit les collections **depuis ce
+fichier**. La gratuité annoncée ne vaut donc que sur ce poste : un tiers qui
+clone le dépôt ne peut pas rejouer les rapports sans repayer les 316 appels.
+
+**Sur la branche AnythingLLM.** Le renvoi depuis `main` pointait un fichier de
+rapport, faute de page d'accueil. La branche a désormais un README aligné sur
+celui de `langchain-port` : cadrage hors PRD, ce qui est tenu constant et ce qui
+ne l'est pas, résultats, les deux causes structurelles, quatre limites énoncées,
+procédure de reprise et inventaire des fichiers. Les trois variables
+`ANYTHINGLLM_*` rejoignent `.env.example` de la branche — le README décrivait
+une reprise que rien n'outillait, c'était la quatrième réserve de l'entrée
+précédente.
+
+**Ce que ça vaut.** Trois des sept demandes reposaient sur un diagnostic
+partiellement inexact : le registre du code, le chemin absolu de la démo, et
+l'idée qu'un README de branche existait déjà côté AnythingLLM. Les traiter
+supposait de vérifier la prémisse avant d'appliquer le correctif — ce qui a
+chaque fois déplacé le travail vers un défaut réel et plus profond que celui
+signalé. C'est la valeur d'une note de travail : elle désigne l'endroit, pas
+nécessairement la cause.
+
+**Décision.** La reprise de la comparaison AnythingLLM sur le corpus courant
+(28 documents, 50 questions) est **différée**. Elle suppose de relancer WSL2 et
+Docker, de reconfigurer le produit à la main et de payer des appels de part et
+d'autre — pour produire un second chiffre dont la substance ne serait pas plus
+établie que celle du premier.
+
+**Reste à faire.** La confrontation des seize verdicts aux réponses brutes
+versionnées, priorité retenue : elle ne coûte rien, elle porte sur des données
+déjà présentes, et elle conditionne toute reprise de mesure. Puis le lot revue,
+augmenté du constat sur `corpus/contexts.jsonl`.
