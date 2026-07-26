@@ -7,9 +7,12 @@ chroma_db/
 # Downloaded corpus binaries — reproducibility via sources.yaml + scripts (PRD §7.1)
 corpus/raw/
 
-# Cache des contextes générés (Contextual Retrieval, §5.3.1) — donnée dérivée du
-# corpus, au même titre que chroma_db/ : régénérée par la commande contextualize.
-corpus/contexts.jsonl
+# NOTE : corpus/contexts.jsonl est délibérément VERSIONNÉ, contrairement aux deux
+# entrées ci-dessus. C'est aussi une donnée dérivée, mais les collections qui ont
+# produit les rapports du §5.3.1 ont disparu de chroma_db/ : ce cache est devenu
+# leur unique chemin de reproduction. L'exclure rendait `eval/repro_contextual_
+# retrieval.py` gratuit sur ce poste seulement — un tiers aurait dû repayer ~316
+# appels de modèle. 143 Ko contre la reproductibilité des mesures publiées.
 
 # Python
 __pycache__/

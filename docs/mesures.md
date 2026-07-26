@@ -178,14 +178,15 @@ reconstruit les quatre collections depuis le cache de contextes et retrouve les
 chiffres publiés à l'identique, avec un backend factice qui **lève** sur tout
 appel — un défaut de cache échoue au lieu de coûter.
 
-> **Portée de cette gratuité.** Elle suppose `corpus/contexts.jsonl`, qui n'est
-> **pas versionné** : donnée dérivée, au même titre que `chroma_db/` (§5.3.1).
-> Les collections d'origine ayant par ailleurs disparu, ce fichier est
-> aujourd'hui le **seul** chemin de reproduction des deux rapports. Sur ce
-> poste, la reprise ne coûte rien ; sur un clone neuf, elle suppose de
-> régénérer le cache — environ 316 appels de modèle. C'est un arbitrage ouvert :
-> versionner 143 Ko rendrait les rapports reproductibles par un tiers, au prix
-> d'une exception à la règle « les données dérivées ne sont pas versionnées ».
+> **Ce que suppose cette gratuité.** Elle repose sur `corpus/contexts.jsonl`,
+> les collections d'origine ayant disparu de `chroma_db/` : ce cache est le
+> **seul** chemin de reproduction des deux rapports. Il est pour cette raison
+> **versionné**, par exception à la règle qui écarte les données dérivées
+> (`chroma_db/`, `corpus/raw/`) — 143 Ko contre la possibilité, pour un tiers,
+> de rejouer les mesures publiées sans repayer environ 316 appels de modèle. Le
+> même arbitrage que celui retenu sur la branche de comparaison AnythingLLM,
+> où les réponses brutes sont versionnées parce qu'elles sont la seule base
+> probante des verdicts.
 
 ---
 

@@ -13,12 +13,14 @@
 > - **Constat 1.** Déjà corrigé le 2026-07-27 au cours de l'allègement du README,
 >   avant l'ouverture de ce lot.
 >
-> S'y ajoute un constat postérieur à la revue : `corpus/contexts.jsonl` est exclu
-> de git — ce que la section « Ce qui tient » relève comme correct — alors que
-> les « Réserves de méthode » établissent qu'il est désormais le seul chemin de
-> reproduction des deux rapports. Les deux sont vrais ; ensemble, ils signifient
-> qu'un tiers ne peut pas rejouer les mesures. L'arbitrage est documenté dans
-> `docs/mesures.md` et laissé ouvert.
+> S'y ajoute un constat postérieur à la revue, **désormais tranché** :
+> `corpus/contexts.jsonl` était exclu de git — ce que la section « Ce qui tient »
+> relevait comme correct — alors que les « Réserves de méthode » établissent
+> qu'il est le seul chemin de reproduction des deux rapports, les collections
+> d'origine ayant disparu. Les deux étaient vrais ; ensemble, ils signifiaient
+> qu'un tiers ne pouvait pas rejouer les mesures. Le fichier est **versionné**
+> depuis le 2026-07-27, par exception assumée à la règle sur les données
+> dérivées. Il reste exclu de l'image Docker, qui n'en a aucun usage.
 
 Revue de cohérence du lot poussé entre `ea2c747` et `86a34a5` (14 commits,
 30 fichiers, +3 232 lignes). Aucun fichier du dépôt n'a été modifié au cours de

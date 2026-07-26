@@ -28,8 +28,9 @@ Run:
 
 Collections are kept between runs, so only the first one pays the embedding
 cost; ``--fresh`` forces a rebuild. Requires ``corpus/contexts.jsonl``, which is
-not versioned (derived data, §5.3.1): on a fresh clone, regenerate it with
-``python -m assistant_amu.ingestion contextualize``.
+versioned precisely so this script works on a fresh clone: it is derived data,
+but the collections that produced the reports are gone, making it their only
+reproduction path.
 """
 
 from __future__ import annotations
@@ -220,7 +221,8 @@ def main(argv: list[str] | None = None) -> int:
     if not REPO_CACHE.exists():
         print(
             f"Cache absent : {REPO_CACHE}\n"
-            "Donnée dérivée, non versionnée — la régénérer avec "
+            "Ce fichier est versionné : son absence signale un dépôt incomplet plutôt "
+            "qu'un premier lancement. À défaut, le régénérer avec "
             "`python -m assistant_amu.ingestion contextualize` (appels de modèle payants)."
         )
         return 1

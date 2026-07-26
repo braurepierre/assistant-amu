@@ -8,6 +8,9 @@ env/
 # le corpus téléchargé se reconstitue depuis corpus/sources.yaml.
 chroma_db/
 corpus/raw/
+# Versionné dans git (il porte la reproductibilité des mesures du §5.3.1), mais
+# hors de l'image : l'expérience de contextualisation ne s'exécute pas en
+# conteneur, le service n'en a aucun usage.
 corpus/contexts.jsonl
 
 # Historique et outillage local

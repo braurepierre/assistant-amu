@@ -1285,11 +1285,41 @@ non contrôlé, l'option jamais lue, le `try` mal placé — ont en commun d'avo
 promettait, le code ne tenait pas. Aucun des deux groupes n'a jamais fait échouer
 quoi que ce soit, et c'est précisément pourquoi ils ont survécu à quatorze commits.
 
-**Reste à faire.** `corpus/contexts.jsonl` est exclu de git — hygiène correcte pour
-une donnée dérivée — alors qu'il est aujourd'hui le seul chemin de reproduction des
-deux rapports, les collections d'origine ayant disparu. Sur ce poste la reprise ne
-coûte rien ; sur un clone neuf elle suppose de repayer environ 316 appels.
-Versionner 143 Ko lèverait l'obstacle au prix d'une exception à la règle. Arbitrage
-documenté dans `docs/mesures.md`, non tranché. Restent par ailleurs, côté
-AnythingLLM, l'absence d'accord inter-juges mesurable et la performance du produit
-correctement configuré.
+**Reste à faire.** Côté AnythingLLM, l'absence d'accord inter-juges mesurable et
+la performance du produit correctement configuré.
+
+## 2026-07-27 — Le cache de contextes versionné : une exception à la règle, et sa raison
+
+**Fait.** `corpus/contexts.jsonl` (436 entrées, 143 Ko) sort du `.gitignore`.
+Toutes les mentions qui le déclaraient non versionné sont reprises : `.gitignore`,
+`.dockerignore`, la docstring de `ContextCache`, celle de
+`eval/repro_contextual_retrieval.py` et son message d'erreur, `docs/mesures.md`
+et l'en-tête de la revue. Le fichier reste **exclu de l'image Docker** : le
+service n'exécute pas l'expérience de contextualisation et n'en a aucun usage.
+
+**La règle, et pourquoi elle cède ici.** Le dépôt écarte les données dérivées —
+`chroma_db/`, `corpus/raw/` — parce qu'elles se régénèrent depuis
+`corpus/sources.yaml`. Ce cache est de la même nature, à un détail près qui change
+tout : les quatre collections qui ont produit les rapports du §5.3.1 **ont disparu**
+de `chroma_db/`, seule `amu_docs` subsiste. Il n'est donc plus une commodité, il
+est le seul chemin de reproduction des mesures publiées. Le maintenir hors de git
+rendait `eval/repro_contextual_retrieval.py` gratuit **sur ce poste uniquement** ;
+ailleurs, il fallait repayer environ 316 appels de modèle pour vérifier des
+chiffres que le dépôt affirme.
+
+**Le précédent existait déjà.** La branche de comparaison AnythingLLM versionne
+les réponses brutes des deux systèmes, sans précédent dans le dépôt où seuls les
+rapports `.md` l'étaient, « parce qu'elles sont la seule base probante des
+verdicts ». C'est le même critère, appliqué au même endroit du raisonnement : ce
+qui fonde une affirmation publiée se verse, ce qui se reconstruit sans elle ne se
+verse pas. La règle n'est donc pas « les données dérivées ne se versionnent
+pas », mais « ce qui n'est pas reproductible autrement se versionne » — et le
+`.gitignore` porte désormais cette raison en clair, à côté des deux entrées qui
+ne la remplissent pas.
+
+**Ce que ça vaut.** Le constat venait de la revue elle-même, qui rangeait
+l'exclusion du fichier parmi « ce qui tient » tout en notant, dans ses réserves de
+méthode, que les rapports n'étaient plus reproductibles que par lui. Deux
+affirmations exactes séparément, contradictoires ensemble, et dans le même
+document — le genre d'incohérence qu'une revue produit précisément parce qu'elle
+examine chaque point isolément.
