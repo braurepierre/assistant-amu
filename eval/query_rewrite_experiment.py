@@ -27,12 +27,13 @@ Run (Mistral backend for the `llm` strategy):
 
 from __future__ import annotations
 
+import time
 from datetime import date
 from pathlib import Path
 
 from assistant_amu.config import PROJECT_ROOT, get_settings
 from assistant_amu.evaluation import Question, evaluate_retrieval, load_questions
-from assistant_amu.generation.llm import LLMBackend, build_backend
+from assistant_amu.generation.llm import LLMBackend, LLMBackendError, build_backend
 from assistant_amu.generation.rewrite import rewrite_query, strip_query
 from assistant_amu.models import RetrievedChunk
 from assistant_amu.retrieval.vector_store import SemanticRetriever, VectorStore
@@ -53,7 +54,16 @@ RSE_CENTRAL = "régime spécial d'études"
 
 
 class LlmRewriter:
-    """Cache the llm rewrite: one backend call per unique question (shared by k=3/5)."""
+    """Cache the llm rewrite: one backend call per unique question (shared by k=3/5).
+
+    Retries transient backend failures. A full pass costs one call per question of
+    both sets, enough to meet the API rate limit; without this, a single 429 aborts
+    the run after most of its calls have been paid for. Batch-level resilience, kept
+    out of the LLM abstraction, which stays "no elaborate retry" (PRD §7.4).
+    """
+
+    RETRY_CAUSES = ("quota", "timeout", "connection")
+    RETRY_DELAYS = (5.0, 15.0, 45.0)
 
     def __init__(self, backend: LLMBackend):
         self._backend = backend
@@ -61,8 +71,19 @@ class LlmRewriter:
 
     def __call__(self, question: str) -> str:
         if question not in self._cache:
-            self._cache[question] = rewrite_query(question, "llm", self._backend)
+            self._cache[question] = self._rewrite(question)
         return self._cache[question]
+
+    def _rewrite(self, question: str) -> str:
+        for delay in (*self.RETRY_DELAYS, None):
+            try:
+                return rewrite_query(question, "llm", self._backend)
+            except LLMBackendError as exc:
+                if delay is None or exc.cause not in self.RETRY_CAUSES:
+                    raise
+                print(f"    ! {exc.cause} — nouvelle tentative dans {delay:g}s")
+                time.sleep(delay)
+        return question  # unreachable: the last iteration returns or raises
 
 
 # --- Retriever wrapper ----------------------------------------------------
@@ -295,10 +316,24 @@ def _write_report(settings, backend_name, hard, easy, hard_recall, easy_recall,
         ]
     else:
         lines += [
-            f"- **Stratégie retenue : `{safe}`** — meilleure sur le jeu « dur » *et* sans "
-            "coût sur le jeu « facile ». Exposée en option de `/ask`, le comportement V1 "
-            "restant le défaut.",
+            f"- **Meilleur rappel sans coût sur le jeu « facile » : `{safe}`** — exposée "
+            "en option de `/ask`, le comportement V1 restant le défaut.",
         ]
+        # Recall is not the only criterion: `llm` bills a backend call per query and
+        # is not reproducible. State what the free, deterministic option gives up.
+        if safe == "llm":
+            gap = {k: round((hard_recall[k]["llm"] - hard_recall[k]["strip"]) * n_hard) for k in KS}
+            lines += [
+                "- **Réserve opérationnelle.** `llm` coûte **un appel au backend par "
+                "requête** et n'est pas déterministe : deux exécutions peuvent différer, "
+                "et le rapport ci-dessus vaut pour un run. `strip`, gratuite et "
+                "reproductible, obtient "
+                + " · ".join(f"recall@{k} {hard_recall[k]['strip']:.2f}" for k in KS)
+                + " sur le jeu « dur », soit "
+                + " et ".join(f"{gap[k]} question(s) de moins à k={k}" for k in KS)
+                + ". L'arbitrage se joue donc sur ce que doit coûter une requête, "
+                "non sur le seul rappel.",
+            ]
 
     lines += [
         "",

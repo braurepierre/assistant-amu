@@ -1,7 +1,7 @@
 # Rapport — réécriture de requête (mesure seule) — 2026-07-26
 
 - Backend LLM (stratégie `llm`) : `mistral/mistral-small-latest` (température 0) | Embeddeur : `intfloat/multilingual-e5-small`
-- Jeu « dur » : 25 formulations impératives/conversationnelles (toutes answerable) · jeu « facile » (contrôle de non-régression) : 16 questions answerable.
+- Jeu « dur » : 25 formulations impératives/conversationnelles (toutes answerable) · jeu « facile » (contrôle de non-régression) : 50 questions answerable.
 - `recall@k` = proxy de *context recall* (RAGAS). Réécriture **mesurée, non branchée** dans `/ask` (même esprit que la RRF, §5.1.8 / §5.3.5).
 - Stratégies : `raw` (identité, baseline) · `strip` (retrait heuristique de l'ouverture conversationnelle, **déterministe**) · `llm` (réécriture Mistral en requête factuelle, **non déterministe** — chiffres d'un run unique ; lancer à `LLM_TEMPERATURE=0` pour limiter la variance).
 
@@ -15,13 +15,13 @@
 | strip | 0.72 | 0.88 |
 | llm | 0.84 | 0.88 |
 
-### Jeu « facile » — contrôle de non-régression (16 questions ; granularité 1/16 ≈ 0.062)
+### Jeu « facile » — contrôle de non-régression (50 questions ; granularité 1/50 ≈ 0.020)
 
 | Stratégie | recall@3 | recall@5 |
 |---|---|---|
-| raw | 0.88 | 0.94 |
-| strip | 0.88 | 0.94 |
-| llm | 0.75 | 0.94 |
+| raw | 0.82 | 0.86 |
+| strip | 0.82 | 0.86 |
+| llm | 0.80 | 0.88 |
 
 **Où `llm` régresse (jeu facile, k=3)** — questions récupérées par `raw` mais perdues après réécriture LLM (`strip`, lui, les laisse intactes) :
 
@@ -30,6 +30,8 @@
 | q01 | Comment demander une césure à l'université ? | procédure demande césure études universitaires |
 | q02 | Puis-je interrompre mes études pendant un an puis les … | Interruption études reprise après un an |
 | q03 | Quels aménagements existent pour un étudiant salarié o… | aménagements étudiants salariés ou sportifs de haut ni… |
+| q32 | Comment les sessions d'examen sont-elles organisées en… | organisation sessions examen licence ALL |
+| q47 | Comment contacter la Mission Handicap de son campus ? | Mission Handicap campus contact |
 
 > La réécriture LLM *paraphrase* la question et peut effacer le signal lexical qui la rapprochait du bon document (ex. « interrompre mes études pendant un an » → perte du lien vers « césure »). `strip` ne retire que l'ouverture conversationnelle et ne touche jamais ces questions.
 
@@ -101,9 +103,9 @@ Cible : la page **définitionnelle centrale** « Régime spécial d'études (RSE
 ## Conclusion
 
 - **Meilleur sur le jeu « dur » : `llm`** — recall@3 0.48 (raw) → 0.84 · recall@5 0.72 (raw) → 0.88.
-- Contrôle de non-régression, jeu « facile » : `strip` recall@3 0.88→0.88 (±0 q) · recall@5 0.94→0.94 (±0 q) · `llm` recall@3 0.88→0.75 (-2 q) · recall@5 0.94→0.94 (±0 q).
-- **Arbitrage.** `llm` mène sur le jeu « dur », mais au prix de 3 question(s) définitionnelle(s) qui fonctionnaient (q01, q02, q03) : elle *paraphrase* la question et efface parfois le signal lexical qui la rapprochait du bon document. Elle est en outre non déterministe et coûte un appel LLM par requête.
-- **Stratégie retenue : `strip`** — la meilleure sur le jeu « dur » parmi celles qui ne coûtent aucune question au jeu « facile » (recall@3 0.72 · recall@5 0.88), déterministe et sans appel supplémentaire. C'est elle qui reste exposée en option de `/ask`, le comportement V1 demeurant le défaut.
+- Contrôle de non-régression, jeu « facile » : `strip` recall@3 0.82→0.82 (±0 q) · recall@5 0.86→0.86 (±0 q) · `llm` recall@3 0.82→0.80 (-1 q) · recall@5 0.86→0.88 (+1 q).
+- **Meilleur rappel sans coût sur le jeu « facile » : `llm`** — exposée en option de `/ask`, le comportement V1 restant le défaut.
+- **Réserve opérationnelle.** `llm` coûte **un appel au backend par requête** et n'est pas déterministe : deux exécutions peuvent différer, et le rapport ci-dessus vaut pour un run. `strip`, gratuite et reproductible, obtient recall@3 0.72 · recall@5 0.88 sur le jeu « dur », soit 3 question(s) de moins à k=3 et 0 question(s) de moins à k=5. L'arbitrage se joue donc sur ce que doit coûter une requête, non sur le seul rappel.
 
-> Rappel de granularité (le dénominateur = questions *answerable*) : jeu « dur » = 1 question ≈ 0.040 ; jeu « facile » = 1 question ≈ 0.062. Un écart inférieur à un cran de question n'est pas significatif.
+> Rappel de granularité (le dénominateur = questions *answerable*) : jeu « dur » = 1 question ≈ 0.040 ; jeu « facile » = 1 question ≈ 0.020. Un écart inférieur à un cran de question n'est pas significatif.
 

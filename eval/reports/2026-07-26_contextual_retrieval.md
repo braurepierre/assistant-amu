@@ -17,13 +17,13 @@
 | bm25 | 0.68 | 0.72 | +0.04 (+1 q) | 0.84 | 0.80 | -0.04 (-1 q) |
 | rrf | 0.80 | 0.88 | +0.08 (+2 q) | 0.88 | 0.88 | ±0 |
 
-### Jeu « facile » (formulations définitionnelles) (16 questions ; 1 question ≈ 0.062)
+### Jeu « facile » (formulations définitionnelles) (50 questions ; 1 question ≈ 0.020)
 
 | Méthode | baseline k=3 | contextuel k=3 | Δ k=3 | baseline k=5 | contextuel k=5 | Δ k=5 |
 |---|---|---|---|---|---|---|
-| semantic | 0.88 | 0.75 | -0.12 (-2 q) | 0.94 | 0.81 | -0.12 (-2 q) |
-| bm25 | 0.75 | 0.75 | ±0 | 0.81 | 0.81 | ±0 |
-| rrf | 0.88 | 0.81 | -0.06 (-1 q) | 0.88 | 0.88 | ±0 |
+| semantic | 0.82 | 0.80 | -0.02 (-1 q) | 0.86 | 0.82 | -0.04 (-2 q) |
+| bm25 | 0.78 | 0.82 | +0.04 (+2 q) | 0.84 | 0.86 | +0.02 (+1 q) |
+| rrf | 0.82 | 0.86 | +0.04 (+2 q) | 0.86 | 0.94 | +0.08 (+4 q) |
 
 ## Ce que coûterait un comptage naïf
 
@@ -31,9 +31,9 @@ Mêmes classements, même index contextuel : seule change la version du texte su
 
 | Méthode | strict k=3 | naïf k=3 | écart | strict k=5 | naïf k=5 | écart |
 |---|---|---|---|---|---|---|
-| semantic | 0.75 | 0.81 | +0.06 (+1 q) | 0.81 | 0.81 | ±0 |
-| bm25 | 0.75 | 0.75 | ±0 | 0.81 | 0.81 | ±0 |
-| rrf | 0.81 | 0.81 | ±0 | 0.88 | 0.88 | ±0 |
+| semantic | 0.80 | 0.86 | +0.06 (+3 q) | 0.82 | 0.86 | +0.04 (+2 q) |
+| bm25 | 0.82 | 0.82 | ±0 | 0.86 | 0.86 | ±0 |
+| rrf | 0.86 | 0.86 | ±0 | 0.94 | 0.94 | ±0 |
 
 > L'écart mesure exactement la part de « réussite » qu'un comptage naïf aurait attribuée à la contextualisation sans qu'aucun fragment ne soit mieux trouvé. C'est le résultat méthodologique de cette expérience.
 
@@ -63,14 +63,35 @@ Mêmes classements, même index contextuel : seule change la version du texte su
 
 ## Détail par question — jeu « facile » (k=5)
 
-**semantic** — gagnées : 1 · perdues : 3
+**semantic** — gagnées : 2 · perdues : 4
 
 | id | question | baseline | contextuel |
 |---|---|---|---|
 | q04 | Où puis-je me loger en tant qu'étudiant ? | ❌ | ✅ |
+| q35 | Comment le jury délibère-t-il en master à l'ALLSH ? | ❌ | ✅ |
 | q02 | Puis-je interrompre mes études pendant un an puis les repre… | ✅ | ❌ |
 | q03 | Quels aménagements existent pour un étudiant salarié ou spo… | ✅ | ❌ |
 | q05 | Quels aménagements pour un étudiant en situation de handica… | ✅ | ❌ |
+| q43 | Comment la compensation s'opère-t-elle à l'intérieur d'un b… | ✅ | ❌ |
+
+**bm25** — gagnées : 2 · perdues : 1
+
+| id | question | baseline | contextuel |
+|---|---|---|---|
+| q32 | Comment les sessions d'examen sont-elles organisées en lice… | ❌ | ✅ |
+| q41 | Où les étudiants en droit peuvent-ils se restaurer sur le c… | ❌ | ✅ |
+| q31 | Auprès de qui se signaler pour bénéficier d'un régime spéci… | ✅ | ❌ |
+
+**rrf** — gagnées : 5 · perdues : 1
+
+| id | question | baseline | contextuel |
+|---|---|---|---|
+| q32 | Comment les sessions d'examen sont-elles organisées en lice… | ❌ | ✅ |
+| q34 | Quelles règles de compensation s'appliquent en licence à l'… | ❌ | ✅ |
+| q35 | Comment le jury délibère-t-il en master à l'ALLSH ? | ❌ | ✅ |
+| q41 | Où les étudiants en droit peuvent-ils se restaurer sur le c… | ❌ | ✅ |
+| q44 | La compensation s'applique-t-elle entre les semestres d'une… | ❌ | ✅ |
+| q43 | Comment la compensation s'opère-t-elle à l'intérieur d'un b… | ✅ | ❌ |
 
 ## Question phare — « Parle-moi des régimes spéciaux »
 
@@ -102,11 +123,11 @@ Le contexte s'ajoute au budget de tokens du fragment : 25.2 mots en moyenne ici.
 
 - Sur ce corpus et ce jeu d'évaluation, la contextualisation **gagne nettement plus qu'elle ne perd** (8 questions contre 2).
 - **Ce qu'elle répare** : les formulations conversationnelles en recherche sémantique — jeu « dur », `semantic` à k=3, +0.32 (+8 questions). C'est le mode d'échec que la méthode vise : un fragment que rien ne rattachait à son sujet devient retrouvable.
-- **Ce qu'elle casse** : les formulations définitionnelles — jeu « facile », `semantic` à k=3, -0.12 (-2 questions). Ces questions fonctionnaient déjà ; le préfixe déplace le vecteur du fragment vers le sujet du *document* et l'éloigne de son contenu propre.
-- Sur le jeu « dur », le pire écart est -0.04 (-1 question, `bm25` à k=5) ; sur le jeu « facile », le meilleur est +0.00 (+0 question, `bm25` à k=3).
+- **Ce qu'elle casse** : les formulations définitionnelles — jeu « facile », `semantic` à k=5, -0.04 (-2 questions). Ces questions fonctionnaient déjà ; le préfixe déplace le vecteur du fragment vers le sujet du *document* et l'éloigne de son contenu propre.
+- Sur le jeu « dur », le pire écart est -0.04 (-1 question, `bm25` à k=5) ; sur le jeu « facile », le meilleur est +0.08 (+4 question, `rrf` à k=5).
 - Réserve : 23 fragments sortent de la fenêtre de 512 tokens après contextualisation, contre 0 avant. Ces chiffres mesurent donc la méthode **et** l'étroitesse de la marge de découpage ; conclure sur la méthode seule demande de re-découper à budget réduit puis de re-mesurer.
-- Artefact évité par le comptage strict : jusqu'à +0.06 de recall (+1 question) qu'un comptage naïf aurait crédité à la contextualisation sans qu'aucun fragment ne soit mieux trouvé.
-- Rappel de granularité : le jeu « dur » compte 25 questions (1 question ≈ 0.040) et le jeu « facile » 16 (1 question ≈ 0.062). Les chiffres d'Anthropic portent sur des corpus de plusieurs milliers de fragments et une évaluation à l'échelle : un écart d'une question ici ne les confirme ni ne les infirme.
+- Artefact évité par le comptage strict : jusqu'à +0.06 de recall (+3 question) qu'un comptage naïf aurait crédité à la contextualisation sans qu'aucun fragment ne soit mieux trouvé.
+- Rappel de granularité : le jeu « dur » compte 25 questions (1 question ≈ 0.040) et le jeu « facile » 50 (1 question ≈ 0.020). Les chiffres d'Anthropic portent sur des corpus de plusieurs milliers de fragments et une évaluation à l'échelle : un écart d'une question ici ne les confirme ni ne les infirme.
 
 **Décision.** `/ask` reste sur la collection de production. La méthode n'est pas écartée pour autant : elle est mesurée ici dans une configuration qui ne lui laisse pas la place de fonctionner, et la piste à instruire est nommée ci-dessus.
 
