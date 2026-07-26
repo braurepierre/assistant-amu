@@ -575,3 +575,83 @@ que les rapports datés du 23 juillet demeurent comparables.
 sa granularité reste de 0,062, et c'est lui qui porte l'arbitrage e5/CamemBERT —
 lequel se joue sur **une** question à k=8. La question de l'encodeur restera donc
 indécidable tant que ce jeu-là n'aura pas été élargi à son tour.
+
+## 2026-07-26 — Le jeu principal passe de 16 à 50 questions : la baseline recule, deux verdicts s'inversent
+
+**Fait.** `eval/questions.yaml` compte désormais **50 questions répondables** (contre
+16) et **10 hors corpus** (contre 4). Même méthode que pour le jeu « dur » : avant
+d'écrire une annotation, vérification par programme que le marqueur choisi
+apparaît dans plusieurs fragments du document visé (`expected_keywords` doit
+matcher *le fragment récupéré*, pas seulement le document — piège déjà rencontré
+sur q03). Huit marqueurs candidats se sont révélés trop rares (1 seul fragment,
+parfois 0) et ont été remplacés ; trois questions « hors corpus » que j'avais
+envisagées portaient en réalité sur des sujets présents dans le corpus (Erasmus,
+mobilité internationale) et ont été écartées avant d'être écrites. Un script de
+vérification (`chunk_matches` appliqué à chaque annotation contre l'index réel)
+confirme les 50 annotations satisfiables, dont 3 ne tiennent qu'à un seul
+fragment — acceptable pour des questions de sigle, à surveiller sinon.
+
+**La baseline recule, et ce n'est pas une régression.** Recall@5 : sémantique
+0,94 → **0,86**, BM25 0,81 → 0,84, RRF 0,88 → 0,86. Le repli sémantique n'est pas
+un défaut du système : le nouveau jeu couvre des documents qui n'avaient encore
+aucune question (règlement intérieur, droits d'inscription, sigles, Cadrage M3C
+Master, Mission handicap) et des procédures propres à une composante plutôt que
+génériques (la césure à l'IUT plutôt qu'au niveau central). Le jeu à 16 questions
+sur-représentait les documents déjà faciles à trouver ; le jeu à 50 measure une
+tâche plus proche de ce qu'un vrai corpus de 18 documents impose.
+
+**Deux conclusions s'inversent.**
+
+1. **CamemBERT.** La question posée directement : « CamemBERT à 1,00 avec k=8 »
+   était réelle sur 16 questions (0,94 pour e5) mais tenait à **un seul écart de
+   question** — la granularité même du jeu (1/16 ≈ 0,06), déjà signalée avec
+   prudence à l'époque. Sur 50 questions (granularité 1/50 = 0,02), l'écart
+   s'**inverse et se creuse** : e5 domine nettement à k=3 (0,82 contre 0,66, soit
+   16 points) et à k=5 (0,86 contre 0,76) ; les trois modèles ne se rejoignent
+   qu'à k=8, à 0,86 chacun — CamemBERT n'y prend plus l'avantage, il **rattrape**
+   son retard. e5 reste le choix de production, cette fois avec une mesure qui
+   tranche plutôt qu'un chiffre à la limite du bruit.
+
+2. **Recall@k : la RRF dépasse le sémantique pur à k=8.** Nouveau sur ce jeu :
+   0,92 contre 0,86, soit 3 questions sur 50 — au-dessus de la granularité, donc
+   significatif. Sur l'ancien jeu, RRF plafonnait à égalité (0,88 chacun) ; huit
+   questions plus tard, l'écart existait peut-être déjà mais restait invisible.
+   `/ask` reste sémantique pur à k=5 (où RRF et sémantique sont encore à égalité) ;
+   ce résultat ne tranche rien pour la V1 mais renforce l'argument d'une bascule
+   RRF si k était un jour relevé en production (§5.3).
+
+**Ce que le jeu élargi a aussi révélé sur la contextualisation — une nuance, pas
+seulement une confirmation.** Rejouée sur le jeu facile élargi (16 → 50
+questions), la contextualisation à 500 tokens confirme le sens déjà mesuré : gain
+net sur le jeu dur (8 gagnées / 2 perdues en sémantique pur), et surtout **la
+fusion RRF ne perd plus rien** — elle gagne désormais sur les deux jeux (+4
+questions sur le facile à k=5, la composante BM25 compensant ce que le sémantique
+seul cède). Mais le contrôle à 440 tokens, qui « confirmait sans réserve » sur
+l'ancien jeu de 25×16 questions, se nuance sur 25×50 : le gain sémantique **résiste**
+(jeu dur k=3 : +4 questions à 440 contre +8 à 500 — même sens, ampleur moindre),
+mais **BM25 se dégrade nettement à 440 sur le jeu dur** (−4 questions à k=3, −3 à
+k=5), un effet resté invisible tant que le jeu facile ne comptait que 16
+questions. Ce n'est plus un artefact de troncature à écarter par un simple
+contrôle : c'est un comportement propre à BM25, sensible au budget de découpage,
+qui reste à comprendre avant de généraliser la méthode. Rapport et README ont été
+corrigés pour ne plus affirmer que « les conclusions sont inchangées » entre 500
+et 440 tokens — elles le sont pour le sémantique, pas pour BM25.
+
+**Un problème d'infrastructure, au passage.** `eval/query_rewrite_experiment.py`
+n'avait aucune reprise sur erreur : un run coûtant ~75 appels Mistral (25+50
+questions, stratégie `llm`) a heurté un `429 Too Many Requests` après la plupart
+des appels déjà payés, perdant tout le run. Ajout d'un mécanisme de reprise avec
+attente progressive (5s/15s/45s) sur les causes transitoires (`quota`, `timeout`,
+`connection`) — même logique que celle déjà en place dans
+`ingestion/contextualize.py`, gardée hors de l'abstraction LLM elle-même (PRD
+§7.4 : « pas de reprise élaborée » au niveau du backend, la résilience de lot vit
+dans le script qui l'utilise).
+
+**Ce que ça vaut.** Deux fois dans cette phase de mesure, un jeu d'évaluation
+trop petit a produit une conclusion plausible mais fausse — l'échange équilibré
+de la contextualisation sur 8 questions, la supériorité de CamemBERT sur 16.
+Ce n'est pas la même erreur répétée : c'est le même mécanisme (résolution
+insuffisante d'un jeu de test) qui produit des conclusions différentes selon
+l'endroit où on l'applique. La leçon générale se confirme : la taille d'un jeu
+d'évaluation n'est pas un détail de rigueur, c'est ce qui décide si une
+conclusion est vraie.

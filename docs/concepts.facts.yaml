@@ -15,25 +15,25 @@ corpus:            # `python -m assistant_amu.ingestion stats`
   docs: 18
   chunks: 316
 
-eval_questions: 16 # taille du jeu answerable (eval/questions.yaml)
+eval_questions: 50 # taille du jeu answerable (eval/questions.yaml, élargi le 2026-07-26)
 hard_questions: 25 # taille du jeu « dur » (eval/hard_questions.yaml, élargi le 2026-07-26)
 tests: 142         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-26)
 
-recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5)
-  semantic: 0.94
-  bm25: 0.81
-  rrf: 0.88
+recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5, jeu élargi à 50 q. le 2026-07-26)
+  semantic: 0.86
+  bm25: 0.84
+  rrf: 0.86
 
-recall_curve:      # eval/reports/*_recall_sensitivity_k.md
+recall_curve:      # eval/reports/*_recall_sensitivity_k.md (50 questions)
   k: [2, 3, 5, 8]
-  semantic: [0.88, 0.88, 0.94, 0.94]
-  rrf: [0.75, 0.88, 0.88, 0.88]
-  bm25: [0.69, 0.75, 0.81, 0.81]
+  semantic: [0.80, 0.82, 0.86, 0.86]
+  rrf: [0.74, 0.82, 0.86, 0.92]
+  bm25: [0.70, 0.78, 0.84, 0.88]
 
-embedders:         # eval/reports/*_embedder_comparison.md (recall sémantique)
-  e5:        {r3: 0.88, r5: 0.94, r8: 0.94}
-  camembert: {r3: 0.81, r5: 0.94, r8: 1.00}
-  flaubert:  {r3: 0.81, r5: 0.81, r8: 0.94}
+embedders:         # eval/reports/*_embedder_comparison.md (recall sémantique, 50 questions)
+  e5:        {r3: 0.82, r5: 0.86, r8: 0.86}
+  camembert: {r3: 0.66, r5: 0.76, r8: 0.86}
+  flaubert:  {r3: 0.68, r5: 0.76, r8: 0.86}
 
 rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur » de 25 q., k=5)
   raw: 0.72
@@ -45,8 +45,10 @@ contextual:        # eval/reports/*_contextual_retrieval*.md (§5.3.1, mesure se
   recall:                 # sous-clé `recall.` : formatée en score par la page
     hard_semantic3_base: 0.48
     hard_semantic3_ctx: 0.80
-    easy_semantic5_base: 0.94
-    easy_semantic5_ctx: 0.81
+    easy_semantic5_base: 0.86
+    easy_semantic5_ctx: 0.82
+    easy_rrf5_base: 0.86       # jeu facile, k=5 : RRF gagne net (+4 q / 50)
+    easy_rrf5_ctx: 0.94
 
 conversation:      # eval/reports/*_conversation_k5.md (F12, V2 multi-tour)
   scenarios: 3

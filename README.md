@@ -140,26 +140,48 @@ Le backend LLM n'est pas conteneurisé, conformément au §6.1 du PRD : renseign
 
 Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équivalent au *context recall* du framework RAGAS) selon trois stratégies de recherche : sémantique, lexicale (BM25) et hybride (RRF). Un rapport Markdown daté est automatiquement généré dans `eval/reports/`, incluant une section « désaccords » recensant les questions pour lesquelles une seule méthode identifie le fragment attendu. La fusion RRF fait l'objet d'une **mesure comparative uniquement** : le pipeline `/ask` demeure purement sémantique en V1.
 
-> **Résultats de référence (2026-07-23)**
-> *Corpus de test : 18 documents, 316 fragments, 16 questions d'évaluation, k=5.*
+> **Résultats de référence (2026-07-26)**
+> *Corpus de test : 18 documents, 316 fragments, 50 questions d'évaluation (portées de 16 à 50 le 2026-07-26 — voir plus bas), k=5.*
 >
-> * **Rappel sémantique @5 :** 0,94
-> * **Rappel BM25 @5 :** 0,81
-> * **Rappel RRF @5 :** 0,88
+> * **Rappel sémantique @5 :** 0,86
+> * **Rappel BM25 @5 :** 0,84
+> * **Rappel RRF @5 :** 0,86
 >
-> *Analyse des résultats :* la progression du rappel sémantique (de 0,81 à 0,94) résulte d'un raffinage diagnostiqué et documenté. La requête `q03` relevait d'une annotation excessivement stricte (le fragment pertinent emploie le sigle « RSE » et non la forme développée « régime spécial ») ; la requête `q10` révélait une lacune du corpus (la page M3C se limitait à un index de liens, corrigé par l'ajout des documents « Cadrage M3C »). L'unique requête non couverte par la recherche sémantique seule (`q04`, relative au logement) est correctement identifiée par la méthode RRF, ce qui documente concrètement l'intérêt d'une approche hybride — résultat conservé en l'état plutôt que corrigé artificiellement. La courbe recall@k pour k ∈ {2, 3, 5, 8} et le détail par question sont consignés dans `eval/reports/`.
+> La baseline du 23 juillet (0,94 / 0,81 / 0,88 sur 16 questions) est supplantée par celle-ci, mesurée sur un jeu 3 fois plus grand : elle en reste l'historique, pas la référence. Le repli du rappel sémantique (0,94 → 0,86) n'est pas une régression du système — c'est le corpus d'évaluation qui couvre désormais des documents et des tournures qu'il ne testait pas encore (règlement intérieur, droits d'inscription, sigles, procédures propres à une composante…).
+>
+> **Courbe recall@k (k ∈ {2, 3, 5, 8}) — un résultat nouveau à k = 8 :**
+>
+> | Méthode | k=2 | k=3 | k=5 | k=8 |
+> |---|---|---|---|---|
+> | semantic | 0,80 | 0,82 | 0,86 | 0,86 |
+> | bm25 | 0,70 | 0,78 | 0,84 | 0,88 |
+> | rrf | 0,74 | 0,82 | 0,86 | **0,92** |
+>
+> À k = 8, **la fusion RRF dépasse le sémantique pur de 3 questions sur 50** (0,92 contre 0,86) — un écart supérieur à la granularité du jeu (1/50 = 0,02), donc significatif. Sur l'ancien jeu de 16 questions, RRF plafonnait à égalité avec le sémantique (0,88 chacun) : l'écart existait peut-être déjà, mais un jeu trop petit ne pouvait pas le voir. `/ask` reste sémantique pur en V1 (k par défaut = 5, où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF documentée en §5.3 si k venait à être relevé en production.
+>
+> **Désaccords sémantique / BM25 (k=5), commentés :**
+>
+> | id | question | trouvé par | mécanisme |
+> |---|---|---|---|
+> | `q02` | « Puis-je interrompre mes études pendant un an puis les reprendre ? » | sémantique | paraphrase pure — la requête ne contient aucun terme du corpus (« césure »), seul le sens y conduit. |
+> | `q31` | « Auprès de qui se signaler pour bénéficier d'un régime spécial à la faculté de droit ? » | BM25 | le sémantique se laisse détourner vers le document IUT, structurellement proche ; BM25 accroche « signaler » au bon fragment. |
+> | `q52` | « Quelles pièces justificatives faut-il fournir lors de l'inscription en ligne ? » | BM25 | terme composé et rare (« pièces justificatives ») : le sémantique renvoie vers un document sans rapport (Régimes spéciaux). |
+> | `q53` | « Comment se connecter à la plateforme d'inscription administrative en ligne ? » | sémantique | la question paraphrase l'intitulé du document sans le citer : le sémantique le retrouve, BM25 disperse le score sur des termes trop génériques. |
+>
+> Neuf désaccords sémantique/BM25 existent en tout à k=5 (voir `eval/reports/2026-07-26_retrieval_all_k5.md`) ; ces quatre illustrent le mécanisme récurrent — la paraphrase favorise le sémantique, le terme rare ou exact favorise BM25 — qui justifie de mesurer la fusion RRF plutôt que de trancher a priori entre les deux.
 
 ### Analyse comparative des modèles d'embeddings
 
-Mesures de rappel sémantique effectuées sur les mêmes 16 questions et les mêmes fragments. Cette comparaison relève d'une démarche d'évaluation : le pipeline `/ask` conserve le modèle d'embeddings de production.
+Mesures de rappel sémantique effectuées sur les mêmes 50 questions et les mêmes fragments. Cette comparaison relève d'une démarche d'évaluation : le pipeline `/ask` conserve le modèle d'embeddings de production.
 
 | Modèle d'embeddings | @3 | @5 | @8 |
 | :--- | :---: | :---: | :---: |
-| `intfloat/multilingual-e5-small` (production, 384 dimensions) | 0,88 | 0,94 | 0,94 |
-| `dangvantuan/sentence-camembert-base` (768 dimensions) | 0,81 | 0,94 | **1,00** |
-| `hugorosen/flaubert_base_uncased-xnli-sts` (768 dimensions) | 0,81 | 0,81 | 0,94 |
+| `intfloat/multilingual-e5-small` (production, 384 dimensions) | **0,82** | **0,86** | 0,86 |
+| `dangvantuan/sentence-camembert-base` (768 dimensions) | 0,66 | 0,76 | 0,86 |
+| `hugorosen/flaubert_base_uncased-xnli-sts` (768 dimensions) | 0,68 | 0,76 | 0,86 |
+| _BM25 (référence lexicale)_ | 0,78 | 0,84 | 0,88 |
 
-Les modèles e5 et CamemBERT présentent des performances **équivalentes en moyenne (0,92)** : CamemBERT atteint une couverture complète au rang 8, tandis que e5 offre la plus grande régularité pour une empreinte mémoire nettement inférieure. FlauBERT se situe en retrait, en particulier sur les sigles et les définitions (échecs sur les requêtes RSE et CVEC). Les écarts observés (1 à 2 questions, soit une granularité de 0,06) ne justifient pas de modifier le modèle d'embeddings de production. Le modèle *cased* `Lajavaness/sentence-flaubert-base` ne s'initialise pas sous `sentence-transformers` 5.6.1 (tokenizer Moses dépourvu de `basic_tokenizer`), d'où le recours à la variante *uncased*. Script d'évaluation : `eval/embedder_comparison.py` ; rapport daté dans `eval/reports/`.
+**Ce résultat corrige une lecture antérieure.** Sur le jeu de 16 questions du 23 juillet, CamemBERT atteignait 1,00 à k = 8 contre 0,94 pour e5 — un seul écart de question, à la limite de la granularité de mesure (1/16 ≈ 0,06), déjà interprété avec prudence à l'époque. Sur 50 questions (granularité 1/50 = 0,02), l'écart s'inverse et se creuse : **e5 domine nettement à k = 3 et k = 5** (+16 et +10 points), et les trois modèles se rejoignent seulement à k = 8 (0,86 chacun) — CamemBERT n'y prend plus l'avantage, il rattrape son retard. e5 reste donc le meilleur choix, pour une empreinte mémoire deux fois moindre (384 contre 768 dimensions) et sans qu'aucune bascule ne soit justifiée. FlauBERT se situe en retrait à k = 3/5, en particulier sur les sigles et les définitions (échecs sur RSE, CVEC, LANSAD, FOAD). Le modèle *cased* `Lajavaness/sentence-flaubert-base` ne s'initialise pas sous `sentence-transformers` 5.6.1 (tokenizer Moses dépourvu de `basic_tokenizer`), d'où le recours à la variante *uncased*. Script d'évaluation : `eval/embedder_comparison.py` ; rapport daté dans `eval/reports/`.
 
 ### Contextual Retrieval — index contextuel comparé à la référence
 
@@ -169,19 +191,17 @@ Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d
 | :--- | :--- | :---: | :---: |
 | **Dur** (25 questions, k=3) | sémantique | 0,48 | **0,80** |
 | **Dur** (25 questions, k=5) | BM25 | **0,84** | 0,80 |
-| **Facile** (16 questions, k=5) | sémantique | **0,94** | 0,81 |
-| **Facile** (16 questions, k=5) | RRF | 0,88 | 0,88 |
+| **Facile** (50 questions, k=5) | sémantique | **0,86** | 0,82 |
+| **Facile** (50 questions, k=5) | RRF | 0,86 | **0,94** |
 
-La contextualisation **gagne nettement plus qu'elle ne perd** : **8 questions gagnées** sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre **2 perdues** sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
-
-Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à 25 questions : sur 8 questions, un cran valait 0,125 et l'écart se confondait avec le bruit de mesure. La même expérience, conduite sur le jeu réduit, concluait à un échange équilibré — un jeu d'évaluation trop petit ne se contente pas d'être imprécis, il peut désigner la mauvaise conclusion.
+À 500 tokens, la contextualisation **gagne nettement plus qu'elle ne perd** : **8 questions gagnées** sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre **2 perdues** sur les formulations définitionnelles en recherche purement sémantique. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises quand elles s'appuient sur la recherche sémantique seule. **La fusion RRF, elle, ne perd rien** sur le jeu élargi : elle gagne sur les deux jeux (+2 questions sur le dur à k=3, **+4 questions sur le facile à k=5**), la composante BM25 compensant ce que le sémantique cède.
 
 Deux précautions déterminent la validité de ces chiffres :
 
-1. **Comptage strict.** Le jeu « facile » exige la présence de mots-clés dans le fragment récupéré, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe. Le texte d'origine est donc conservé et restauré après classement : le contexte sert à *trouver* le fragment, jamais à *prouver* la réussite. Le rapport chiffre l'artefact ainsi évité (jusqu'à une question de rappel).
-2. **Troncature contrôlée.** Le découpage vise 500 tokens contre une fenêtre d'encodeur de 512 : le préfixe faisait sortir 23 fragments (7 %) de cette fenêtre, tronqués sans avertissement. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où aucun fragment ne déborde — **les conclusions sont inchangées**.
+1. **Comptage strict.** Le jeu « facile » exige la présence de mots-clés dans le fragment récupéré, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe. Le texte d'origine est donc conservé et restauré après classement : le contexte sert à *trouver* le fragment, jamais à *prouver* la réussite. Le rapport chiffre l'artefact ainsi évité (jusqu'à trois questions de rappel sur le jeu élargi).
+2. **Troncature contrôlée, avec un résultat plus nuancé qu'annoncé.** Le découpage vise 500 tokens contre une fenêtre d'encodeur de 512 : le préfixe faisait sortir 23 fragments (7 %) de cette fenêtre. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où aucun fragment ne déborde. Le gain sémantique **résiste** au redécoupage (jeu dur k=3 : +4 questions, contre +8 à 500 tokens — même sens, ampleur moindre). Mais élargir le jeu facile à 50 questions a révélé un effet invisible jusqu'ici : **la réponse de BM25 à la contextualisation dépend du budget de découpage** — quasi neutre à 500 tokens, elle se dégrade nettement à 440 sur le jeu dur (−4 questions à k=3, −3 à k=5). Ce n'est plus un simple artefact de troncature à écarter : c'est un comportement propre à BM25 qui reste à comprendre avant de généraliser la méthode.
 
-Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; 25 et 16 questions ne sauraient les confirmer ni les infirmer. Ce qui est établi ici, c'est le sens de l'arbitrage sur ce corpus. Reste à trancher laquelle des deux populations de requêtes `/ask` doit servir en priorité, et si une contextualisation *sélective* — limitée aux fragments réellement décontextualisés — ne prendrait pas les deux. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
+Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; 25 et 50 questions ne sauraient les confirmer ni les infirmer. Ce qui est établi ici, c'est le sens de l'arbitrage pour la recherche sémantique sur ce corpus, et un signal encourageant pour son usage combiné à la RRF. Reste à trancher laquelle des populations de requêtes `/ask` doit servir en priorité, à comprendre la sensibilité de BM25 au budget de découpage, et si une contextualisation *sélective* — limitée aux fragments réellement décontextualisés — ne prendrait pas le meilleur des deux mondes. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
 
 ### Performances d'inférence et latence
 
