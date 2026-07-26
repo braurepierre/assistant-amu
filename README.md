@@ -157,7 +157,7 @@ Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équ
 > | bm25 | 0,70 | 0,78 | 0,84 | 0,88 |
 > | rrf | 0,74 | 0,82 | 0,86 | **0,92** |
 >
-> À k = 8, **la fusion RRF dépasse le sémantique pur de 3 questions sur 50** (0,92 contre 0,86) — un écart supérieur à la granularité du jeu (1/50 = 0,02), donc significatif. Sur l'ancien jeu de 16 questions, RRF plafonnait à égalité avec le sémantique (0,88 chacun) : l'écart existait peut-être déjà, mais un jeu trop petit ne pouvait pas le voir. `/ask` reste sémantique pur en V1 (k par défaut = 5, où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF documentée en §5.3 si k venait à être relevé en production.
+> À k = 8, **la fusion RRF dépasse le sémantique pur de 3 questions sur 50** (0,92 contre 0,86) — un écart supérieur à la granularité du jeu (1/50 = 0,02), donc significatif. Sur l'ancien jeu de 16 questions, RRF plafonnait à égalité avec le sémantique (0,88 chacun) : l'écart existait peut-être déjà, mais un jeu trop petit ne pouvait pas le voir. `/ask` reste sémantique pur en V1 (k par défaut = 5, où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF documentée en §5.3 si k venait à être relevé en production. **Cet argument est à lire avec son contrepoids**, mesuré depuis (voir « Sensibilité à la taille du corpus » ci-dessous) : la RRF est aussi la seule méthode qu'un corpus élargi dégrade, et pour une raison structurelle — elle fusionne un classement profond, où les documents ajoutés sont presque toujours présents.
 >
 > **Désaccords sémantique / BM25 (k=5), commentés :**
 >
@@ -203,6 +203,25 @@ Deux précautions déterminent la validité de ces chiffres :
 
 Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; 25 et 50 questions ne sauraient les confirmer ni les infirmer. Ce qui est établi ici, c'est le sens de l'arbitrage pour la recherche sémantique sur ce corpus, et un signal encourageant pour son usage combiné à la RRF. Reste à trancher laquelle des populations de requêtes `/ask` doit servir en priorité, à comprendre la sensibilité de BM25 au budget de découpage, et si une contextualisation *sélective* — limitée aux fragments réellement décontextualisés — ne prendrait pas le meilleur des deux mondes. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
 
+### Sensibilité à la taille du corpus — 18 documents comparés à 28
+
+Retrouver le bon document parmi dix-huit est intrinsèquement facile : une part du rappel de référence pouvait venir de là plutôt que de la qualité de la recherche. Un lot de dix pages distractrices (`corpus/sources_distractors.yaml`) porte donc le corpus mesuré de 18 à **28 documents indexés** (+62 fragments, 316 → 378), **à jeu de questions inchangé** : c'est la botte de foin qui grossit, pas la mesure. Les deux index sont reconstruits dans le même passage, même encodeur et même découpage ; la collection de production n'est jamais ouverte en écriture. Aucun appel LLM.
+
+| Jeu de questions | Méthode | 18 documents | 28 documents |
+| :--- | :--- | :---: | :---: |
+| **Facile** (50 questions, k=5) | sémantique | 0,86 | 0,86 |
+| **Facile** (50 questions, k=5) | BM25 | 0,84 | 0,84 |
+| **Facile** (50 questions, k=5) | RRF | 0,86 | **0,88** |
+| **Dur** (25 questions, k=5) | sémantique | 0,72 | 0,72 |
+| **Dur** (25 questions, k=5) | BM25 | 0,84 | 0,84 |
+| **Dur** (25 questions, k=5) | RRF | 0,88 | **0,80** |
+
+**Le sémantique et BM25 ne perdent aucune question**, sur 75 questions et trois valeurs de k. Les arbitrages du 26 juillet — e5 plutôt que CamemBERT, k = 5 — résistent donc à un corpus élargi de moitié. Ce zéro n'a de valeur que vérifié : une immobilité totale pourrait tout aussi bien signifier que le lot n'est jamais monté assez haut pour gêner. Un diagnostic tranche, et il écarte cette lecture — les distracteurs atteignent le top-8 sur **14 des 50 questions faciles** en sémantique (12 des 25 questions dures en BM25) et le **rang 1** dans les quatre configurations. Un tiers du top-8 peut donc être constitué de matière nouvelle sans que le document attendu perde sa place.
+
+**La RRF est la seule méthode à céder** : −2 questions sur le jeu dur à k = 3 et k = 5, +1 sur le jeu facile — sous le seuil de 3 questions fixé avant la mesure, donc non retenu, mais le sens compte. Les deux bascules ont été instruites : pour `h01` (« Parle-moi des régimes spéciaux »), la page attendue passe du rang 4 au rang 6, chassée par un catalogue de services numériques sans rapport avec le sujet — **vraie défaillance** ; pour `h20` (réinscription en ligne), du rang 3 au rang 7, chassée par une page de compte étudiant qui traite bien des identifiants — **déplacement partiellement légitime**. Dans les deux cas, le rang du document attendu **dans le classement sémantique ne bouge pas** : ce qui change est la composition du top-8 qui alimente la fusion. La sensibilité mesurée est donc une propriété de la RRF, non de l'encodeur — le risque « e5 dilue les sigles » (§9 du PRD) n'est ni confirmé ni infirmé par ce test.
+
+Ce que la mesure ne couvre pas : le lot est voisin par le vocabulaire mais **disjoint par le contenu**, ce qui teste la dilution et non l'ambiguïté entre deux documents qui répondent tous les deux. Le document le plus adverse disponible — le règlement intérieur des bibliothèques universitaires, un second règlement intérieur face à six questions — a été écarté parce que son titre serait compté comme source attendue par le harnais ; l'instruire suppose de resserrer ces six annotations, au prix de la comparabilité avec les rapports du 23 juillet. Script : `eval/distractor_experiment.py` ; rapport : `eval/reports/2026-07-26_corpus_scaling.md`.
+
 ### Performances d'inférence et latence
 
 *Mesures effectuées le 2026-07-23 sur le corpus de référence :*
@@ -229,7 +248,7 @@ Les choix d'implémentation suivants découlent des spécifications initiales (�
 **Perspectives d'évolution (V2+) :**
 
 1. *Contextual Retrieval* **mesuré** (voir ci-dessus) : la contextualisation systématique de l'index constitue un arbitrage défavorable sur ce corpus. La piste subsistante consiste à ne contextualiser que les fragments effectivement décontextualisés — ceux dont le texte ne nomme ni son document ni son sujet — plutôt que la totalité de l'index.
-2. Activation de la recherche hybride (sémantique + BM25 via RRF) au niveau du pipeline de production, sous réserve de validation par les mesures.
+2. Activation de la recherche hybride (sémantique + BM25 via RRF) au niveau du pipeline de production, sous réserve de validation par les mesures. Deux mesures s'y opposent partiellement et doivent être arbitrées ensemble : la RRF gagne 3 questions sur le sémantique à k = 8, mais elle est **la seule méthode que l'élargissement du corpus dégrade** (voir « Sensibilité à la taille du corpus »). Une bascule décidée sur le seul gain à k = 8 échangerait donc une amélioration constatée sur un corpus figé contre une fragilité au passage à l'échelle.
 3. Module de ré-ordonnancement (*reranking*) par cross-encoder.
 4. Automatisation du calcul des métriques RAGAS.
 

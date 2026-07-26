@@ -655,3 +655,116 @@ insuffisante d'un jeu de test) qui produit des conclusions différentes selon
 l'endroit où on l'applique. La leçon générale se confirme : la taille d'un jeu
 d'évaluation n'est pas un détail de rigueur, c'est ce qui décide si une
 conclusion est vraie.
+
+## 2026-07-26 — Le corpus passe de 18 à 28 documents indexés : la recherche ne cède rien, la fusion RRF cède la première
+
+**Fait.** Un lot de dix pages distractrices (`corpus/sources_distractors.yaml`)
+porte le corpus mesuré de 18 à 28 documents indexés, soit +62 fragments
+(316 → 378). Le jeu de questions ne bouge pas : c'est la botte de foin qui
+grossit, pas la mesure. Objet du test : le recall@5 de 0,86 établi le matin sur
+18 documents doit-il une part de son niveau à la facilité intrinsèque de
+retrouver le bon document parmi dix-huit ? Le risque n°1 documenté pour
+l'encodeur (§9, « e5-small dilue les sigles ») était de fait presque intestable à
+cette échelle. Nouveau script `eval/distractor_experiment.py`, rapport
+`eval/reports/2026-07-26_corpus_scaling.md`. Aucun appel LLM : retrieval pur,
+rejouable gratuitement. `corpus/sources.yaml` reste à 19 entrées et `amu_docs`
+n'a jamais été ouverte en écriture.
+
+**Le résultat principal, et il est net.** Le sémantique et BM25 ne perdent
+**aucune question**, sur 75 questions et trois valeurs de k. Recall@5 du jeu
+facile : 0,86 → 0,86 en sémantique, 0,84 → 0,84 en BM25 ; jeu dur : 0,72 → 0,72
+et 0,84 → 0,84. Les décisions du matin (e5 plutôt que CamemBERT, k=5) résistent
+donc à un corpus élargi de moitié.
+
+**Problème → solution : le lot pouvait faire *monter* le recall pour de faux
+motifs.** `chunk_matches` reconnaît un `expected_source` comme sous-chaîne du
+titre. Un distracteur dont le titre contient l'une des **21 sous-chaînes**
+réservées par les deux jeux aurait été compté comme source attendue. Et quatre
+questions de sigle (q09 CVEC, q12 BCC, q27 LANSAD, q28 FOAD) n'ont pas
+d'`expected_source` : n'importe quel fragment portant le token y compte comme
+réussite. Les deux garde-fous sont donc exécutés **avant** toute mesure et
+arrêtent le script s'ils cèdent. Ils ont servi : deux candidates ont été écartées
+pour la seule raison qu'elles décrivent l'emploi de la CVEC (« La culture à amU »,
+« Bouger, découvrir et s'engager »). Sans ce contrôle, l'expérience aurait produit
+une amélioration apparente du recall en ajoutant du bruit.
+
+**Problème → solution : un zéro n'est pas lisible tel quel.** Une immobilité
+totale admet deux lectures opposées — la recherche résiste, ou le lot n'est jamais
+monté assez haut pour la gêner. La seconde était plausible : la RRF, seule méthode
+à bouger, fusionne à profondeur 50, ce qui suggérait des distracteurs confinés au
+classement profond. Un diagnostic a été ajouté au rapport pour trancher, et il a
+**réfuté ce soupçon** : le lot atteint le top-8 sur 14 des 50 questions faciles en
+sémantique (15 en BM25) et sur 12 des 25 questions dures en BM25 (5 en
+sémantique), et il atteint le **rang 1** dans les quatre configurations. Le zéro
+mesure donc une vraie résistance, pas une absence de
+concurrence : un tiers du top-8 peut être constitué de matière nouvelle sans que
+le document annoté perde sa place.
+
+**Ce que ça nuance, chiffres à l'appui.** La RRF est la **seule** méthode que
+l'élargissement dégrade : −2 questions sur le jeu dur à k=3 (0,80 → 0,72) et à
+k=5 (0,88 → 0,80), +1 sur le jeu facile. Sous le seuil de 3 questions fixé avant
+la mesure — la même barre que celle utilisée le matin pour retenir l'avantage de
+la RRF à k=8 —, donc aucun écart retenu. Mais le sens compte : la conclusion du
+matin voyait dans l'avance de la RRF à k=8 « un argument pour une bascule RRF si k
+était un jour relevé en production ». Ce test lui oppose un contrepoids. Ce qui
+fait la force de la RRF sur un corpus figé — fusionner un classement large — est
+exactement ce qui l'expose quand le corpus grossit : sur le jeu facile, les
+distracteurs sont présents dans le top-50 sur 46 à 48 questions sur 50, contre 14
+à 15 dans le top-8. L'argument de bascule tient toujours, il n'est plus gratuit.
+
+**Triage des deux bascules, parce qu'un recall qui baisse ne dit pas qu'une
+mauvaise réponse serait produite.** Les deux questions perdues ont été instruites
+en lisant les classements de part et d'autre.
+
+- **h01** (« Parle-moi des régimes spéciaux », la question phare de l'expérience
+  de réécriture) : la page RSE centrale passe du rang 4 au rang 6. L'intrus qui
+  prend sa place est le « Catalogue des services numériques AMU », sans aucun
+  rapport avec le sujet — **vraie défaillance**. La question était déjà marginale
+  à 18 documents : elle tenait au dernier rang du top-5, avec un seul cran de
+  marge, et le distracteur l'a pris.
+- **h20** (réinscription en ligne) : le guide IA web passe du rang 3 au rang 7.
+  Trois fragments distracteurs s'installent aux rangs 2 à 4 — « Votre compte
+  étudiant AMU » d'une part, deux fois le catalogue numérique d'autre part.
+  **Déplacement partiellement légitime** : la page de compte étudiant traite bien
+  des identifiants et de l'activation, et sert plausiblement un étudiant qui
+  demande comment se réinscrire en ligne ; le catalogue, non.
+
+**Le mécanisme, et il déplace la responsabilité.** Dans les deux cas, le rang du
+document attendu **dans le classement sémantique ne bouge pas** (rang 12 pour
+h01, rang 4 pour h20, à l'identique avant et après). Ce qui change, c'est la
+*composition* du top-8 qui alimente la fusion. e5 ne confond donc pas les
+nouveaux documents avec les anciens : la sensibilité mesurée est une propriété de
+la RRF, pas de l'encodeur. Le risque n°1 du PRD n'est pas confirmé par ce test —
+il n'est pas infirmé non plus, faute de concurrence sur le même sujet.
+
+**Un document se distingue.** Le « Catalogue des services numériques AMU » est
+l'intrus des deux bascules. Long, dense en sigles, il remonte sur des requêtes
+qui ne le concernent pas. C'est un type de document — le catalogue fourre-tout —
+plus qu'un cas particulier, et c'est lui qu'il faudrait surveiller si le corpus
+réel s'élargissait.
+
+**Ce que ça vaut.** Deux garde-fous méthodologiques ont été posés avant de
+regarder les chiffres, et les deux ont servi à quelque chose. Le seuil fixé
+d'avance a empêché de présenter −2 questions comme une dégradation ; le
+diagnostic de concurrence a empêché de présenter un zéro comme une robustesse
+sans l'avoir vérifié. Sur ce second point, la vérification a désavoué mon propre
+soupçon — c'est le cas où elle vaut le plus cher. À noter également, sans
+l'enjoliver : la liste de trois questions que j'avais annoncée comme « à trier en
+priorité » (q53, q06, q29) n'a rien prédit. Le mécanisme anticipé pour q53 — la
+page de compte étudiant déplaçant une question d'inscription en ligne — s'est bien
+produit, mais sur h20. Le bon document, la mauvaise question.
+
+**Décision.** Le corpus de production reste à 19 entrées : mesuré, documenté, non
+branché, même régime que la RRF, la réécriture et la contextualisation. Le lot de
+distracteurs est versionné comme instrument de mesure, pas comme corpus.
+
+**Reste à faire.** Ce test mesure la dilution, pas l'ambiguïté entre deux
+documents qui répondent tous les deux. Le document le plus adverse disponible — le
+règlement intérieur des bibliothèques universitaires, un second règlement
+intérieur face aux six questions q21-q24/h11/h24 — a été **disqualifié par le
+contrat d'annotation lui-même** : son titre serait compté comme source attendue.
+L'instruire suppose de resserrer ces six annotations (« Règlement intérieur
+d'Aix-Marseille »), au prix de la comparabilité avec les rapports datés du
+23 juillet. C'est l'arbitrage qui reste ouvert, et il ne se tranche pas sans
+décider ce qui compte le plus : la continuité des mesures ou la couverture du
+dernier mode d'échec non testé.
