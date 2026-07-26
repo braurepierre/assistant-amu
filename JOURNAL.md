@@ -1100,3 +1100,85 @@ cohérence entre verdicts et réponses, pas entre réponses et documents sources
 Le rejugement à l'aveugle reste entier — constater un biais par ses effets ne le
 supprime pas. Enfin le lot revue, augmenté du constat sur
 `corpus/contexts.jsonl`.
+
+## 2026-07-27 — Rejugement à l'aveugle : le 14/16 tient, deux de mes conclusions du matin tombent
+
+**Fait.** Les deux angles morts de l'entrée précédente sont traités ensemble,
+parce que le second a besoin du premier. `eval/serialize_retrieved_sources.py`
+récupère les passages qu'assistant-amu avait réellement lus ; huit juges
+indépendants, ignorant l'identité des systèmes, rejugent les seize questions avec
+ces passages en main. Rapport `eval/reports/2026-07-27_blind_rejudge.md` sur la
+branche, verdicts versionnés. Je n'ai pas jugé moi-même : ayant tout lu, je suis
+le juge le moins aveugle disponible.
+
+**La récupération des passages ne coûte rien, et c'est le point à retenir.** Sans
+historique et avec `rewrite="raw"`, la requête de recherche est la question
+verbatim (`rag.py:154-158`) : rejouer `store.query()` reproduit exactement les
+fragments qui ont servi aux réponses stockées. Aucun appel de modèle, aucune
+réponse régénérée — donc les verdicts existants restent comparables, ce qu'une
+reprise complète aurait détruit. Contrôle sur six questions témoins : les chaînes
+distinctives des réponses (« eCandidat », « attestation sur l'honneur », « BCC
+jumeaux », « sesame.univ-amu.fr ») se retrouvent toutes dans les passages
+récupérés.
+
+**Le chiffre qui n'avait jamais été instruit tient.** 14/16 correctes et ancrées,
+2 refus : identique au rapport d'origine, mais établi cette fois par des juges
+disposant des fragments effectivement lus, là où le jury de départ ne disposait
+que de la réponse et de ses marqueurs `[S1]`. L'ancrage d'assistant-amu n'est plus
+inféré, il est vérifié. Côté AnythingLLM, accord sur 12 verdicts sur 16.
+
+**Le biais est confirmé, et borné.** Les quatre écarts : q01 (`incorrect` →
+`refused`), q03 et q11 adoucis, et **q14 durci** — le juge aveugle relève que le
+délai de quinze jours porte sur la convocation et non sur la publication des
+sujets, ce que le jury d'origine n'avait pas vu. Trois écarts en faveur
+d'AnythingLLM, un contre : le déséquilibre est réel, il n'est pas systématique.
+Sur q01, le juge aveugle va plus loin que ma correction du matin : il note que le
+refus était *correctement motivé*, ses passages ne contenant effectivement rien
+sur la césure.
+
+**Un résultat défavorable à assistant-amu, à ne pas escamoter.** Le juge relève
+que le refus q02 portait sur une question à laquelle ses propres passages
+répondaient explicitement (« souhaitez suspendre vos études pour un ou deux
+semestres… La césure est faite pour vous ! »). Ce n'est pas un refus de prudence
+sur une question limite, c'est un refus alors que le contexte fourni répondait.
+
+**Deux de mes conclusions du matin sont fausses.** La reclassification que je
+proposais pour q15 : le juge, qui a lu les passages, constate qu'ils portent sur
+les examens, le doctorat et le plagiat, et ne soutiennent pas la section
+« Droits » — le verdict d'origine était juste. Et le « troisième mode d'échec »
+que j'annonçais sur q11 : les passages remontés du bon PDF ne contenaient que la
+structure (BCC, UE, ECTS) et une mention de bonus, **pas la règle de
+compensation**. Le bon document, pas le bon fragment — défaut de recherche, non
+mode d'échec inédit. La réponse d'AnythingLLM reste factuellement fausse ; c'est
+ma conclusion sur les causes qui tombe.
+
+**Ce que ça vaut, et c'est inconfortable.** Mes deux erreurs ont la même origine :
+j'ai jugé la qualité de la recherche sur les **titres** des documents remontés
+sans ouvrir le texte des passages — alors que ce texte était dans le fichier que
+je lisais. C'est exactement le raccourci que je reprochais au rapport du
+26 juillet, qui inférait l'ancrage d'assistant-amu de ses marqueurs `[S1]` sans
+ouvrir les fragments. Même erreur, un étage plus haut, commise dans le geste même
+qui la dénonçait. La leçon n'est pas « vérifier davantage » : c'est qu'une
+étiquette — un titre de document, un marqueur de citation — n'est jamais une
+preuve du contenu qu'elle désigne, et que je m'en suis contenté au moment
+précis où je démontrais qu'il ne fallait pas.
+
+**Un défaut de mon anonymisation, déclaré.** Pour empêcher l'identification des
+systèmes, j'ai retiré les titres et URL de source des passages : les deux
+systèmes nomment leurs documents différemment, ce qui aurait trahi l'identité. Or
+le pipeline **fournit ces titres au modèle** en production (`rag.py:83-87`). Les
+juges ont donc évalué assistant-amu sur moins de matière qu'il n'en avait. Sans
+effet sur les questions de contenu, mais le `answer_was_available: false` du
+verdict q16 n'est pas fiable — le refus q16, lui, reste bien un refus à tort,
+la page attendue figurant au top-5.
+
+**Décision.** Le rapport du matin conserve son texte, avec un renvoi en tête et
+une marque ⚠ sur les deux passages réfutés ; le README de la branche publie l'état
+consolidé. Même régime que pour le rapport du 26 : un artefact daté ne se
+réécrit pas, il s'annote.
+
+**Reste à faire.** Chaque question reste jugée une seule fois dans les deux
+séries : aucun accord inter-juges n'est mesurable, et c'est désormais la
+faiblesse méthodologique dominante. La performance d'AnythingLLM correctement
+configuré demeure l'angle mort principal. Enfin le lot revue, augmenté du constat
+sur `corpus/contexts.jsonl`.
