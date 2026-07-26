@@ -1,0 +1,27 @@
+# Exécution de l'API en une commande : `docker compose up --build`
+# → http://127.0.0.1:8000/ (démonstration) · /docs (contrats) · /health (état).
+#
+# Le backend LLM n'est pas conteneurisé (PRD §6.1) : renseigner MISTRAL_API_KEY
+# dans .env pour l'API, ou laisser le défaut `ollama` si un Ollama tourne sur
+# l'hôte. L'index vectoriel vit dans le volume `chroma`, pas dans l'image.
+services:
+  api:
+    build: .
+    image: assistant-amu
+    ports:
+      - "8000:8000"
+    environment:
+      LLM_BACKEND: "${LLM_BACKEND:-ollama}"
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
+    volumes:
+      - chroma:/data
+      # Corpus téléchargé, monté en lecture seule pour pouvoir (ré)indexer :
+      #   docker compose run --rm api python -m assistant_amu.ingestion index
+      - ./corpus/raw:/app/corpus/raw:ro
+    extra_hosts:
+      # Rend `host.docker.internal` résolvable sous Linux comme sous Windows :
+      # c'est l'adresse par laquelle le conteneur atteint l'Ollama de l'hôte.
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  chroma:

@@ -1,0 +1,29 @@
+# Contexte de build : tout ce qui n'entre pas dans l'image (et surtout le secret).
+.env
+.venv/
+venv/
+env/
+
+# Données régénérables, jamais embarquées : l'index vit dans le volume /data,
+# le corpus téléchargé se reconstitue depuis corpus/sources.yaml.
+chroma_db/
+corpus/raw/
+corpus/contexts.jsonl
+
+# Historique et outillage local
+.git/
+.github/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Documentation et rapports : hors périmètre de l'exécution
+docs/
+eval/reports/
+tests/
+CLAUDE.md

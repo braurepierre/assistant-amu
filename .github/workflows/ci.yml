@@ -1,0 +1,77 @@
+# Intégration continue (PRD §5.3.6) : la suite pytest et la construction de
+# l'image à chaque poussée. Aucun secret n'est nécessaire — les tests moquent le
+# backend LLM et ne touchent ni au réseau ni à un modèle réel.
+name: CI
+
+on:
+  push:
+    branches: [main, langchain-port]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: pytest (Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer uv (version de développement)
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.14"
+          enable-cache: true
+
+      - name: Installer les dépendances figées par uv.lock
+        run: |
+          set -euo pipefail
+          uv venv --python 3.12
+          uv export --frozen --extra dev --no-emit-project --no-hashes -o req.txt
+          # Le lock épingle la variante CUDA de torch pour Linux (~2,5 Go de
+          # roues nvidia-*) : inutile ici, l'inférence testée est CPU et moquée.
+          grep -vE '^(nvidia-|triton==)' req.txt > req-cpu.txt
+          uv pip install --index-url https://download.pytorch.org/whl/cpu \
+            "torch==$(sed -n 's/^torch==\([0-9a-z.]*\).*/\1/p' req.txt)"
+          uv pip install -r req-cpu.txt
+
+      # pythonpath = ["src"] dans pyproject : le paquet est importable sans
+      # installation, exactement comme en local.
+      - name: pytest
+        run: uv run --no-sync pytest -q
+
+  image:
+    name: image Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Construction de l'image réelle, préchargement du modèle compris : ce qui
+      # est vérifié ici est bien l'artefact livré, pas une variante allégée.
+      - name: Construire l'image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: assistant-amu:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Démarrer le conteneur et interroger /health
+        run: |
+          set -euo pipefail
+          docker run -d --name amu -p 8000:8000 assistant-amu:ci
+          # /health rend 200 même sans index ni backend joignable (il en rend
+          # l'état) : c'est le contrat exact que ce test vérifie.
+          for _ in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8000/health > health.json; then break; fi
+            sleep 2
+          done
+          cat health.json
+          grep -q '"chroma"' health.json
+          grep -q '"llm_backend"' health.json
+
+      - name: Journal du conteneur en cas d'échec
+        if: failure()
+        run: docker logs amu || true
