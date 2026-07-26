@@ -25,6 +25,10 @@ class IngestReport:
     processed: list[tuple[str, str, int]] = field(default_factory=list)  # (title, doc_id, n_chunks)
     excluded: list[tuple[str, str]] = field(default_factory=list)  # (title, reason)
     chunks: list[Chunk] = field(default_factory=list)
+    # Full documents, kept alongside their chunks: Contextual Retrieval situates
+    # each chunk in its *whole* document, which chunks alone cannot reconstitute
+    # (they overlap, and the excluded ones never produced any).
+    documents: list[Document] = field(default_factory=list)
 
     def summary(self) -> str:
         return (
@@ -79,4 +83,5 @@ def ingest_corpus(
             continue
         report.processed.append((source.title, doc.doc_id, len(chunks)))
         report.chunks.extend(chunks)
+        report.documents.append(doc)
     return report

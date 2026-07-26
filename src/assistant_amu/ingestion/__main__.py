@@ -1,10 +1,11 @@
 """Ingestion CLI (PRD F2/F3/F4): ``python -m assistant_amu.ingestion <command>``.
 
 Commands:
-  stats   Run extract -> clean -> chunk over the corpus and print counts.
-  dump    Print N random chunks with metadata for visual inspection.
-  index   Embed the corpus chunks into ChromaDB (idempotent; F3, dedup F2).
-  search  Retrieve the top-k chunks for a question (manual relevance check, F4).
+  stats         Run extract -> clean -> chunk over the corpus and print counts.
+  dump          Print N random chunks with metadata for visual inspection.
+  index         Embed the corpus chunks into ChromaDB (idempotent; F3, dedup F2).
+  search        Retrieve the top-k chunks for a question (manual relevance check, F4).
+  contextualize Build the Contextual Retrieval index in a parallel collection (§5.3.1).
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import random
 import sys
 import textwrap
 
+from .contextualize import CACHE_PATH
 from .download import RAW_DIR, SOURCES_YAML, load_sources
 from .pipeline import ingest_corpus
 
@@ -21,6 +23,20 @@ from .pipeline import ingest_corpus
 def _add_common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--sources", default=str(SOURCES_YAML))
     parser.add_argument("--raw-dir", default=str(RAW_DIR))
+
+
+def _add_chunking(parser: argparse.ArgumentParser) -> None:
+    """Chunk budget override, for indexing a corpus cut differently (§7.6)."""
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=None,
+        help="chunk budget in tokens (default: CHUNK_MAX_TOKENS from the settings)",
+    )
+
+
+def _chunking(args: argparse.Namespace) -> dict:
+    return {"max_tokens": args.max_tokens} if getattr(args, "max_tokens", None) else {}
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
@@ -58,8 +74,8 @@ def cmd_dump(args: argparse.Namespace) -> int:
 def cmd_index(args: argparse.Namespace) -> int:
     from ..retrieval.vector_store import VectorStore
 
-    report = ingest_corpus(load_sources(args.sources), raw_dir=args.raw_dir)
-    store = VectorStore.from_settings()
+    report = ingest_corpus(load_sources(args.sources), raw_dir=args.raw_dir, **_chunking(args))
+    store = VectorStore.from_settings(collection_name=args.collection)
     before = store.count()
     added = store.add_chunks(report.chunks)
     print(report.summary())
@@ -68,10 +84,55 @@ def cmd_index(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_contextualize(args: argparse.Namespace) -> int:
+    """Contextual Retrieval (PRD §5.3.1) — parallel collection, never the production one."""
+    from ..config import get_settings
+    from ..generation.llm import build_backend
+    from ..retrieval.vector_store import VectorStore
+    from .contextualize import MAX_DOC_CHARS, ContextCache, contextual_collection_name
+
+    settings = get_settings()
+    backend = build_backend(settings)
+    report = ingest_corpus(load_sources(args.sources), raw_dir=args.raw_dir, **_chunking(args))
+    chunks = report.chunks[: args.limit] if args.limit else report.chunks
+    print(report.summary())
+    print(f"contextualizing {len(chunks)} chunks with {backend.name} …")
+
+    from .contextualize import contextualize_chunks
+
+    contextual, ctx_report = contextualize_chunks(
+        chunks, report.documents, backend, cache=ContextCache(args.cache)
+    )
+    print(ctx_report.summary())
+    for title in ctx_report.truncated_docs:
+        print(f"  ! document truncated to {MAX_DOC_CHARS} chars (raise the backend window): {title}")
+    for chunk_id, reason in ctx_report.failed[:5]:
+        print(f"  ! failed {chunk_id}: {reason}")
+
+    if args.dry_run:
+        for chunk in contextual[: args.n]:
+            print("=" * 78)
+            print(textwrap.fill(str(chunk.metadata.get("context", "(no context)")), width=78))
+            print("-" * 78)
+            print(textwrap.fill(str(chunk.metadata.get("text_raw", chunk.text))[:400], width=78))
+        print("\n(dry run — nothing indexed)")
+        return 0
+
+    name = args.collection or contextual_collection_name(settings.chroma_collection)
+    store = VectorStore.from_settings(settings, collection_name=name)
+    if args.reset and store.count():
+        store.delete_collection()
+        store = VectorStore.from_settings(settings, collection_name=name)
+    added = store.add_chunks(contextual)
+    print(f"indexed: +{added} new chunks in collection {name!r} (now {store.count()})")
+    return 0
+
+
 def cmd_search(args: argparse.Namespace) -> int:
     from ..retrieval.vector_store import VectorStore
 
-    results = VectorStore.from_settings().query(args.question, k=args.k)
+    store = VectorStore.from_settings(collection_name=args.collection)
+    results = store.query(args.question, k=args.k)
     if not results:
         print("No results (empty collection? run `index` first).")
         return 0
@@ -84,6 +145,15 @@ def cmd_search(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Corpus text carries accents and PDF private-use glyphs; the Windows console
+    # defaults to cp1252 and would crash on printing them (same guard as
+    # docs/build_concepts.py).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):  # non-reconfigurable stream (piped/captured)
+            pass
+
     parser = argparse.ArgumentParser(prog="assistant_amu.ingestion", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -99,11 +169,31 @@ def main(argv: list[str] | None = None) -> int:
 
     p_index = sub.add_parser("index", help="embed corpus chunks into ChromaDB (idempotent)")
     _add_common(p_index)
+    _add_chunking(p_index)
+    p_index.add_argument(
+        "--collection", default=None, help="target collection (default: the production one)"
+    )
     p_index.set_defaults(func=cmd_index)
+
+    p_ctx = sub.add_parser(
+        "contextualize", help="build the Contextual Retrieval index (parallel collection)"
+    )
+    _add_common(p_ctx)
+    _add_chunking(p_ctx)
+    p_ctx.add_argument("--collection", default=None, help="target collection (default: <prod>_ctx)")
+    p_ctx.add_argument("--cache", default=str(CACHE_PATH), help="path to the context cache (JSONL)")
+    p_ctx.add_argument("--limit", type=int, default=None, help="contextualize only the first N chunks")
+    p_ctx.add_argument("-n", type=int, default=3, help="chunks to show with --dry-run")
+    p_ctx.add_argument("--dry-run", action="store_true", help="generate and print, index nothing")
+    p_ctx.add_argument("--reset", action="store_true", help="drop the target collection first")
+    p_ctx.set_defaults(func=cmd_contextualize)
 
     p_search = sub.add_parser("search", help="retrieve top-k chunks for a question")
     p_search.add_argument("question", help="the question to search for")
     p_search.add_argument("-k", type=int, default=5, help="number of chunks (1-10)")
+    p_search.add_argument(
+        "--collection", default=None, help="collection to search (default: the production one)"
+    )
     p_search.set_defaults(func=cmd_search)
 
     args = parser.parse_args(argv)

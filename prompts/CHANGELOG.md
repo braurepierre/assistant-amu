@@ -60,3 +60,36 @@ viennent l'enrichir.
 - Fichier posé dès le squelette (structure §6.3), **branché en Phase 7** :
   `RagPipeline._condense` l'utilise comme message système quand `history` est
   fourni. Non modifié depuis v0 ; toute itération future viendra ici (§11.10).
+
+## context_system.md
+
+> Prompt de **contextualisation des fragments** (Contextual Retrieval, §5.3.1).
+> Il ne sert pas à répondre : il produit, à l'indexation, la phrase qui situe
+> chaque fragment dans son document. `PROMPT_VERSION` dans
+> `ingestion/contextualize.py` suit ces versions — le cache disque est indexé
+> dessus, si bien qu'une itération du prompte invalide les contextes obtenus
+> avec la précédente au lieu de les mélanger.
+
+### v2 — 2026-07-26 — phrase nominale imposée + interdiction des formules d'auto-description
+- **Diff** : la règle 1 impose désormais une phrase **nominale** commençant par
+  l'intitulé du document, puis la partie, puis le sujet propre à l'extrait ; la
+  règle 4 interdit nommément les formules d'auto-description ; un gabarit de
+  format est donné en fin de prompt, volontairement **abstrait** (« Intitulé du
+  document, partie « … » : sujet ») pour ne teinter aucun contexte d'un
+  vocabulaire absent du document traité.
+- **Raison** : la v1 obtenait des sorties qui verbalisaient la consigne au lieu
+  de l'appliquer.
+- **Cas visé** : premier fragment de la Charte des étudiants, dont la v1
+  produisait « **La présente phrase situe l'extrait dans le document** : Charte
+  des étudiants et stagiaires d'AMU, partie I… ». La v2 rend, sur le même
+  fragment : « Charte des étudiants et stagiaires d'AMU, partie « II. ENGAGEMENT
+  DE L'USAGER SIGNATAIRE » : respect des personnes et lutte contre le
+  harcèlement et le bizutage. »
+
+### v1 — 2026-07-26 — version initiale
+- Reprise de l'esprit du prompt de référence d'Anthropic (« situer brièvement
+  l'extrait dans le document pour améliorer sa recherche »), transposée au
+  français administratif : une phrase, 25 mots, reprise des termes explicites du
+  document (intitulé, article, section, sigle), aucune information ajoutée.
+- Prompt rédigé en dur dans `contextualize.py` à ce stade ; déplacé dans
+  `prompts/` avec la v2, pour s'aligner sur `rag_system.md` et `condense_system.md`.

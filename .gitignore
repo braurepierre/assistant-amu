@@ -7,6 +7,10 @@ chroma_db/
 # Downloaded corpus binaries — reproducibility via sources.yaml + scripts (PRD §7.1)
 corpus/raw/
 
+# Cache des contextes générés (Contextual Retrieval, §5.3.1) — donnée dérivée du
+# corpus, au même titre que chroma_db/ : régénérée par la commande contextualize.
+corpus/contexts.jsonl
+
 # Python
 __pycache__/
 *.py[cod]
