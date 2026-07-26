@@ -839,3 +839,82 @@ surinterpréter. Restent ensuite deux arbitrages qui ne se tranchent pas sans
 décider ce qu'on attend du résultat : rejouer sur les 50 questions et le corpus à
 28 documents (coût : un cycle complet des deux côtés, avec appels à l'API Mistral
 de part et d'autre), et refaire juger à l'aveugle de l'identité des systèmes.
+
+## 2026-07-26 — Revue de cohérence du lot Contextual Retrieval : fil ouvert
+
+**Fait.** Le lot §5.3.1 — `ea2c747` à `86a34a5`, 14 commits, 30 fichiers — a été
+relu de bout en bout, en deux passes indépendantes, la seconde conduite sans
+connaissance des conclusions de la première. Dix-neuf constats, classés par
+gravité dans `docs/revue-2026-07-26_contextual_retrieval.md`, chacun avec sa
+référence `fichier:ligne`, sa preuve et son correctif proposé. **Rien n'a été
+modifié** : la revue constate, elle ne corrige pas. Cette entrée tient le fil
+ouvert pour une session ultérieure.
+
+**Ce qui tient, et comment on le sait.** Les deux rapports ont été rejoués
+intégralement hors ligne et se reproduisent cellule par cellule : 24 cellules de
+recall, 12 écarts strict/naïf, statistiques de fenêtre, listes complètes des
+questions gagnées et perdues, rangs de la question phare. La validité de mesure
+est correctement câblée — la fusion RRF porte bien sur les classements
+contextuels et ne substitue que les objets rendus — et le diagnostic de fenêtre
+est exact, `tokenizer.encode()` comptant les tokens spéciaux.
+
+**Ce que la revue débloque : reprendre un rapport ne coûte plus rien.** Le faire
+imposait jusqu'ici de repayer environ 316 appels de modèle, les collections
+contextuelles ayant disparu de `chroma_db/` — seule `amu_docs` subsiste.
+`eval/repro_contextual_retrieval.py` les reconstruit depuis
+`corpus/contexts.jsonl` avec un stub qui **lève** sur tout appel : zéro dépense,
+et un défaut de cache échoue au lieu de coûter. Exécuté, il retrouve les chiffres
+publiés à l'identique. Quatre des dix-neuf constats portent sur le générateur de
+rapports : ils sont désormais corrigibles et vérifiables gratuitement, d'un seul
+lot.
+
+**À traiter en premier — un lecteur est trompé en l'état.**
+
+1. `README.md:197` affirme que la contextualisation « gagne nettement plus qu'elle
+   ne perd » ; `README.md:231` la qualifie d'« arbitrage défavorable ». La seconde
+   ligne date de `fb2d16d` et n'a pas suivi l'inversion de `86a34a5`.
+2. `eval/reports/2026-07-26_contextual_retrieval_440.md:130` publie « **Ce qu'elle
+   casse** […] +0.00 (+0 questions) », puis explique la perte. Le générateur
+   (`eval/contextual_retrieval_experiment.py:479-482`) code ce récit en dur sans
+   regarder le signe de l'écart, et relègue la perte réelle de cette
+   configuration — BM25, jeu dur, −4 questions à k=3 — à la puce suivante. C'est
+   la classe de défaut que l'entrée du jeu élargi déclare corrigée : le verdict
+   principal a été rendu conditionnel, ces deux puces ne l'ont pas été.
+
+**Un piège à désamorcer.** Le garde-fou censé prévenir la troncature silencieuse
+d'un document trop long (`MAX_DOC_CHARS = 60_000`, soit environ 14k tokens) ne
+peut pas se déclencher : le plus long document du corpus fait 9 587 tokens. Or
+`README.md:107` propose la commande sans variable d'environnement, et le défaut
+est `ollama` à `num_ctx=8192` — le document serait coupé sans un mot, exactement
+le piège que `README.md:40` documente par ailleurs. Les chiffres publiés ne sont
+pas concernés : les 436 entrées du cache portent toutes
+`mistral/mistral-small-latest`.
+
+**Ce qui n'est pas une correction, mais mérite d'être su.** Les deux rapports
+justifient la non-intégration sur des bases de mesure — artefact de troncature,
+arbitrage entre populations de requêtes — et concluent qu'il « reste à trancher »
+laquelle `/ask` doit servir en priorité. Aucun ne cite le §5.3, qui range le
+Contextual Retrieval parmi les évolutions « documentées, non implémentées », ni le
+§40 (« mesurer n'est pas brancher », V1 *et* V2). La décision est juste, mais
+adossée à une raison plus faible que la vraie : formulée ainsi, elle laisse croire
+qu'une mesure plus favorable suffirait à brancher la méthode.
+
+**Reste à faire.** Les deux corrections ci-dessus, puis le fichier de revue par
+lots : le plafond de 25 mots du prompt, violé par 48 % des contextes et contrôlé
+par rien ; le chiffre de tête « +8 questions », qui se lit à k=3 alors que les
+seules tables par question sont produites à k=5, si bien qu'aucun document ne dit
+de quelles huit questions il s'agit ; la restauration du texte d'origine avant
+comptage, que nul test ne couvre alors qu'elle porte la validité de l'expérience ;
+enfin les points de propreté. Le constat sur le verdict a désormais son précédent
+dans le dépôt : `eval/reports/2026-07-26_corpus_scaling.md:9` fixe son seuil de
+signification à trois questions **avant** de mesurer, et le déclare — là où le
+générateur de la contextualisation tranche à deux, après coup.
+
+**En annexe de la revue, une piste gratuite.** La « sensibilité de BM25 au budget
+de découpage », que le README laisse « à comprendre », s'explique
+mécaniquement : le préfixe place l'intitulé du document en tête de chaque
+fragment, si bien que les termes de titre passent d'une fréquence documentaire de
+quelques fragments à la quasi-totalité de ceux du document — leur IDF s'effondre —
+tandis que `avgdl` croît d'environ 25 tokens. Vérifiable sans nouvelle dépense, en
+comparant l'IDF des termes de titre entre les deux collections, ou en mesurant le
+recall BM25 sur un index bâti depuis `metadata["text_raw"]`.
