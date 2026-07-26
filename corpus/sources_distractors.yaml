@@ -1,0 +1,145 @@
+# corpus/sources_distractors.yaml — lot de documents « distracteurs », MESURE SEULE.
+#
+# Ce fichier n'est PAS le corpus de production. `corpus/sources.yaml` reste à 19
+# documents et `/ask` continue de servir la collection `amu_docs`. Ce lot-ci sert
+# à une seule question, posée le 2026-07-26 : le recall@5 de 0,86 mesuré sur
+# 19 documents tient-il quand la botte de foin grossit, ou une part de ce chiffre
+# vient-elle de la facilité intrinsèque à retrouver un document parmi 19 ?
+#
+# Le risque n°1 documenté pour l'encodeur (PRD §9 : « e5-small dilue les sigles →
+# retrieval raté sur requêtes lexicales ») est aujourd'hui presque intestable :
+# trop peu de sigles se recouvrent dans 19 documents pour qu'e5 les confonde.
+#
+# ---------------------------------------------------------------------------
+# CRITÈRE DE SÉLECTION : voisin par le vocabulaire, disjoint par le contenu.
+# ---------------------------------------------------------------------------
+# Un distracteur doit se disputer les places du top-k avec le bon document sans
+# jamais répondre à sa place. D'où le refus d'une option pourtant tentante : les
+# pages « scolarité » d'autres composantes (FEG, Pharmacie, Médecine). Elles
+# dupliquent le *contenu* des documents annotés — droits d'inscription, sessions
+# d'examen, calendriers. Une baisse de recall y serait alors ambiguë : document
+# annoté déplacé par un document qui répond tout aussi bien, ou vraie défaillance
+# de la recherche ? Le lot retenu porte donc sur des services et dispositifs AMU
+# qu'aucune des 75 questions n'interroge — même registre institutionnel, même
+# densité de sigles, sujets disjoints. Une baisse s'y interprète sans ambiguïté.
+#
+# ---------------------------------------------------------------------------
+# DEUX CONTRAINTES DURES, tirées de `chunk_matches` (evaluation.py:53).
+# ---------------------------------------------------------------------------
+# 1. TITRES. Un `expected_source` est reconnu comme sous-chaîne du titre. Un
+#    distracteur dont le titre contient l'une des 21 sous-chaînes réservées par
+#    les deux jeux serait accepté comme source attendue : le recall monterait
+#    pour de faux motifs. Réservées : cadrage m3c licence, cadrage m3c master,
+#    calendriers universitaires, charte des examens, charte des étudiants,
+#    compensation, césure, droits d'inscription, handicap, ia web, iut, loger,
+#    m3c, mission handicap, règlement intérieur, régime spécial, régime spécial
+#    d'études, régimes spéciaux, sciences, sigles, vie étudiante.
+#    Aucun titre ci-dessous n'en contient — vérifié par programme, à rejouer
+#    avant toute mesure.
+#
+# 2. TEXTE. Quatre questions de sigle (q09 CVEC, q12 BCC, q27 LANSAD, q28 FOAD)
+#    n'ont pas d'`expected_source` : n'importe quel fragment contenant le token
+#    compte comme réussite. Un distracteur mentionnant CVEC rendrait q09
+#    trivialement satisfaite depuis le mauvais document. Les dix pages ont été
+#    contrôlées : aucune ne porte ces quatre sigles. Deux candidates ont été
+#    écartées pour ce seul motif — « La culture à amU » et « Bouger, découvrir
+#    et s'engager », qui décrivent l'emploi de la CVEC.
+#
+# ---------------------------------------------------------------------------
+# ÉCARTÉ, ET C'EST LE CAS LE PLUS INTÉRESSANT.
+# ---------------------------------------------------------------------------
+# « Règlement intérieur du Service Commun de la Documentation » (BU, PDF 8 pages,
+# https://bu.univ-amu.fr/sites/default/files/media-ressource/reglement-interieur-bu-amu_2025.pdf)
+# est le document le plus adverse qui existe pour ce corpus : un second règlement
+# intérieur, face aux six questions q21-q24/h11/h24. Il est inutilisable en
+# l'état — son titre contient « règlement intérieur », donc il serait compté
+# comme source attendue pour ces six questions. Le rendre utilisable suppose de
+# resserrer leur annotation (« Règlement intérieur d'Aix-Marseille »), ce qui
+# rompt la comparabilité avec les rapports datés depuis le 23 juillet. Arbitrage
+# à trancher séparément, pas ici.
+#
+# ---------------------------------------------------------------------------
+# TYPE. Dix pages HTML, aucun PDF, délibérément.
+# ---------------------------------------------------------------------------
+# Le risque n°1 du projet (PRD §9) est le temps englouti par les PDF hétérogènes
+# et les escalades Docling. Ce lot mesure la sensibilité du retrieval à la taille
+# du corpus ; y ajouter des PDF mal formés ferait payer le risque n°1 pour un
+# bénéfice nul sur la question posée. Le règlement des BU ci-dessus (tableaux,
+# 8 pages) est précisément ce qu'on évite.
+#
+# ---------------------------------------------------------------------------
+# USAGE. Ne jamais télécharger ni indexer ce fichier seul.
+# ---------------------------------------------------------------------------
+# `resolve_path` (pipeline.py:41) localise un fichier par sa POSITION dans la
+# liste : `target_filename(source, index)`. Téléchargement et indexation doivent
+# donc recevoir la même liste, dans le même ordre. Le script de mesure concatène
+# `load_sources(sources.yaml) + load_sources(sources_distractors.yaml)` et passe
+# cette liste unique à `download_all` puis à `ingest_corpus` : les indices 0-18
+# retombent sur les fichiers déjà présents dans corpus/raw/ (statut
+# `skipped-exists`, aucun re-téléchargement), les distracteurs prennent 19-28.
+#
+# URL vérifiées le 2026-07-26 (une réponse HTTP 200 et un contenu français
+# substantiel pour chacune). Aucune URL n'est inventée (PRD §10.2).
+
+documents:
+  # --- Services centraux aux étudiants ---
+  - title: "SUAPS — Service universitaire des activités physiques et sportives"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/suaps-service-universitaire-activites-physiques-sportives-daix-marseille"
+    # Voisin de q29 (« sportif de haut niveau », ancrée sur « Régimes spéciaux »).
+
+  - title: "SSE — Service universitaire de santé étudiante"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/sse-service-universitaire-de-sante-etudiante"
+    # Voisin de q40 (« services de santé », ancrée sur « vie étudiante » — Droit).
+
+  - title: "SUIO — Service universitaire d'insertion et d'orientation"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/suio-service-universitaire-dinsertion-dorientation"
+    # Voisin de q06 (« trouver un job »). Concurrence assumée : voir le protocole.
+
+  - title: "SpRE — Service pour le respect et l'égalité"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/service-respect-legalite-spre"
+
+  - title: "Bibliothèques universitaires d'Aix-Marseille Université"
+    category: guide-etudiant
+    type: html
+    url: "https://bu.univ-amu.fr/fr/bibliotheques-universitaires"
+
+  # --- Numérique et compte étudiant ---
+  - title: "Votre compte étudiant AMU — questions fréquentes"
+    category: guide-etudiant
+    type: html
+    url: "https://dud.univ-amu.fr/fr/public/votre-compte-etudiant-amu-questions-frequentes"
+    # Le distracteur le plus mordant du lot : activation du compte, identifiants,
+    # mot de passe — le vocabulaire exact de q53, ancrée sur « IA web ».
+
+  - title: "Catalogue des services numériques AMU"
+    category: guide-etudiant
+    type: html
+    url: "https://dirnum.univ-amu.fr/fr/catalogue-services"
+    # Long et dense en sigles : le plus gros contributeur en fragments du lot.
+
+  # --- Dispositifs institutionnels ---
+  - title: "Comment s'inscrire en doctorat"
+    category: reglement-scolarite
+    type: html
+    url: "https://www.univ-amu.fr/fr/sinscrire-doctorat"
+    # Une seconde procédure d'inscription, distincte de l'IA web (q13, q52, q53).
+
+  - title: "DDD — Direction du développement durable"
+    category: guide-etudiant
+    type: html
+    url: "https://www.univ-amu.fr/fr/ddd-direction-developpement-durable"
+
+  # --- Composante non représentée dans le corpus ---
+  - title: "Pharmacie — Besoin d'aide ? La Faculté vous informe"
+    category: composante
+    type: html
+    url: "https://pharmacie.univ-amu.fr/fr/vie-etudiante/besoin-daide-faculte-informe"
+    # Une cinquième composante, sur un sujet qu'aucune question n'interroge.

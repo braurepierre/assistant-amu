@@ -34,3 +34,7 @@ Thumbs.db
 
 # Local Claude Code instructions (kept local, not part of the deliverable)
 CLAUDE.md
+
+# Espace de travail local de Claude Code (worktrees, environnements virtuels) —
+# jamais versionné : contenu dérivé, volumineux, propre au poste.
+.claude/
