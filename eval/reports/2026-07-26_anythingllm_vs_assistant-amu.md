@@ -1,5 +1,11 @@
 # Rapport — comparaison avec AnythingLLM (déploiement par défaut) — 2026-07-26
 
+> **Trois chiffres de ce rapport ont été corrigés le 2026-07-27**, après
+> confrontation des verdicts aux réponses brutes :
+> `2026-07-27_anythingllm_verdicts_verification.md`. Les cellules concernées sont
+> signalées ci-dessous par ⚠. Les valeurs d'origine sont conservées — ce rapport
+> est un artefact daté — et le sens du résultat n'en est pas modifié.
+
 - **Expérience annexe**, hors périmètre du PRD contractuel d'AssistantAMU — menée à la demande de l'utilisateur (réf. projet `rag-admin-fr`) pour situer le pipeline maison face à un produit RAG « clé en main ».
 - **Corpus identique** : les 19 documents sources de `corpus/sources.yaml` (10 PDF, 9 pages web), importés tels quels dans les deux systèmes — mêmes fichiers, pas de nouveau scraping côté assistant-amu.
 - **Backend LLM tenu constant** : `mistral/mistral-small-latest` (API Mistral La Plateforme) des deux côtés, pour isoler l'effet du pipeline RAG plutôt que celui du modèle.
@@ -11,11 +17,11 @@
 
 | | assistant-amu | AnythingLLM |
 |---|---|---|
-| Refus hors-corpus (4 questions volontairement hors-sujet) | **4/4** corrects | **0/4** corrects |
+| Refus hors-corpus (4 questions volontairement hors-sujet) | **4/4** corrects | **0/4** corrects ⚠ *(lire 1/4 : q18 refuse sur le fond)* |
 | Questions répondables (16) — réponse correcte et ancrée dans le corpus | **14/16** | **0/16** |
-| Questions répondables — refus à tort (question répondable mais système muet) | 2/16 | 0/16 |
+| Questions répondables — refus à tort (question répondable mais système muet) | 2/16 | 0/16 ⚠ *(lire 1/16 : q01 est un refus)* |
 | Questions répondables — réponse plausible mais non ancrée (« hallucination ») ou partiellement ancrée | 0/16 | 13/16 |
-| Questions répondables — réponse substantiellement fausse | 0/16 | 3/16 |
+| Questions répondables — réponse substantiellement fausse | 0/16 | 3/16 ⚠ *(lire 2/16 : q01 reclassée)* |
 
 ## Refus hors-corpus (4 questions)
 

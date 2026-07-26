@@ -272,13 +272,16 @@ isolée à paramètres égaux.
 
 ### Résultats
 
+Chiffres après la vérification du 27 juillet, qui a confronté chaque verdict aux
+réponses réellement produites (`2026-07-27_anythingllm_verdicts_verification.md`).
+
 | | assistant-amu | AnythingLLM |
 |---|---|---|
-| Refus sur 4 questions volontairement hors-corpus | **4/4** | **0/4** |
+| Refus sur 4 questions volontairement hors-corpus | **4/4** | **1/4** |
 | Questions répondables (16) — correcte et ancrée | **14/16** | **0/16** |
-| — refus à tort | 2/16 | 0/16 |
+| — refus à tort | 2/16 | 1/16 |
 | — plausible mais non ancrée, ou partiellement ancrée | 0/16 | 13/16 |
-| — substantiellement fausse | 0/16 | 3/16 |
+| — substantiellement fausse | 0/16 | 2/16 |
 
 ### Deux causes structurelles, et non une infériorité générale du produit
 
@@ -340,13 +343,38 @@ Les deux fichiers de réponses brutes sont versionnés — sans précédent dans
 dépôt, où seuls les rapports `.md` l'étaient — parce qu'ils sont la seule base
 probante des verdicts.
 
+### Ce que la vérification des verdicts a corrigé
+
+Les vingt lignes du rapport ont été confrontées aux réponses brutes le
+27 juillet. Dix-sept tiennent. **Trois cellules étaient fausses, et les trois
+dans le même sens** — au détriment d'AnythingLLM :
+
+- **q01** était comptée « substantiellement fausse ». La réponse ne contient
+  aucune affirmation fausse : elle décline et redirige. C'est un refus, comme les
+  deux d'assistant-amu — qui sont, eux, comptés `refused_incorrectly`.
+- **q18** était comptée comme un échec de refus. La réponse dit ne pas pouvoir
+  répondre faute d'information dans les documents, et ne fabrique aucune
+  prévision. Le 4/4 d'assistant-amu était établi par `is_refusal()`, le 0/4
+  d'AnythingLLM par lecture : deux instruments dans une même case.
+- **q15** était classée sans ancrage alors qu'elle cite la charte des étudiants
+  et en reprend de la matière réelle. Sans effet sur les chiffres publiés.
+
+Le sens du résultat ne change pas : 4/4 contre 1/4 sur les refus, 14/16 contre
+0/16 sur l'ancrage. Ce que la vérification établit en plus, c'est que le biais
+pressenti — un jury qui nommait les deux systèmes devant un écart annoncé de
+14/16 à 0/16 — a bien produit des effets mesurables, tous du même côté.
+
+Elle isole également un mode d'échec que les **deux causes structurelles ne
+couvrent pas** : sur q11, AnythingLLM avait récupéré le bon PDF, correctement
+ingéré, et l'a contredit sur deux points.
+
 ### Fil ouvert
 
-La relecture de cette expérience a porté sur la **méthode**, pas sur la
-**substance** : les seize verdicts n'ont pas été confrontés un à un aux réponses
-brutes désormais versionnées. C'est le travail à mener avant toute reprise de
-mesure, en particulier sur les trois verdicts « substantiellement fausses »
-(q06, q11, q01), les plus chargés et les plus faciles à surinterpréter.
+Les réponses d'assistant-amu jugées « correctes et ancrées » n'ont pas été
+revérifiées **contre le corpus lui-même** — cela suppose de rouvrir les documents
+sources, question par question. Et le rejugement à l'aveugle de l'identité des
+systèmes reste à faire : la vérification constate le biais par ses effets, elle
+ne le supprime pas.
 
 ---
 
