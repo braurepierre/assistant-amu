@@ -36,15 +36,15 @@ embedders:         # eval/reports/*_embedder_comparison.md (recall sémantique)
   flaubert:  {r3: 0.81, r5: 0.81, r8: 0.94}
 
 rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur » de 25 q., k=5)
-  raw: 0.68
-  strip: 0.84
+  raw: 0.72
+  strip: 0.88
 
 contextual:        # eval/reports/*_contextual_retrieval*.md (§5.3.1, mesure seule)
   context_words: 25       # longueur moyenne de la phrase de contexte générée
   over_window: 23         # fragments hors fenêtre 512 après contextualisation (découpage 500)
   recall:                 # sous-clé `recall.` : formatée en score par la page
     hard_semantic3_base: 0.48
-    hard_semantic3_ctx: 0.84
+    hard_semantic3_ctx: 0.80
     easy_semantic5_base: 0.94
     easy_semantic5_ctx: 0.81
 

@@ -167,12 +167,12 @@ Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d
 
 | Jeu de questions | Méthode | Référence | Index contextuel |
 | :--- | :--- | :---: | :---: |
-| **Dur** (25 questions, k=3) | sémantique | 0,48 | **0,84** |
-| **Dur** (25 questions, k=5) | BM25 | **0,84** | 0,76 |
+| **Dur** (25 questions, k=3) | sémantique | 0,48 | **0,80** |
+| **Dur** (25 questions, k=5) | BM25 | **0,84** | 0,80 |
 | **Facile** (16 questions, k=5) | sémantique | **0,94** | 0,81 |
 | **Facile** (16 questions, k=5) | RRF | 0,88 | 0,88 |
 
-La contextualisation **gagne nettement plus qu'elle ne perd** : **9 questions gagnées** sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre **2 perdues** sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
+La contextualisation **gagne nettement plus qu'elle ne perd** : **8 questions gagnées** sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre **2 perdues** sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
 
 Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à 25 questions : sur 8 questions, un cran valait 0,125 et l'écart se confondait avec le bruit de mesure. La même expérience, conduite sur le jeu réduit, concluait à un échange équilibré — un jeu d'évaluation trop petit ne se contente pas d'être imprécis, il peut désigner la mauvaise conclusion.
 

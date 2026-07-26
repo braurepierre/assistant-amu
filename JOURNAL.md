@@ -519,8 +519,8 @@ réécriture avant lui : mesuré, documenté, non branché.
 8. Chaque annotation a été vérifiée par programme avant d'être écrite : la
 sous-chaîne attendue résout vers exactement un des 18 titres indexés (sauf h04 et
 h21, qui acceptent délibérément les trois documents M3C d'ALLSH), et le document
-visé porte effectivement le sujet. Les questions n'ont **pas** été retouchées au vu
-des résultats — ajuster le banc à sa réponse le viderait de son sens.
+visé porte effectivement le sujet. Aucune question n'a été retouchée **au vu des
+résultats** — ajuster le banc à sa réponse le viderait de son sens.
 
 **Problème → solution : le jeu mesurait l'heuristique dans son propre miroir.** Les
 8 questions d'origine s'ouvraient toutes par une tournure que `strip` sait retirer
@@ -533,7 +533,7 @@ et… »), question indirecte (« ça marche comment ? »), préambule narratif
 
 **Ce que ça change, chiffres à l'appui.** La réécriture `strip` recule, comme
 prévu : recall@3 du jeu dur **0,75 → 0,72** alors que la baseline monte de 0,38 à
-0,48 — son gain passe de +0,37 à +0,24. Surtout, **`llm` passe devant** (0,80 à
+0,48 — son gain passe de +0,37 à +0,24. Surtout, **`llm` passe devant** (0,84 à
 k=3) : elle traite les tournures que l'expression régulière ne sait pas retirer.
 Elle reste écartée, mais pour une raison désormais chiffrée et non plus supposée —
 elle casse trois questions définitionnelles qui fonctionnaient (q01, q02, q03),
@@ -542,9 +542,9 @@ stratégie **parmi celles qui ne coûtent aucune question**.
 
 **Une conclusion s'inverse.** Sur 8 questions, la contextualisation (§5.3.1)
 paraissait échanger 3 réussites contre 2 — un arbitrage équilibré, donc décevant.
-Sur 25, l'écart devient lisible : **+9 questions gagnées contre 2 perdues**
-(recall@3 du jeu dur 0,48 → 0,84), et le contrôle à 440 tokens confirme le sens
-(+6 contre 3). La méthode gagne nettement plus qu'elle ne perd. Ce n'est pas la
+Sur 25, l'écart devient lisible : **+8 questions gagnées contre 2 perdues**
+(recall@3 du jeu dur 0,48 → 0,80), et le contrôle à 440 tokens confirme le sens
+(+4 contre 2). La méthode gagne nettement plus qu'elle ne perd. Ce n'est pas la
 mesure qui a changé, c'est sa résolution : à 8 questions, un cran valait 0,125 et
 l'écart se confondait avec le bruit.
 
@@ -556,6 +556,20 @@ résultat et le contredisaient une fois les nouveaux chiffres calculés : celui 
 réécriture affirmait encore « `llm` écartée » dans le paragraphe même où le calcul
 la désignait gagnante. Les conclusions se déduisent maintenant des écarts, y
 compris leur rapport de grandeur.
+
+**Reprise de formulation, après relecture.** Sept questions du régime B
+employaient l'élision parlée (« il existe des aides ? », « ça marche comment ? »).
+Corrigées en français bien formé — inversion (« existe-t-il », « peuvent-elles »),
+« si j'échoue » plutôt que « si je rate ». Ce qui rend une question difficile ici,
+c'est sa **forme** — préambule personnel, tournure indirecte, et surtout l'absence
+du vocabulaire du document visé —, pas une grammaire relâchée. La reprise étant
+intervenue **après** une première mesure, tout a été rejoué : la baseline monte
+légèrement (recall@5 du jeu dur 0,68 → 0,72, ces formulations étant un peu plus
+proches du régime définitionnel), `strip` passe à 0,88 et le gain de la
+contextualisation revient de +9 à +8 questions. **Aucune conclusion ne bouge** —
+ce qui est en soi le résultat intéressant : elle résiste à une reformulation de
+sept questions sur vingt-cinq. Les huit questions d'origine restent intactes, pour
+que les rapports datés du 23 juillet demeurent comparables.
 
 **Reste à faire.** Le jeu principal (16 questions définitionnelles) n'a pas bougé :
 sa granularité reste de 0,062, et c'est lui qui porte l'arbitrage e5/CamemBERT —

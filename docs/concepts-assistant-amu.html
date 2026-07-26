@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     </div>
     <p class="hint" id="stripNote" style="margin-top:12px"></p>
   </div>
-  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,68</span> → <span data-stat="rewrite_hard_recall5.strip">0,84</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence. La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,80 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — mais elle paraphrase la question et casse 3 questions définitionnelles qui fonctionnaient, en plus d'être non déterministe et de coûter un appel par requête. <span class="mono">strip</span> reste donc la stratégie retenue : la meilleure parmi celles qui ne coûtent aucune question. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
+  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,72</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence. La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,84 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — mais elle paraphrase la question et casse 3 questions définitionnelles qui fonctionnaient, en plus d'être non déterministe et de coûter un appel par requête. <span class="mono">strip</span> reste donc la stratégie retenue : la meilleure parmi celles qui ne coûtent aucune question. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
 </section>
 
 <section id="s6">
@@ -463,10 +463,10 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
   <table class="cmp" style="margin-top:16px">
     <tr><th>Jeu de questions</th><th>Méthode</th><th>Référence</th><th>Index contextuel</th></tr>
-    <tr><td>Dur — <span data-stat="hard_questions">25</span> formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,48</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,84</b></td></tr>
+    <tr><td>Dur — <span data-stat="hard_questions">25</span> formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,48</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,80</b></td></tr>
     <tr><td>Facile — <span data-stat="eval_questions">16</span> formulations définitionnelles (k=5)</td><td>sémantique</td><td><b data-stat="contextual.recall.easy_semantic5_base">0,94</b></td><td data-stat="contextual.recall.easy_semantic5_ctx">0,81</td></tr>
   </table>
-  <p class="hint">La contextualisation <b>gagne nettement plus qu'elle ne perd</b> : <b>9 questions</b> gagnées sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre <b>2 perdues</b> sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises. Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à <span data-stat="hard_questions">25</span> questions : sur 8, un cran valait 0,125, et l'écart se confondait avec le bruit.</p>
+  <p class="hint">La contextualisation <b>gagne nettement plus qu'elle ne perd</b> : <b>8 questions</b> gagnées sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre <b>2 perdues</b> sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises. Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à <span data-stat="hard_questions">25</span> questions : sur 8, un cran valait 0,125, et l'écart se confondait avec le bruit.</p>
 
   <div class="card" style="margin-top:16px">
     <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions, sans lesquelles ces chiffres ne vaudraient rien</p>
@@ -595,7 +595,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 /* STATS:START */
 var STATS = {
   "updated": "2026-07-26",
-  "commit": "3baa13b",
+  "commit": "105033e",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -654,15 +654,15 @@ var STATS = {
     }
   },
   "rewrite_hard_recall5": {
-    "raw": 0.68,
-    "strip": 0.84
+    "raw": 0.72,
+    "strip": 0.88
   },
   "contextual": {
     "context_words": 25,
     "over_window": 23,
     "recall": {
       "hard_semantic3_base": 0.48,
-      "hard_semantic3_ctx": 0.84,
+      "hard_semantic3_ctx": 0.8,
       "easy_semantic5_base": 0.94,
       "easy_semantic5_ctx": 0.81
     }

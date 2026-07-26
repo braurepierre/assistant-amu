@@ -17,18 +17,31 @@
 # `strip` heuristic knows how to remove; a set built only of those would measure
 # the heuristic against its own mirror. h09-h14 continue that regime, h15-h25 use
 # phrasings `strip` does NOT touch — personal framing ("Je suis en licence et…"),
-# indirect questions ("ça marche comment ?"), narrative preambles. The measured
-# gain of `strip` is expected to DROP on this set: that is the point of enlarging
-# it. The `regime` key below is documentation, not read by the harness.
+# indirect questions, narrative preambles. The measured gain of `strip` is
+# expected to DROP on this set: that is the point of enlarging it. The `regime`
+# key below is documentation, not read by the harness.
 #
-# TO REVIEW (four-hands, PRD "axes d'approfondissement" §2) — the questions are
-# faithful to the corpus, but two judgements are not mine to make alone:
-#   * would an AMU student actually phrase it this way?
-#   * h16/h23 target the *Droit* régimes-spéciaux page while h01 targets the
-#     central RSE page. A student asking about a special status in Droit could
-#     legitimately be served either. Same latent ambiguity as the F12 diagnosis.
-#   * h25 assumes the exam-results posting delay belongs to the ALLSH Charte des
-#     examens rather than to an M3C document.
+# REGISTER (user review, 2026-07-26): conversational *structure*, well-formed
+# French. What makes a question hard here is its shape — a personal preamble, an
+# indirect turn, and above all the absence of the target document's vocabulary —
+# not sloppy grammar. So h17-h24 use inversion ("existe-t-il", "peuvent-elles")
+# rather than the spoken elision ("il existe… ?", "ça marche comment ?"). This
+# edit is register-driven and was applied AFTER a first measurement; the whole set
+# was then re-measured and the reports regenerated, whatever the numbers did.
+# h01-h08 are deliberately left untouched: they appear in dated reports since
+# 2026-07-23 and freezing them keeps those measurements comparable.
+#
+# TWO ANNOTATIONS SETTLED BY MEASUREMENT rather than by opinion (2026-07-26):
+#   * h16/h23 target the *Droit* régimes-spéciaux page, not the central RSE page:
+#     the central page carries 0 fragment describing a procedure (étape, dossier,
+#     référent) against 15 for the Droit page, so a question about the *démarches*
+#     in Droit has exactly one right answer.
+#   * h25 targets the ALLSH Charte des examens, which alone carries a "Titre IV :
+#     Communication des résultats" — the three M3C documents have no fragment
+#     combining affichage and résultats.
+#
+# STILL OPEN, and not mine to settle: would an AMU student actually phrase it
+# this way? That judgement needs someone who knows the audience.
 
 questions:
   # --- Regime A: openers the `strip` heuristic removes -----------------------
@@ -131,37 +144,37 @@ questions:
     expected_source: "Régimes spéciaux"           # "Droit — Régimes spéciaux d'études"
     expected_keywords: []
   - id: h17
-    question: "Je suis en licence et j'envisage une pause d'un an avant de reprendre. Comment ça se passe ?"
+    question: "Je suis en licence et j'envisage une pause d'un an avant de reprendre. Comment cela se passe-t-il ?"
     answerable: true
     regime: personal
     expected_source: "césure"
     expected_keywords: []
   - id: h18
-    question: "Où est-ce qu'on peut manger le midi quand on étudie en droit ?"
+    question: "Où peut-on manger le midi lorsqu'on étudie en droit ?"
     answerable: true
     regime: indirect
     expected_source: "vie étudiante"
     expected_keywords: []
   - id: h19
-    question: "Je n'ai toujours rien trouvé pour me loger à la rentrée, il existe des aides ?"
+    question: "Je n'ai toujours rien trouvé pour me loger à la rentrée, existe-t-il des aides ?"
     answerable: true
     regime: personal
     expected_source: "loger"
     expected_keywords: []
   - id: h20
-    question: "On m'a dit que tout se faisait sur internet désormais pour se réinscrire, ça marche comment ?"
+    question: "On m'a dit que la réinscription se faisait désormais sur internet : comment cela fonctionne-t-il ?"
     answerable: true
     regime: narrative
     expected_source: "IA web"
     expected_keywords: []
   - id: h21
-    question: "En master, les sessions d'examen sont organisées de quelle façon ?"
+    question: "En master, de quelle façon les sessions d'examen sont-elles organisées ?"
     answerable: true
     regime: indirect
     expected_source: "M3C"
     expected_keywords: []
   - id: h22
-    question: "Si je rate une matière, est-ce que les autres notes peuvent la rattraper ?"
+    question: "Si j'échoue à une matière, les autres notes peuvent-elles la rattraper ?"
     answerable: true
     regime: indirect
     expected_source: "Compensation"
@@ -173,7 +186,7 @@ questions:
     expected_source: "Régimes spéciaux"
     expected_keywords: []
   - id: h24
-    question: "Est-ce qu'on a le droit d'afficher des messages associatifs dans les bâtiments ?"
+    question: "A-t-on le droit d'afficher des messages associatifs dans les bâtiments ?"
     answerable: true
     regime: indirect
     expected_source: "Règlement intérieur"

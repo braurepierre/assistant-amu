@@ -11,9 +11,9 @@
 
 | Stratégie | recall@3 | recall@5 |
 |---|---|---|
-| raw | 0.48 | 0.68 |
-| strip | 0.72 | 0.84 |
-| llm | 0.80 | 0.84 |
+| raw | 0.48 | 0.72 |
+| strip | 0.72 | 0.88 |
+| llm | 0.84 | 0.88 |
 
 ### Jeu « facile » — contrôle de non-régression (16 questions ; granularité 1/16 ≈ 0.062)
 
@@ -88,22 +88,22 @@ Cible : la page **définitionnelle centrale** « Régime spécial d'études (RSE
 | h14 | Dis-moi combien coûtent les droits d'inscription. | ✅ | ✅ | ✅ |
 | h15 | Je n'arrive pas à décoder les abréviations employées à l'AL… | ❌ | ❌ | ❌ |
 | h16 | Je suis sportif de haut niveau et inscrit en droit, à quoi … | ✅ | ✅ | ✅ |
-| h17 | Je suis en licence et j'envisage une pause d'un an avant de… | ✅ | ✅ | ❌ |
-| h18 | Où est-ce qu'on peut manger le midi quand on étudie en droi… | ✅ | ✅ | ✅ |
-| h19 | Je n'ai toujours rien trouvé pour me loger à la rentrée, il… | ✅ | ✅ | ✅ |
-| h20 | On m'a dit que tout se faisait sur internet désormais pour … | ❌ | ❌ | ✅ |
-| h21 | En master, les sessions d'examen sont organisées de quelle … | ✅ | ✅ | ✅ |
-| h22 | Si je rate une matière, est-ce que les autres notes peuvent… | ✅ | ✅ | ❌ |
+| h17 | Je suis en licence et j'envisage une pause d'un an avant de… | ❌ | ❌ | ❌ |
+| h18 | Où peut-on manger le midi lorsqu'on étudie en droit ? | ✅ | ✅ | ✅ |
+| h19 | Je n'ai toujours rien trouvé pour me loger à la rentrée, ex… | ✅ | ✅ | ✅ |
+| h20 | On m'a dit que la réinscription se faisait désormais sur in… | ✅ | ✅ | ✅ |
+| h21 | En master, de quelle façon les sessions d'examen sont-elles… | ✅ | ✅ | ✅ |
+| h22 | Si j'échoue à une matière, les autres notes peuvent-elles l… | ✅ | ✅ | ✅ |
 | h23 | En droit, quelles démarches faut-il engager pour obtenir un… | ✅ | ✅ | ✅ |
-| h24 | Est-ce qu'on a le droit d'afficher des messages associatifs… | ❌ | ❌ | ✅ |
+| h24 | A-t-on le droit d'afficher des messages associatifs dans le… | ✅ | ✅ | ✅ |
 | h25 | Au bout de combien de temps les résultats sont-ils affichés… | ✅ | ✅ | ✅ |
 
 ## Conclusion
 
-- **Meilleur sur le jeu « dur » : `llm`** — recall@3 0.48 (raw) → 0.80 · recall@5 0.68 (raw) → 0.84.
+- **Meilleur sur le jeu « dur » : `llm`** — recall@3 0.48 (raw) → 0.84 · recall@5 0.72 (raw) → 0.88.
 - Contrôle de non-régression, jeu « facile » : `strip` recall@3 0.88→0.88 (±0 q) · recall@5 0.94→0.94 (±0 q) · `llm` recall@3 0.88→0.75 (-2 q) · recall@5 0.94→0.94 (±0 q).
 - **Arbitrage.** `llm` mène sur le jeu « dur », mais au prix de 3 question(s) définitionnelle(s) qui fonctionnaient (q01, q02, q03) : elle *paraphrase* la question et efface parfois le signal lexical qui la rapprochait du bon document. Elle est en outre non déterministe et coûte un appel LLM par requête.
-- **Stratégie retenue : `strip`** — la meilleure sur le jeu « dur » parmi celles qui ne coûtent aucune question au jeu « facile » (recall@3 0.72 · recall@5 0.84), déterministe et sans appel supplémentaire. C'est elle qui reste exposée en option de `/ask`, le comportement V1 demeurant le défaut.
+- **Stratégie retenue : `strip`** — la meilleure sur le jeu « dur » parmi celles qui ne coûtent aucune question au jeu « facile » (recall@3 0.72 · recall@5 0.88), déterministe et sans appel supplémentaire. C'est elle qui reste exposée en option de `/ask`, le comportement V1 demeurant le défaut.
 
 > Rappel de granularité (le dénominateur = questions *answerable*) : jeu « dur » = 1 question ≈ 0.040 ; jeu « facile » = 1 question ≈ 0.062. Un écart inférieur à un cran de question n'est pas significatif.
 
