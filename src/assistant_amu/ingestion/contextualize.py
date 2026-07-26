@@ -19,8 +19,9 @@ Two properties matter for the measurement to mean anything:
   original chunk text is preserved verbatim (``metadata["text_raw"]``), so the
   evaluation can test its hit condition against the ORIGINAL text — a context
   sentence that happens to contain « césure » must not count as a retrieval win;
-* generation is cached on disk keyed by (chunk_id, model, prompt version), so a
-  re-run costs nothing and the corpus can be re-indexed without re-paying.
+* generation is cached on disk, keyed by the chunk's *content* (see
+  :func:`context_key`), so a re-run costs nothing while a re-cut corpus is never
+  served contexts written for other spans.
 
 Reference: https://www.anthropic.com/engineering/contextual-retrieval
 """
