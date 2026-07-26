@@ -244,6 +244,112 @@ L'équivalence fonctionnelle des deux implémentations est **mesurée et non pos
 
 ---
 
+## Comparaison avec AnythingLLM — contenu propre à cette branche
+
+> **C'est l'objet de la branche `worktree-compare-anythingllm`.** Expérience
+> annexe, **hors périmètre du PRD** : elle situe le pipeline maison face à un
+> produit RAG clé en main. Rien n'en est répercuté dans la branche principale
+> au-delà d'un renvoi, et rien n'est intégré au pipeline de production.
+
+### Ce qui est comparé, et ce qui est tenu constant
+
+AssistantAMU est confronté à **AnythingLLM v1.15.0** (image Docker officielle
+`mintplexlabs/anythingllm`, instance sur `localhost:3001`), dans la
+**configuration par défaut de chaque produit** :
+
+| | assistant-amu | AnythingLLM |
+| :--- | :--- | :--- |
+| Corpus | 19 sources de `corpus/sources.yaml` (10 PDF, 9 pages web) | les **mêmes** fichiers et URL, importés tels quels |
+| Backend LLM | `mistral-small-latest` | `mistral-small-latest` |
+| Profondeur de récupération | `k=5` (défaut) | `topN=4` (défaut) |
+| Régime | tour unique | mode de chat `query`, tour unique |
+
+Le modèle est donc tenu constant des deux côtés : ce qui est mesuré est
+l'effet du **pipeline RAG**, non celui du modèle. En revanche les paramètres de
+récupération ne sont **pas** alignés — c'est une comparaison produit contre
+produit, dans son réglage sorti de la boîte, pas une comparaison de recherche
+isolée à paramètres égaux.
+
+### Résultats
+
+| | assistant-amu | AnythingLLM |
+|---|---|---|
+| Refus sur 4 questions volontairement hors-corpus | **4/4** | **0/4** |
+| Questions répondables (16) — correcte et ancrée | **14/16** | **0/16** |
+| — refus à tort | 2/16 | 0/16 |
+| — plausible mais non ancrée, ou partiellement ancrée | 0/16 | 13/16 |
+| — substantiellement fausse | 0/16 | 3/16 |
+
+### Deux causes structurelles, et non une infériorité générale du produit
+
+1. **`queryRefusalResponse` laissé à `null`.** Le mode `query` est censé se
+   limiter au contenu du workspace ; faute de réponse de refus configurée, le
+   modèle retombe sur ses connaissances générales au lieu de refuser. Un réglage
+   d'une ligne aurait probablement corrigé le 0/4.
+2. **Échec du scraper par défaut sur le gabarit Drupal central d'AMU.** Cinq des
+   neuf pages web — toutes sur `www.univ-amu.fr` — sont extraites à **un seul
+   mot**. La source pertinente existe dans le workspace mais n'est qu'une
+   coquille vide, et le modèle comble le vide. C'est la cause directe des
+   hallucinations sur la césure, le RSE, le logement et le handicap.
+   L'extracteur `bs4` d'assistant-amu traite ces neuf pages sans échec.
+
+### Ce que ce rapport ne montre pas
+
+- **La performance d'AnythingLLM correctement configuré** — refus paramétré,
+  connecteur web adapté, éventuellement un autre embeddeur. Le cadrage est
+  *out-of-the-box*, ce n'est pas un plafond de capacité produit.
+- **Une mesure recoupable avec les chiffres de tête du README.** L'expérience
+  porte sur le jeu de **20 questions** antérieur au passage à 50, et sur le
+  corpus sans les dix distracteurs. La colonne assistant-amu (14/16, 4/4) se lit
+  à sa date, pas à côté du recall@5 courant.
+- **Un jugement aveugle.** Les verdicts ont été posés par huit agents
+  indépendants, une paire de questions chacun, mais leurs notes **nomment les
+  deux systèmes** : devant un écart de 14/16 à 0/16, c'est un biais à nommer.
+  Chaque question n'a par ailleurs été jugée qu'une fois — aucun accord
+  inter-juges n'est mesurable.
+- **La preuve du tableau d'extraction.** Le décompte de mots par page provient
+  de la sortie standard de `cmd_ingest`, qui l'imprime sans jamais l'écrire : il
+  n'est pas persisté.
+
+### Rejouer l'expérience
+
+La configuration initiale d'AnythingLLM — choix du fournisseur, création du
+workspace — **n'a pas d'API** et se fait à la main, après activation de WSL2 sur
+un poste Windows (redémarrage requis). Une fois le workspace en place :
+
+```bash
+# .env : ANYTHINGLLM_BASE_URL, ANYTHINGLLM_API_KEY, ANYTHINGLLM_WORKSPACE_SLUG
+python eval/anythingllm_compare.py ingest                        # importe le corpus dans le workspace
+python eval/anythingllm_compare.py ask --questions eval/questions.yaml
+```
+
+Le côté assistant-amu se rejoue par `python eval/evaluate.py --mode end-to-end --k 5`.
+Les deux côtés consomment des appels à l'API Mistral.
+
+### Fichiers de cette branche
+
+| Fichier | Contenu |
+| :--- | :--- |
+| `eval/anythingllm_compare.py` | Pilotage : import du corpus et interrogation du workspace |
+| `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` | Rapport complet, tableau question par question |
+| `eval/reports/anythingllm_judge_verdicts.json` | Verdicts des huit juges |
+| `eval/reports/anythingllm_raw_answers.json` | Réponses brutes d'AnythingLLM |
+| `eval/reports/assistant_amu_full_answers.json` | Réponses brutes d'assistant-amu |
+
+Les deux fichiers de réponses brutes sont versionnés — sans précédent dans le
+dépôt, où seuls les rapports `.md` l'étaient — parce qu'ils sont la seule base
+probante des verdicts.
+
+### Fil ouvert
+
+La relecture de cette expérience a porté sur la **méthode**, pas sur la
+**substance** : les seize verdicts n'ont pas été confrontés un à un aux réponses
+brutes désormais versionnées. C'est le travail à mener avant toute reprise de
+mesure, en particulier sur les trois verdicts « substantiellement fausses »
+(q06, q11, q01), les plus chargés et les plus faciles à surinterpréter.
+
+---
+
 ## Références bibliographiques et état de l'art
 
 * Anthropic — [*Contextual Retrieval*](https://www.anthropic.com/engineering/contextual-retrieval)
