@@ -1,5 +1,13 @@
 # Vérification des verdicts — comparaison AnythingLLM — 2026-07-27
 
+> **Deux conclusions de ce rapport ont été réfutées le jour même** par le
+> rejugement à l'aveugle, qui a lu le texte des passages là où cette
+> vérification s'était fiée aux titres des documents : la reclassification
+> proposée pour **q15** est fausse, et le « troisième mode d'échec » annoncé à
+> propos de **q11** ne tient pas. Les deux passages concernés sont marqués ⚠
+> ci-dessous. Voir `2026-07-27_blind_rejudge.md`. Le reste du rapport est
+> confirmé, y compris la correction principale sur q01 et q18.
+
 Contrôle de substance du rapport `2026-07-26_anythingllm_vs_assistant-amu.md`. La
 relecture du 26 juillet portait sur la **méthode** — corpus identique, modèle tenu
 constant, cadrage annoncé. Elle ne disait rien du **contenu des verdicts**.
@@ -34,14 +42,16 @@ ECUE) » là où les ECUE se compensent entre eux à l'intérieur d'une UE. S'y
 ajoutent un exemple chiffré et un « bonus par BCC (ex : +0,5) » sans existence
 dans le corpus. Verdict `incorrect` **confirmé**.
 
-> **Ce point mérite d'être isolé.** Sur q11, AnythingLLM avait cité le **bon
-> document** — `15_droit-compensation-des-notes-par-bloc-de-connaissances-licen.pdf`,
-> un PDF que son ingestion a traité sans difficulté. La défaillance n'est donc
-> imputable ni au `queryRefusalResponse` non configuré, ni à l'échec du scraper
-> sur le gabarit Drupal. Les deux causes structurelles avancées par le rapport
-> sont réelles, mais elles **ne couvrent pas tout** : il subsiste un mode d'échec
-> où la bonne source est récupérée et la réponse la contredit. Le même mécanisme
-> se retrouve, atténué, sur q12 et q14.
+> ⚠ **Ce paragraphe est réfuté — voir `2026-07-27_blind_rejudge.md`.** Il
+> avançait que la défaillance de q11 n'était imputable ni au
+> `queryRefusalResponse` non configuré ni à l'échec du scraper, puisque le bon
+> document avait été récupéré : il subsisterait donc un mode d'échec que les deux
+> causes structurelles ne couvrent pas. Le rejugement à l'aveugle a lu le
+> **texte** des passages remontés de ce PDF : ils ne contiennent que la structure
+> (BCC, UE, ECTS) et une mention de bonus, **pas la règle de compensation**. Le
+> bon document, mais pas le bon fragment — c'est un défaut de recherche, pas un
+> mode d'échec inédit. Le constat s'appuyait sur les titres des documents sans
+> ouvrir leur contenu.
 
 Sont également confirmés sans réserve : q02, q03, q04, q05, q08, q09, q10, q13,
 q14, q16, ainsi que q17, q19 et q20 côté hors-corpus. Les deux refus à tort
@@ -103,17 +113,20 @@ complète. Ces trois-là ne refusent pas. q18 refuse.
 
 **Correction :** refus hors-corpus **1/4**, non 0/4.
 
-### 3. q15 — une réponse partiellement ancrée classée en hallucination
+### 3. ⚠ q15 — cette correction est fausse
 
-q15 est classée `hallucinated_plausible`, soit sans ancrage. Or AnythingLLM cite
-bien `01_charte-des-tudiants-et-stagiaires-d-amu.pdf`, et son contenu sur les
-libertés individuelles et collectives, la neutralité et la laïcité correspond à
-de la matière démontrablement présente au corpus — ce sont les passages mêmes que
-sa recherche avait remontés sur q01. La réponse reste générique et sans citation
-précise, mais elle n'est pas hors-sol. `partially_grounded` convient mieux.
+**Ce constat a été réfuté le jour même — voir `2026-07-27_blind_rejudge.md`.**
 
-Cette correction ne déplace aucun chiffre de tête : les deux catégories sont
-agrégées sur la même ligne du tableau de synthèse.
+Il proposait de reclasser q15 de `hallucinated_plausible` en
+`partially_grounded`, au motif qu'AnythingLLM cite bien
+`01_charte-des-tudiants-et-stagiaires-d-amu.pdf` et que son contenu sur les
+libertés individuelles et collectives correspondrait à de la matière présente au
+corpus. Le raisonnement s'appuyait sur le **titre** du document remonté, non sur
+le texte des passages. Le juge aveugle, qui a lu ces passages, constate qu'ils
+portent sur le déroulement des examens, la charte du doctorat et le plagiat, et
+qu'aucun ne soutient la section « Droits » de la réponse.
+
+**Le verdict d'origine était juste : q15 reste sans ancrage.**
 
 ---
 
@@ -150,6 +163,10 @@ champ n'alimente aucun chiffre publié.
 | Répondables — refus à tort (AnythingLLM) | 0/16 | **1/16** |
 | Répondables — substantiellement fausse (AnythingLLM) | 3/16 | **2/16** |
 | Colonne assistant-amu (4/4, 14/16, 2/16 refus à tort) | inchangée | inchangée |
+
+Les cinq valeurs de cette colonne sont confirmées par le rejugement à l'aveugle,
+à une nuance près : le 2/16 de « substantiellement fausse » y réunit **q06 et
+q14**, non q06 et q11. Le décompte tient, sa composition change.
 
 **Le sens du résultat ne change pas.** 4/4 contre 1/4 sur les refus, 14/16 contre
 0/16 sur l'ancrage : l'écart reste massif, et les deux causes structurelles

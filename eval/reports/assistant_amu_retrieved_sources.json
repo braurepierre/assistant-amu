@@ -1,0 +1,962 @@
+[
+  {
+    "id": "q01",
+    "question": "Comment demander une césure à l'université ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8862,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Demander un duplicata de diplôme",
+        "text": "Pour qui ? Un bachelier qui a obtenu une admission dans une formation de l'IUT via Parcoursup et qui souhaite retarder son entrée dans l'enseignement supérieur pour réaliser un projet. Un étudiant déjà inscrit à l'IUT et qui souhaite réaliser un projet entre deux années d'études dans le même cursus ou entre deux formations dispensées par l'IUT. Combien de temps ? Un semestre ou une année universitaire. Avantages de la césure : statut étudiant, inscription à un taux réduit, délivrance d'une carte étudiante, garantie de réintégration au retour, possibilité de maintien de la bourse du CROUS."
+      },
+      {
+        "rank": 2,
+        "score": 0.882,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Suspendre vos études pour acquérir une expérience personnelle ou professionnelle",
+        "text": "Vous êtes étudiant ou futur étudiant à amU, et souhaitez suspendre vos études pour un ou deux semestres afin de réaliser un projet (stage, voyage, engagement associatif, création d’entreprise, etc...)? La césure est faite pour vous !"
+      },
+      {
+        "rank": 3,
+        "score": 0.8715,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Futurs bacheliers, étudiants en 1ᵉʳ cycle et 2ᵉ cycle > Phase 1 : Candidature à une césure",
+        "text": "Il existe plusieurs plateformes selon votre niveau d’études :\n\nParcoursup : Licence 1/ BUT 1/ Licence Professionnelle 1\n\nMon Master : Master 1\n\neCandidat : Licence 2, Licence 3, BUT 2, BUT 3 et Master 2\n\nVous devez choisir et être accepté dans une formation que vous suivrez après votre césure.\n\nParticipez au webinaire organisé par le SUIO pour préparer votre candidature :\n\nle mardi 3 février 2026 de 12h15 à 13h15\n\nle jeudi 30 avril 2026 de 12h15 à 13h15\n\nS'inscrire à l'atelier\n\nPour plus de renseignements, veuillez contacter le référent césure de la scolarité concernée.\n\nLes dates varient selon votre profil et votre date de départ : Vérifiez bien la campagne qui vous concerne.\n\nDéposez votre dossier de césure après avoir validé votre admission à amU.\n\nExemple : J’ai formulé un vœu sur Parcoursup pour effectuer une césure avant mon entrée en Licence 1 / BUT 1 : je candidate à la « Campagne d’été 1 », entre le 2/06 et 18/06/2026. Je dépose les PJ avant le 21/06/2026. Je passe en commission début juillet.\n\nDate butoir dépôt de\n\npièces justificatives\n\nUne césure ne peut débuter qu'au début d'un semestre.\n\nLa durée maximale est de deux semestres consécutifs.\n\nTéléchargez le formulaire de candidature\n\nDéposez-le en ligne via l'application eCandidat avec les pièces justificatives.\n\nAttendez la réponse : la Commission césure examinera votre dossier. Vous serez informé de la décision via eCandidat\n\nTout dossier incomplet ou déposé hors délai sera irrecevable\n\nContinuez à suivre vos cours jusqu'à réception de la notification de la Commission."
+      },
+      {
+        "rank": 4,
+        "score": 0.8713,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Demander un duplicata de diplôme",
+        "text": "En cas de perte, vol ou destruction de votre diplôme original, vous pouvez demander un duplicata de celui-ci. Pour obtenir ce document, vous devez : Fournir tout document prouvant la destruction ou le vol de votre diplôme (récépissé de déclaration de vol, attestation d'assurance suite à incendie, dégât des eaux...) ou rédiger une attestation sur l'honneur précisant que vous n'êtes plus en possession de votre diplôme et pour quelles raisons. Joindre une copie de votre pièce d'identité. Adresser le tout au Service de la Scolarité dont dépend votre département d'enseignement en précisant de quel diplôme il s'agit, de l'année d'obtention de celui-ci et en indiquant clairement vos coordonnées. Vous serez informé(e)s de la mise à disposition de votre duplicata dès qu'il sera établi. Les modalités de retrait de ce document sont identiques à celles des diplômes. Attention, la procédure pouvant parfois être assez longue, en cas de besoin urgent, vous pouvez demander et obtenir assez rapidement une attestation de scolarité et de réussite au diplôme. Demander un duplicata de diplôme Réaliser un projet de césure Vous souhaitez réaliser un projet de césure ? Comment ? toutes les informations utiles et la marche à suivre sur la page web AMU dédiée . Le SUIO proposera aux candidats à la césure, deux webinaires « Préparer son dossier de césure » fixés aux dates suivantes : Mardi 3 février 2026 de 12h15 à 13h15 Jeudi 30 avril 2026 de 12h15 à 13h15 Les inscriptions se font sur la page : https://url.univ-amu.fr/ateliers-suio Votre participation est vivement encouragée. Pour qui ? Un bachelier qui a obtenu une admission dans une formation de l'IUT via Parcoursup et qui souhaite retarder son entrée dans l'enseignement supérieur pour réaliser un projet."
+      },
+      {
+        "rank": 5,
+        "score": 0.8679,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Futurs bacheliers, étudiants en 1ᵉʳ cycle et 2ᵉ cycle > Phase 2 :  Organisation et réintégration dans votre formation",
+        "text": "Les formalités administratives sont les mêmes que si je venais étudier à l'université :\n\nPaiement de la CVEC\n\nInscription administrative en présentiel auprès de ma scolarité avec paiement des droits d'inscription à taux réduit.\n\nCe document officialise votre période de césure et précise les modalités. Rapprochez-vous de votre référent césure pour l'obtenir.\n\nRestez en lien avec le responsable de la formation de réintégration pendant la période de césure.\n\nVous serez accompagné dans votre retour à la formation."
+      }
+    ]
+  },
+  {
+    "id": "q02",
+    "question": "Puis-je interrompre mes études pendant un an puis les reprendre ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8754,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Demander un duplicata de diplôme",
+        "text": "Pour qui ? Un bachelier qui a obtenu une admission dans une formation de l'IUT via Parcoursup et qui souhaite retarder son entrée dans l'enseignement supérieur pour réaliser un projet. Un étudiant déjà inscrit à l'IUT et qui souhaite réaliser un projet entre deux années d'études dans le même cursus ou entre deux formations dispensées par l'IUT. Combien de temps ? Un semestre ou une année universitaire. Avantages de la césure : statut étudiant, inscription à un taux réduit, délivrance d'une carte étudiante, garantie de réintégration au retour, possibilité de maintien de la bourse du CROUS."
+      },
+      {
+        "rank": 2,
+        "score": 0.864,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Suspendre vos études pour acquérir une expérience personnelle ou professionnelle",
+        "text": "Vous êtes étudiant ou futur étudiant à amU, et souhaitez suspendre vos études pour un ou deux semestres afin de réaliser un projet (stage, voyage, engagement associatif, création d’entreprise, etc...)? La césure est faite pour vous !"
+      },
+      {
+        "rank": 3,
+        "score": 0.8633,
+        "title": "Droits d'inscription et aides financières",
+        "page": null,
+        "section": "Droits d'inscription et aides financières > Je peux demander le remboursement de mes frais d'inscription",
+        "text": "En cas de renonciation à mon inscription administrative avant le 1ᵉʳ septembre, le remboursement de mes frais d'inscription est de droit. Passé cette date, le remboursement intervient sous certaines conditions de critères et de délais.\n\nEn cas de changement d'université : transfert départ ou arrivée. Dans les deux cas, la nouvelle université vous inscrit en exonération de droit, sur production d'un certificat de scolarité et de la fiche de transfert de l'ancienne université.\n\nEn cas de changement d'établissement (hors établissement d'enseignement supérieur)\n\nAutres cas : décision tardive de bourse ou d'exonération après paiement des droits d'inscription.\n\nPour plus d'infos, je me rapproche de mon service de scolarité"
+      },
+      {
+        "rank": 4,
+        "score": 0.8607,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Je souhaite connaître ma date de rentrée",
+        "text": "Les dates de rentrée sont indiquées ici\n\nJ'ai perdu ma carte d'étudiant J'ai perdu ou je me suis fait voler ma carte étudiant. Comment en obtenir une nouvelle ? Vous pouvez demander la réédition d'une nouvelle carte via votre ENT, onglet \"Ma carte AMU\". Si la carte est perdue, sa réédition est payante et vous coûtera 10 € à régler par CB ou par chèque (à l'ordre de l'agent comptable d'AMU). Si la carte est endommagée, sa réédition est gratuite. Si la carte est volée, sa réédition est gratuite sur présentation du procès-verbal de police ou de gendarmerie"
+      },
+      {
+        "rank": 5,
+        "score": 0.8592,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      }
+    ]
+  },
+  {
+    "id": "q03",
+    "question": "Quels aménagements existent pour un étudiant salarié ou sportif de haut niveau ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.876,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 3 : soumettre sa candidature",
+        "text": "Une fois le dossier complet, soumettre sa candidature qui sera étudiée lors de la Commission Sportifs de Haut Niveau d'Aix-Marseille Université \"la date butoir définie par l'Université\".\n\nÉtape 4 : définir les aménagements adaptés Une fois le statut SHN-AMU octroyé, l’étudiant est reçu par le référent SHN de la FDSP pour définir les aménagements de cursus les plus adaptés. Attention : L’attribution du statut SHN-AMU repose sur le palmarès sportif et les contraintes d’entraînement. Les étudiants inscrits sur les listes ministérielles ou appartenant à un pôle d’entraînement ou encore à un centre de formation d’un club professionnel sont éligibles au statut SHN-AMU Liste 1. Les athlètes ne pouvant prétendre à ce statut mais présentant un palmarès sportif conséquent (élite nationale ou inter-régionale) et des contraintes d’entraînement importantes sont éligibles au statut SHN-AMU Liste 2."
+      },
+      {
+        "rank": 2,
+        "score": 0.8706,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études > Qu’est-ce qu’un Régime Spécial d’Etudes (RSE) ?",
+        "text": "Les étudiants et étudiantes ne pouvant se consacrer à temps plein à la poursuite de leurs études peuvent demander à bénéficier d’un RSE leur permettant selon les cas* :\n\nde déroger aux règles de limitation du nombre d’inscriptions consécutives dans une même filière pour bénéficier d’enseignements échelonnés sur un plus grand nombre d'années,\n\nd’être prioritaire dans leur choix de groupe de TD et TP pour une meilleure gestion de leurs emplois du temps,\n\nd’obtenir des aménagements pédagogiques spécifiques de la part de leur composante (dispense d’assiduité pour les TP-TD, accès aux cours en ligne, examens en contrôle terminal (à la place du contrôle continu), session spéciale d’examen, outils spécifiques pour compenser un handicap et aide à la prise de notes et secrétariat d’examen…\n\nA amU, les aménagements proposés sont de deux natures.\n\nSelon la situation de la personne certains aménagements sont accordés de droit par la composante.\n\nD’autres sont soumis à une validation par l’équipe de formation du diplôme et de la direction de la composante concernée."
+      },
+      {
+        "rank": 3,
+        "score": 0.8643,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 36,
+        "section": null,
+        "text": "De nombreux aménagements de formation ou\nd’examen sont envisageables : prise de note et\n→ Plus d’information sur votre vie de\ntransmission des cours par un autre étudiant,\ncampus : ici\ntutorat méthodologique, adaptation de votre\nemploi du temps selon vos contraintes, dispenses → Retrouvez toutes ces informations\nd’assiduité, accès à une salle de repos, tiers temps\n(et bien plus !) sur Mon Parcours Handicap,\npour les examens, matériel adapté, sujets adaptés,\nle site d’information officiel pour les\nlogiciel de correction orthographique, etc. Les\npersonnes en situation de handicap et\nréponses sont adaptées à vos besoins. Pour votre\nleurs aidants.\nvie étudiante ou dans le cadre de votre insertion\nprofessionnelle, des dispositifs spécifiques existent.\nVous êtes concerné par un handicap ou\n— 36\nun trouble de la santé invalidant ?"
+      },
+      {
+        "rank": 4,
+        "score": 0.8635,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 1 : se signaler auprès de la mission handicap",
+        "text": "Si vous êtes en situation de handicap, il est très important de se signaler le plus tôt possible à la Mission Handicap afin que les aménagements des études et examens puissent être mis en place dans les meilleurs délais. L’étudiant doit se signaler au plus tard six semaines avant l’examen pour lequel un aménagement est demandé.\n\nPour l’année universitaire 2025-2026 , les dates limites de signalement auprès de la mission handicap sont les suivantes :\n\nPour le 1er semestre, avant le 30 septembre 2025\n\nPour le 2nd semestre, avant le 31 janvier 2026\n\nÉtape 2 : prendre rendez-vous avec un médecin du Service universitaire de Santé Etudiante (SSE) La visite médicale auprès du SSE constitue un passage indispensable pour pouvoir bénéficier de dispositions particulières aux examens et d’aménagement d’études. Lors de cette visite médicale, l’étude de votre situation et des éléments contenus dans votre dossier médical permettra au médecin de préconiser, dans un avis, les aménagements qui lui paraissent nécessaires. Attention : aucun aménagement de cursus n’est mis en place sans une préconisation du médecin universitaire."
+      },
+      {
+        "rank": 5,
+        "score": 0.8631,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Remboursement des droits pour les étudiants boursiers ou alternants",
+        "text": "Autres aménagement : les régimes spéciaux d'études Qu’est-ce qu’un Régime Spécial d’Etudes (RSE) ? Les étudiants et étudiantes ne pouvant se consacrer à temps plein à la poursuite de leurs études peuvent demander à bénéficier d’un RSE leur permettant selon les cas* : de déroger aux règles de limitation du nombre d’inscriptions consécutives dans une même filière pour bénéficier d’enseignements échelonnés sur un plus grand nombre d'années, d’être prioritaire dans leur choix de groupe de TD et TP pour une meilleure gestion de leurs emplois du temps, d’obtenir des aménagements pédagogiques spécifiques de la part de leur composante (dispense d’assiduité pour les TP-TD, accès aux cours en ligne, examens en contrôle terminal (à la place du contrôle continu), session spéciale d’examen, outils spécifiques pour compenser un handicap et aide à la prise de notes et secrétariat d’examen… A amU, les aménagements proposés sont de deux natures. Selon la situation de la personne certains aménagements sont accordés de droit par la composante. D’autres sont soumis à une validation par l’équipe de formation du diplôme et de la direction de la composante concernée. Qui est concerné ? L’ensemble de la communauté étudiante ayant des besoins particuliers, tout simplement ! Attention : Pour chaque demande, s'adresser à votre département de formation. Pour plus d'informations : ici"
+      }
+    ]
+  },
+  {
+    "id": "q04",
+    "question": "Où puis-je me loger en tant qu'étudiant ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8815,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 9,
+        "section": null,
+        "text": "Se loger\npendant\nses études"
+      },
+      {
+        "rank": 2,
+        "score": 0.8731,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 28,
+        "section": null,
+        "text": "ultramarin\net venez\nétudier en\nHexagone ?"
+      },
+      {
+        "rank": 3,
+        "score": 0.8647,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 31,
+        "section": null,
+        "text": "élève a\nbesoins\nparticuliers ?"
+      },
+      {
+        "rank": 4,
+        "score": 0.863,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 10,
+        "section": null,
+        "text": "En cas de mobilité dans une autre ville ou région, D’autres logements étudiants sont également\nvous pouvez avoir besoin d’un logement étudiant disponibles en dehors des Crous, auprès des\npour mener à bien votre projet d’études. Voici gestionnaires de résidences sociales étudiantes\nplusieurs informations pour vous aider dans vos de votre ville d’études, au sein des résidences\nrecherches. habitat jeune, des foyers de jeunes travailleurs,\nou des résidences gérées par des associations.\nDifférents organismes proposent des logements.\nDes logements sont également proposés par\nEn premier lieu, ayez le réflexe de demander\ndes acteurs privés, mais à tarifs plus élevés que\nun logement dans les résidences des Crous\ndans les résidences conventionnées.\nprésents partout en France. Ces logements\nsont prioritairement attribués aux étudiants Enfin, d’autres solutions existent : les locations chez\ndont la famille dispose de faibles ressources. un particulier (rendez-vous notamment sur lokaviz),\nRenseignez-vous ici. ou encore des possibilités de colocation (proposées\nentre amis, par des associations, y compris de\nmanière intergénérationnelle). De nombreux\nsites internet vous proposent ce type de solution\n(par exemple 1jeune1solution).\nVous retrouverez toutes les informations ici.\n→ Pour toute information relative à vos\ndémarches pour trouver un logement,\npensez à vous renseigner directement auprès\nde l’établissement d’enseignement supérieur\nqui vous accueillera (directions ou services → Vous êtes étudiants en situation de handicap,\ndes études, de la vie étudiante ou de l’action visualisez une cartographie de logements\nsociale, maison de l’étudiant, etc.). accessibles ici.\n— 10\nSe loger pendant ses études"
+      },
+      {
+        "rank": 5,
+        "score": 0.8606,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      }
+    ]
+  },
+  {
+    "id": "q05",
+    "question": "Quels aménagements pour un étudiant en situation de handicap ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.9012,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 36,
+        "section": null,
+        "text": "De nombreux aménagements de formation ou\nd’examen sont envisageables : prise de note et\n→ Plus d’information sur votre vie de\ntransmission des cours par un autre étudiant,\ncampus : ici\ntutorat méthodologique, adaptation de votre\nemploi du temps selon vos contraintes, dispenses → Retrouvez toutes ces informations\nd’assiduité, accès à une salle de repos, tiers temps\n(et bien plus !) sur Mon Parcours Handicap,\npour les examens, matériel adapté, sujets adaptés,\nle site d’information officiel pour les\nlogiciel de correction orthographique, etc. Les\npersonnes en situation de handicap et\nréponses sont adaptées à vos besoins. Pour votre\nleurs aidants.\nvie étudiante ou dans le cadre de votre insertion\nprofessionnelle, des dispositifs spécifiques existent.\nVous êtes concerné par un handicap ou\n— 36\nun trouble de la santé invalidant ?"
+      },
+      {
+        "rank": 2,
+        "score": 0.8951,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 1 : se signaler auprès de la mission handicap",
+        "text": "Si vous êtes en situation de handicap, il est très important de se signaler le plus tôt possible à la Mission Handicap afin que les aménagements des études et examens puissent être mis en place dans les meilleurs délais. L’étudiant doit se signaler au plus tard six semaines avant l’examen pour lequel un aménagement est demandé.\n\nPour l’année universitaire 2025-2026 , les dates limites de signalement auprès de la mission handicap sont les suivantes :\n\nPour le 1er semestre, avant le 30 septembre 2025\n\nPour le 2nd semestre, avant le 31 janvier 2026\n\nÉtape 2 : prendre rendez-vous avec un médecin du Service universitaire de Santé Etudiante (SSE) La visite médicale auprès du SSE constitue un passage indispensable pour pouvoir bénéficier de dispositions particulières aux examens et d’aménagement d’études. Lors de cette visite médicale, l’étude de votre situation et des éléments contenus dans votre dossier médical permettra au médecin de préconiser, dans un avis, les aménagements qui lui paraissent nécessaires. Attention : aucun aménagement de cursus n’est mis en place sans une préconisation du médecin universitaire."
+      },
+      {
+        "rank": 3,
+        "score": 0.8934,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude",
+        "text": "La Mission Handicap d’Aix-Marseille Université accueille et accompagne les étudiants en situation de handicap physique, sensoriel ou psychique, de dyslexie ou présentant un trouble de santé invalidant de longue durée.\n\nElle propose des aménagements adaptés à chaque étudiant tout au long de son parcours universitaire.\n\nÉtape 1 : se signaler auprès de la mission handicap Si vous êtes en situation de handicap, il est très important de se signaler le plus tôt possible à la Mission Handicap afin que les aménagements des études et examens puissent être mis en place dans les meilleurs délais. L’étudiant doit se signaler au plus tard six semaines avant l’examen pour lequel un aménagement est demandé. Pour l’année universitaire 2025-2026 , les dates limites de signalement auprès de la mission handicap sont les suivantes : Pour le 1er semestre, avant le 30 septembre 2025 Pour le 2nd semestre, avant le 31 janvier 2026"
+      },
+      {
+        "rank": 4,
+        "score": 0.8895,
+        "title": "Mission handicap AMU",
+        "page": null,
+        "section": "Mission Handicap > Étudiants ou étudiantes en situation de handicap",
+        "text": "La Mission Handicap d’Aix Marseille Université accueille et accompagne les étudiants en situation de handicap physique, sensoriel ou psychique, de dyslexie ou d’un trouble de santé invalidant à longue durée\n\nElle propose des mesures adaptées à chaque étudiant tout au long de son parcours universitaire notamment pour leurs aménagements d'études et d'examens.\n\nPour en bénéficier, rapprochez-vous le plus tôt possible de la mission handicap de votre campus. vidéo de présentation\n\nPour les aménagements d'études ou d'examens, consultez l'onglet vos démarches ."
+      },
+      {
+        "rank": 5,
+        "score": 0.8887,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études > Comment dois-je procéder ?",
+        "text": "Toute demande d'aménagement d'études doit être adressée à sa composante d'origine.\n\nDans le cas d’une situation de handicap ou de maladie chronique :\n\nLes aménagements demandés doivent tenir compte de la situation de handicap ou de maladie chronique. Un travail de concertation entre les services de médecine préventive et ceux représentant la formation doit être initié.\n\n> Pour un accompagnement dans ces démarches, contacter la Mission Handicap du lieu de la formation.\n\nDans tous les autres cas :\n\nRetirer un dossier de demande auprès du service de scolarité gérant la formation.\n\n> Contact : scolarité .\n\nSi votre situation nécessite un aménagement plus conséquent que ceux prévus par les régimes spéciaux d’études, sachez qu’il existe également la possibilité de demander une césure. Celle-ci permet de suspendre temporairement sa formation afin de mener un projet personnel, professionnel ou associatif, tout en conservant un lien avec Aix-Marseille Université."
+      }
+    ]
+  },
+  {
+    "id": "q06",
+    "question": "Comment trouver un job à côté de mes études ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8921,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 25,
+        "section": null,
+        "text": "9.\nVous souhaitez trouver un job à côté de vos études, ou de votre Crous sur les possibilités d’emplois 1. Jusqu’à vos 25 ans.\nsans vous éloigner du campus ? Les établissements étudiants. Plus d’informations sur les jobs\nproposent souvent des emplois étudiants, étudiants ici.\ncompatibles avec vos études.\nÀ noter : les salaires que vous percevez en tant\nLes missions sont multiples, et cohérentes avec qu’étudiant1 sur l’année sont exonérés de l’impôt\nvos emplois du temps. Elles peuvent être ponctuelles sur le revenu, dans la limite de 3 fois le montant du\nou bien s’étendre sur l’année universitaire (accueil, Smic mensuel.\ntutorat, soutien informatique, assistance en\nbibliothèque ou assistance des étudiants en situation\nde handicap, prise de note, etc.).\nRenseignez-vous auprès de votre futur établissement\n— 25\nAvoir une possibilité d’emploi à l’université"
+      },
+      {
+        "rank": 2,
+        "score": 0.8738,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 24,
+        "section": null,
+        "text": "9.\nAvoir une\npossibilité\nd’emploi à\nl’université\nen parallèle\nde ses études"
+      },
+      {
+        "rank": 3,
+        "score": 0.8728,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 10,
+        "section": null,
+        "text": "En cas de mobilité dans une autre ville ou région, D’autres logements étudiants sont également\nvous pouvez avoir besoin d’un logement étudiant disponibles en dehors des Crous, auprès des\npour mener à bien votre projet d’études. Voici gestionnaires de résidences sociales étudiantes\nplusieurs informations pour vous aider dans vos de votre ville d’études, au sein des résidences\nrecherches. habitat jeune, des foyers de jeunes travailleurs,\nou des résidences gérées par des associations.\nDifférents organismes proposent des logements.\nDes logements sont également proposés par\nEn premier lieu, ayez le réflexe de demander\ndes acteurs privés, mais à tarifs plus élevés que\nun logement dans les résidences des Crous\ndans les résidences conventionnées.\nprésents partout en France. Ces logements\nsont prioritairement attribués aux étudiants Enfin, d’autres solutions existent : les locations chez\ndont la famille dispose de faibles ressources. un particulier (rendez-vous notamment sur lokaviz),\nRenseignez-vous ici. ou encore des possibilités de colocation (proposées\nentre amis, par des associations, y compris de\nmanière intergénérationnelle). De nombreux\nsites internet vous proposent ce type de solution\n(par exemple 1jeune1solution).\nVous retrouverez toutes les informations ici.\n→ Pour toute information relative à vos\ndémarches pour trouver un logement,\npensez à vous renseigner directement auprès\nde l’établissement d’enseignement supérieur\nqui vous accueillera (directions ou services → Vous êtes étudiants en situation de handicap,\ndes études, de la vie étudiante ou de l’action visualisez une cartographie de logements\nsociale, maison de l’étudiant, etc.). accessibles ici.\n— 10\nSe loger pendant ses études"
+      },
+      {
+        "rank": 4,
+        "score": 0.8643,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 18,
+        "section": null,
+        "text": "Vous voulez prendre part à une action collective, Les étudiants qui s’engagent au cours de leurs\nrencontrer de nouvelles personnes, ou tout études ont la possibilité de demander à leur\nsimplement participer à un projet qui vous établissement de reconnaître les compétences\ntient à cœur tout en développant de nouvelles et savoir-faire acquis dans le cadre de leur\ncompétences ? L’enseignement supérieur engagement (avec par exemple, une activité\nencourage et valorise les engagements étudiants. bénévole au sein d’une association, un volontariat\nen Service Civique, un engagement sportif de\nPremière étape : découvrez les associations\nhaut niveau, un volontariat dans les armées, ou\nde votre campus à la rentrée ! Les établissements\nencore l’aide d’un proche malade ou en situation\nd’enseignement supérieur organisent généralement\nde handicap, etc.), via une unité d’enseignement\ndes forums lors de la rentrée universitaire, qui\ndédiée ou non, des points bonus dans la moyenne\nvous permettront de rencontrer les associations\ngénérale du semestre, ou bien une dispense\nprésentes autour de votre formation et sur votre\npartielle ou totale de stage. Renseignez-vous\ncampus. N’hésitez pas également à vous rapprocher\nauprès de votre établissement pour connaître les\ndu service vie étudiante de votre établissement, qui\nmodalités de reconnaissance et les dispositifs qui\npourra aisément vous orienter vers l’association que\ns’appliquent à votre formation. vous recherchez. Enfin, l’engagement étudiant permet de développer\nSi vous souhaitez vous engager, vous avez\ndes compétences transversales, tant des savoir-être\nla possibilité de bénéficier d’aménagements\nque des savoir-faire, qui sont valorisables sur un\npour concilier engagement et études. Ces\nCV. Ces compétences pourront être mises en\naménagements peuvent porter sur votre emploi du\navant auprès de vos futurs employeurs. Pour vous\ntemps, la durée de votre cursus d’études ou encore\naider à identifier et à valoriser vos compétences,\nles modalités de contrôle des connaissances."
+      },
+      {
+        "rank": 5,
+        "score": 0.862,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 2,
+        "section": null,
+        "text": "Être\nétudiant,\nc’est…\n1. Construire son avenir 3\n2. Connaître les aides financières 5\n3. Se loger pendant ses études 9\n4. Prendre soin de sa santé 12\n5. Se restaurer 15\n6. Pouvoir s’engager pendant ses études 17\n7. Pratiquer un sport pendant ses études 20\n8. Pratiquer une activité culturelle 22\n9. Avoir une possibilité d’emploi à l’université en parallèle de ses études 24\n10. Suivre une formation à distance et être accompagné près de chez soi 26\n11. Vous êtes ultramarin et venez étudier en Hexagone ? 28\n12. Vous êtes élève à besoins particuliers ? 31\n13. Vous êtes concerné par un handicap ou un trouble de la santé invalidant ? 34"
+      }
+    ]
+  },
+  {
+    "id": "q07",
+    "question": "Comment obtenir un duplicata de mon diplôme à l'IUT ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8897,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Demander le DUT intermédiaire au BUT",
+        "text": "Vous ne souhaitez pas poursuivre vos études en 3ème année de BUT et vous avez validé les 120 premiers crédits du BUT ?\n\nVous avez la possibilité de demander la délivrance du diplôme DUT intermédiaire au BUT.\n\nComment ?\n\nMerci de bien vouloir compléter le formulaire en cliquant ici et de l'adresser par mail à votre scolarité de site.\n\nSites d'Aix-en-Provence, Gap, La Ciotat : @email\n\nSite d'Arles : @email\n\nSite de Digne-les-Bains : @email\n\nSites de Marseille Château-Gombert, Saint-Jérôme, Luminy, Salon : @email\n\nA noter : nous vous adresserons dans un premier temps par mail une attestation de réussite au DUT, puis quelques mois plus tard, le service de la scolarité vous enverra un mail pour venir retirer le diplôme.\n\nDemande d'envoi du diplôme\n\nProcuration retrait diplôme\n\nFormulaire de demande de DUT.pdf\n\nDemander un duplicata de diplôme En cas de perte, vol ou destruction de votre diplôme original, vous pouvez demander un duplicata de celui-ci. Pour obtenir ce document, vous devez : Fournir tout document prouvant la destruction ou le vol de votre diplôme (récépissé de déclaration de vol, attestation d'assurance suite à incendie, dégât des eaux...) ou rédiger une attestation sur l'honneur précisant que vous n'êtes plus en possession de votre diplôme et pour quelles raisons. Joindre une copie de votre pièce d'identité. Adresser le tout au Service de la Scolarité dont dépend votre département d'enseignement en précisant de quel diplôme il s'agit, de l'année d'obtention de celui-ci et en indiquant clairement vos coordonnées. Vous serez informé(e)s de la mise à disposition de votre duplicata dès qu'il sera établi. Les modalités de retrait de ce document sont identiques à celles des diplômes. Attention, la procédure pouvant parfois être assez longue, en cas de besoin urgent, vous pouvez demander et obtenir assez rapidement une attestation de scolarité et de réussite au diplôme. Demander un duplicata de diplôme"
+      },
+      {
+        "rank": 2,
+        "score": 0.886,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Demander un duplicata de diplôme",
+        "text": "En cas de perte, vol ou destruction de votre diplôme original, vous pouvez demander un duplicata de celui-ci. Pour obtenir ce document, vous devez : Fournir tout document prouvant la destruction ou le vol de votre diplôme (récépissé de déclaration de vol, attestation d'assurance suite à incendie, dégât des eaux...) ou rédiger une attestation sur l'honneur précisant que vous n'êtes plus en possession de votre diplôme et pour quelles raisons. Joindre une copie de votre pièce d'identité. Adresser le tout au Service de la Scolarité dont dépend votre département d'enseignement en précisant de quel diplôme il s'agit, de l'année d'obtention de celui-ci et en indiquant clairement vos coordonnées. Vous serez informé(e)s de la mise à disposition de votre duplicata dès qu'il sera établi. Les modalités de retrait de ce document sont identiques à celles des diplômes. Attention, la procédure pouvant parfois être assez longue, en cas de besoin urgent, vous pouvez demander et obtenir assez rapidement une attestation de scolarité et de réussite au diplôme. Demander un duplicata de diplôme Réaliser un projet de césure Vous souhaitez réaliser un projet de césure ? Comment ? toutes les informations utiles et la marche à suivre sur la page web AMU dédiée . Le SUIO proposera aux candidats à la césure, deux webinaires « Préparer son dossier de césure » fixés aux dates suivantes : Mardi 3 février 2026 de 12h15 à 13h15 Jeudi 30 avril 2026 de 12h15 à 13h15 Les inscriptions se font sur la page : https://url.univ-amu.fr/ateliers-suio Votre participation est vivement encouragée. Pour qui ? Un bachelier qui a obtenu une admission dans une formation de l'IUT via Parcoursup et qui souhaite retarder son entrée dans l'enseignement supérieur pour réaliser un projet."
+      },
+      {
+        "rank": 3,
+        "score": 0.8806,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Procédure de transfert universitaire",
+        "text": "Vous souhaitez quitter l’IUT d’Aix-Marseille et vous avez été accepté(e) dans un autre établissement de votre choix (hors université Aix-Marseille), il vous appartient de faire la demande de transfert de dossier. Télécharger et compléter la demande de transfert numériquement après avoir obtenu obligatoirement le quitus de la bibliothèque auprès de la B.U. (lien BU) Transmettre par mail la demande à votre service de scolarité de site qui se chargera d’envoyer le dossier étudiant à l’établissement concerné. Demande de transfert universitaire Les diplômes sont disponibles auprès du Service de la Scolarité dont dépend votre département d'enseignement (sauf pour les sites de Gap et La Ciotat - Contactez le secrétariat du département). La scolarité conserve les diplômes sans limite de durée. Pas d'inquiétude, si vous ne pouvez pas le récupérer immédiatement, vous le retirerez plus tard. A éviter, les mois de juillet (inscriptions) et août (fermeture). Retirer son diplôme (DUT avant 2023, BUT, Licence professionnelle, DU) Pour retirer l'original de votre diplôme de DUT, Licence Professionnelle ou DU : vous rendre en personne auprès du Service de la Scolarité dont dépend votre département d'enseignement, muni d'une pièce d'identité originale (Carte Nationale d'Identité, passeport, permis de conduire). Aucune version numérique (copie sur écran) ne sera acceptée. donner procuration à quelqu'un qui viendra le récupérer pour vous muni de sa pièce d'identité, d'une photocopie de la vôtre et du formulaire de procuration que vous aurez préalablement complété. Cette procédure concerne également les parents. Attention, aucun diplôme ne sera délivré sans présentation d'une pièce d'identité (Carte Nationale d'Identité, passeport, permis de conduire). demander son envoi par la poste ."
+      },
+      {
+        "rank": 4,
+        "score": 0.8679,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Retirer son diplôme (DUT avant 2023, BUT, Licence professionnelle, DU)",
+        "text": "Pour retirer l'original de votre diplôme de DUT, Licence Professionnelle ou DU : vous rendre en personne auprès du Service de la Scolarité dont dépend votre département d'enseignement, muni d'une pièce d'identité originale (Carte Nationale d'Identité, passeport, permis de conduire). Aucune version numérique (copie sur écran) ne sera acceptée. donner procuration à quelqu'un qui viendra le récupérer pour vous muni de sa pièce d'identité, d'une photocopie de la vôtre et du formulaire de procuration que vous aurez préalablement complété. Cette procédure concerne également les parents. Attention, aucun diplôme ne sera délivré sans présentation d'une pièce d'identité (Carte Nationale d'Identité, passeport, permis de conduire). demander son envoi par la poste . Vous devez envoyer le formulaire \"Envoi du diplôme\" accompagné des documents suivants : une copie de votre pièce d'identité, 9.63 € en vignettes autocollantes exclusivement, un bordereau recommandé avec avis de réception complété à vos nom et adresse. une copie de votre pièce d'identité, 9.63 € en vignettes autocollantes exclusivement, un bordereau recommandé avec avis de réception complété à vos nom et adresse. Votre diplôme vous sera envoyé en recommandé avec accusé de réception. Si vous ne le récupérez pas, il nous sera retourné après 15 jours par La Poste. Si vous souhaitez qu’il vous soit à nouveau envoyé, les frais de réexpédition seront également à votre charge. Cas particulier des personnes résidant à l'étranger : votre diplôme sera envoyé en recommandé à l'ambassade ou au consulat le plus proche de votre domicile. Merci de nous indiquer son adresse."
+      },
+      {
+        "rank": 5,
+        "score": 0.8666,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      }
+    ]
+  },
+  {
+    "id": "q08",
+    "question": "Qu'est-ce que le régime spécial d'études (RSE) ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.9056,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études",
+        "text": "Vie étudiante\n\nConcilier le bon déroulement de vos études avec des besoins spécifiques ? C’est l’objectif du Régime Spécial d’Etudes (RSE) !"
+      },
+      {
+        "rank": 2,
+        "score": 0.864,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Étudiants artistes à besoins particuliers",
+        "text": "Autres régimes spéciaux d'étude"
+      },
+      {
+        "rank": 3,
+        "score": 0.8627,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Remboursement des droits pour les étudiants boursiers ou alternants",
+        "text": "Autres aménagement : les régimes spéciaux d'études Qu’est-ce qu’un Régime Spécial d’Etudes (RSE) ? Les étudiants et étudiantes ne pouvant se consacrer à temps plein à la poursuite de leurs études peuvent demander à bénéficier d’un RSE leur permettant selon les cas* : de déroger aux règles de limitation du nombre d’inscriptions consécutives dans une même filière pour bénéficier d’enseignements échelonnés sur un plus grand nombre d'années, d’être prioritaire dans leur choix de groupe de TD et TP pour une meilleure gestion de leurs emplois du temps, d’obtenir des aménagements pédagogiques spécifiques de la part de leur composante (dispense d’assiduité pour les TP-TD, accès aux cours en ligne, examens en contrôle terminal (à la place du contrôle continu), session spéciale d’examen, outils spécifiques pour compenser un handicap et aide à la prise de notes et secrétariat d’examen… A amU, les aménagements proposés sont de deux natures. Selon la situation de la personne certains aménagements sont accordés de droit par la composante. D’autres sont soumis à une validation par l’équipe de formation du diplôme et de la direction de la composante concernée. Qui est concerné ? L’ensemble de la communauté étudiante ayant des besoins particuliers, tout simplement ! Attention : Pour chaque demande, s'adresser à votre département de formation. Pour plus d'informations : ici"
+      },
+      {
+        "rank": 4,
+        "score": 0.8585,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 3 : définir les aménagements adaptés",
+        "text": "Une fois le statut octroyé, l’étudiant est reçu par le référent de la FDSP pour définir les aménagements de cursus les plus adaptés.\n\nAttention : l’octroi de ce régime n’est pas automatique. Il est réservé à l’étudiant dont l’implication forte dans une activité artistique pourrait justifier un aménagement d’études.\n\nArtistes à besoins particuliers AMU\n\nCertains étudiants ne pouvant se consacrer à temps plein à la poursuite de leurs études peuvent aussi demander à bénéficier d’un RSE ouvrant droit à certains aménagements de cursus.\n\nSont éligibles les étudiants en classe préparatoire aux grandes écoles, les étudiants exerçant une activité professionnelle, les étudiants engagés dans la vie universitaire, la vie étudiante ou la vie associative, les étudiants volontaires en service civique, les étudiants en volontariat dans les armées, les étudiants réservistes opérationnels, les étudiants sapeur-pompiers volontaires, les étudiants chargés de famille, les étudiantes femmes enceintes, les étudiants engagés dans plusieurs cursus, les étudiants effectuant des stages longs, les étudiants à besoins éducatifs particuliers.\n\nAMU RSE\n\nÉtape 1 : se rapprocher de la scolarité pour obtenir le formulaire de demande Formulaire de demande d'un régime spécial d'études (RSE)"
+      },
+      {
+        "rank": 5,
+        "score": 0.851,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 3 : sous réserve d’acceptation par le référent de la FDSP, définir les aménagements adaptés avec ce dernier",
+        "text": "Régime Spécial d’Études AMU"
+      }
+    ]
+  },
+  {
+    "id": "q09",
+    "question": "Qu'est-ce que la CVEC ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8547,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 19,
+        "section": null,
+        "text": "Vous pouvez également participer aux Cela peut être une excellente occasion de\ncommissions CVEC (Contribution de Vie Étudiante participer activement à des projets qui touchent\net de Campus) de votre établissement. La CVEC directement la communauté étudiante et d’avoir\nest une taxe affectée destinée à financer des un impact concret sur la vie de votre campus.\nactions en faveur de la vie étudiante, notamment Renseignez-vous auprès de votre établissement\ndans des domaines tels que l’accompagnement pour savoir comment vous impliquer dans ces\nsocial, culturel, sportif mais également la santé. commissions et contribuer à l’organisation des\nElle concerne les étudiants inscrits en formation actions financées par la CVEC.\ninitiale dans un établissement d’enseignement\nsupérieur en France. En tant qu’étudiant vous avez\nla possibilité de prendre part à ces commissions,\nqui sont chargées de déterminer comment\ncette contribution est utilisée sur votre campus.\n— 19\nPouvoir s’engager pendant ses études"
+      },
+      {
+        "rank": 2,
+        "score": 0.8458,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 7,
+        "section": null,
+        "text": "5. Confirmation\nConfirmez votre choix en cliquant sur \"Continuer\".\n6. Données personnelles\nLe numéro d’INE sera\ndéjà complété si celui-\nci a bien été renseigné\npréalablement dans\nl’outil de candidature\nLe numéro de CVEC est\nprésent sur votre\nattestation\nPPE – JUIN 2025 7"
+      },
+      {
+        "rank": 3,
+        "score": 0.8436,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 3,
+        "section": null,
+        "text": "PRÉ-REQUIS À L’INSCRIPTION (1ère ou REINSCRIPTION) :\nACQUITTEMENT DE LA CONTRIBUTION VIE ÉTUDIANTE ET DE\nCAMPUS (CVEC) PAR PAIEMENT OU EXONÉRATION\nCette contribution est collectée par le CROUS via le site : https://cvec.etudiant.gouv.fr/\nPour les non boursiers, le montant (une centaine d’euros) peut varier chaque année, à régler par\ncarte bancaire. Les boursiers sont exonérés. Cette procédure est à effectuer afin d’obtenir une attestation CVEC (par paiement ou par exonération)\net un code alphanumérique (numéro d’attestation CVEC). Ce dernier sera demandé lors de l’inscription\nà amU. Les boursiers sont concernés par cette attestation CVEC, malgré leur exonération. I. VOUS ETES NOUVEAU (1ère inscription)\nI.1. INSCRIPTION\nSi vous êtes nouveau à amU, veuillez-vous rendre sur :\nhttps://pagesinterscol.univ-amu.fr/prod/acc_iaprimo.php afin de commencer votre inscription, puis\nsuivez les étapes indiquées ci-dessous. ATTENTION ! Il est nécessaire d’utiliser le navigateur Firefox de Mozilla, et de proscrire les connexions via une tablette\nou un téléphone car leurs navigateurs ne sont pas reconnus. Pour procéder à votre inscription administrative, vous devez vous munir de :\n- votre numéro Parcoursup, eCandidat, Etudes en France, Moveon, SCEI (école d’ingénieur) …\n- votre numéro Identifiant National Étudiant (BEA, INE ou INES), qui figure sur votre relevé de notes du baccalauréat\nou vos relevés de notes d’établissement d’enseignement supérieur français*,\n- votre numéro d’acquittement CVEC (12 lettres + chiffres)\n- une carte bancaire pour le règlement des droits d'inscription."
+      },
+      {
+        "rank": 4,
+        "score": 0.8426,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Futurs bacheliers, étudiants en 1ᵉʳ cycle et 2ᵉ cycle > Phase 2 :  Organisation et réintégration dans votre formation",
+        "text": "Les formalités administratives sont les mêmes que si je venais étudier à l'université :\n\nPaiement de la CVEC\n\nInscription administrative en présentiel auprès de ma scolarité avec paiement des droits d'inscription à taux réduit.\n\nCe document officialise votre période de césure et précise les modalités. Rapprochez-vous de votre référent césure pour l'obtenir.\n\nRestez en lien avec le responsable de la formation de réintégration pendant la période de césure.\n\nVous serez accompagné dans votre retour à la formation."
+      },
+      {
+        "rank": 5,
+        "score": 0.8329,
+        "title": "La césure à AMU",
+        "page": null,
+        "section": "Césure > Étudier à amU > Quels sont les différents types de césure ?",
+        "text": "Le Service Civique\n\nLe Service national\n\nLe volontariat au sein du Corps européen de solidarité\n\nLe volontariat international en administration ou en entreprise\n\nLe volontariat de solidarité internationale (VSI) ou autre type de volontariat soldaire et associatif\n\nUn projet sous statut étudiant-entrepreneur\n\nUn emploi (contrat de travail)\n\nUn engagement de Sapeur-Pompier Volontaire\n\nUn stage\n\nUne formation dans un domaine autre que celui de votre cursus initial\n\nUn engagement bénévole dans une asso' par exemple"
+      }
+    ]
+  },
+  {
+    "id": "q10",
+    "question": "Quelles sont les modalités de contrôle des connaissances (M3C) en ALLSH ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8815,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 1,
+        "section": null,
+        "text": "Cadrage ALLSH – Validé en Conseil d’UFR ALLSH le 19/06/2025, en CFVU le 03/07/2025\nDocument applicable également au DEUST\nModalités de contrôle des connaissances et des\ncompétences en licence :\ndocument de cadrage\n(à compter de l’année universitaire 2025/2026)\nLes modalités de contrôle des connaissances et des compétences (M3C) des formations de licence\nde l’Université d’Aix-Marseille s’organisent selon trois niveaux :\n- niveau 1 : le présent cadrage de l’établissement,\n- niveau 2 : les prescriptions communes à l’ensemble des licences d’une même composante,\n- niveau 3 : les dispositions propres à une formation : maquettes d’enseignement et M3C\nspécifiques aux unités d’enseignement (UE). Les règles de niveau 2 et 3 des composantes doivent respecter strictement les règles de niveau 1\nde l’établissement. Les modalités de contrôle des connaissances et des compétences propres à chaque formation sont\nexposées en détail dans le niveau 3 et publiées sur les sites web des composantes : il appartient à\nchaque étudiant d’en prendre connaissance et de s’y reporter précisément. L’organisation et le déroulement des examens se conforment par ailleurs à la Charte des examens\nd’AMU. L’utilisation par les étudiants d’outils d’intelligence artificielle (comme ChatGPT ou autre) lors de la\nproduction de travaux personnels ou de groupe de toute nature, susceptible de faire l’objet d’une\névaluation, est considérée comme une fraude passible de poursuites disciplinaires, à moins qu'elle\nne soit expressément autorisée. Dans ce cas, elle devra être explicitement mentionnée, comme\nn’importe quel emprunt ou citation d’une source externe. 1. Architecture et principes généraux d’organisation de la licence\n1.A) Architecture\nChaque licence est organisée en semestres, eux-mêmes décomposés en blocs de connaissances et\nde compétences (BCC), en unités d’enseignement (UE) et éventuellement en éléments constitutifs\nd’UE (ECUE). Seules les UE sont affectées d’un nombre défini de crédits (ECTS)."
+      },
+      {
+        "rank": 2,
+        "score": 0.8812,
+        "title": "ALLSH — Cadrage M3C Master 2025-2026",
+        "page": 1,
+        "section": null,
+        "text": "Cadrage ALLSH – Validé en Conseil d’UFR ALLSH le 03/07/2025 et approuvé par la CFVU\ndu 11/09/2025\nModalités de contrôle des connaissances et des\ncompétences en master :\ndocument de cadrage\n(à compter de l’année universitaire 2025/2026)\nLes modalités de contrôle des connaissances et des compétences (M3C) des formations de master\nde l’Université d’Aix-Marseille s’organisent selon trois niveaux :\n- niveau 1 : le présent cadrage de l’établissement,\n- niveau 2 : les prescriptions communes à l’ensemble des masters d’une même composante,\n- niveau 3 : les dispositions propres à une formation : maquettes d’enseignement et M3C\nspécifiques aux unités d’enseignement (UE). Les règles de niveau 2 et 3 des composantes doivent respecter strictement les règles de niveau 1\nde l’établissement. Les modalités de contrôle des connaissances et des compétences propres à chaque formation sont\nexposées en détail dans le niveau 3 et publiées sur les sites web des composantes : il appartient à\nchaque étudiant d’en prendre connaissance et de s’y reporter précisément. L’organisation et le déroulement des examens se conforment par ailleurs à la Charte des examens\nd’AMU. L’utilisation par les étudiants d’outils d’intelligence artificielle (comme ChatGPT ou autre) lors de la\nproduction de travaux personnels ou de groupe de toute nature, susceptible de faire l’objet d’une\névaluation, est considérée comme une fraude passible de poursuites disciplinaires, à moins qu'elle\nne soit expressément autorisée. Dans ce cas, elle devra être explicitement mentionnée, comme\nn’importe quel emprunt ou citation d’une source externe. 1. Architecture et principes généraux d’organisation du master\n1.A) Architecture\nChaque master est organisé en semestres, eux-mêmes décomposés en blocs de connaissances et\nde compétences (BCC), en unités d’enseignement (UE) et éventuellement en éléments constitutifs\nd’UE (ECUE)."
+      },
+      {
+        "rank": 3,
+        "score": 0.8799,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 12,
+        "section": null,
+        "text": "Les modalités de contrôle des connaissances de l’ensemble des enseignements de l’UFR ALLSH sont\nconsultables sur :\nhttps://allsh.univ-amu.fr/fr/formation/scolarite/examens\n12"
+      },
+      {
+        "rank": 4,
+        "score": 0.8602,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 12,
+        "section": null,
+        "text": "NIVEAU 3 : CADRAGE UFR ALLSH PROPRE A CERTAINES\nFORMATIONS\nLe niveau 3 présente les dispositions propres à une licence : maquettes d’enseignement et M3C\nspécifiques aux unités d’enseignement (UE) (se référer aux points correspondants)\n2.A)b) Organisation du contrôle des connaissances et des compétences niveau 3\nLa période des examens peut être anticipée pour certaines formations si et seulement si ces\npériodes sont spécifiées dans le calendrier universitaire voté par l’établissement. Des dérogations de calendrier peuvent être sollicitées dans les cas suivants :\n- Stage obligatoire : les périodes d’examens peuvent être anticipées pour permettre aux\nétudiants de participer aux stages obligatoires de leur formation\n- Doubles licences avec une autre composante : les périodes d’enseignements, de révisions,\net d’examens peuvent se chevaucher. Dans ce cas, les périodes d’examens sont prioritaires\nsur les périodes d’enseignements. Les formations doivent conserver des périodes de\nrévision à hauteur d’au moins une demi-journée par épreuve. - Formations incluant des ateliers artistiques avec une performance : les périodes de\npratiques peuvent se chevaucher ponctuellement avec les révisions ou les examens. Dans\nce cas, les périodes d’examens sont prioritaires sur les périodes de pratiques. Les\nformations doivent conserver des périodes de révision à hauteur d’au moins une demi-\njournée par épreuve. Les mentions dont les enseignements ou évaluations se déroulent selon un calendrier universitaire\ndérogatoire figurent sur le site de l’UFR ALLSH :\nhttps://allsh.univ-amu.fr/fr/formation/scolarite/calendriers-universitaires\nLes modalités des unités d’enseignement hors discipline, du LANSAD, des UE à distance et des ON\n(Outils Numériques) sont consultables dans leur diplôme de rattachement ou dans le fichier intitulé\n« Catalogue »."
+      },
+      {
+        "rank": 5,
+        "score": 0.855,
+        "title": "ALLSH — Cadrage M3C Master 2025-2026",
+        "page": 13,
+        "section": null,
+        "text": "NIVEAU 3 : CADRAGE UFR ALLSH PROPRE A CERTAINES\nFORMATIONS\nLe niveau 3 présente les dispositions propres à un master : maquettes d’enseignement et M3C\nspécifiques aux unités d’enseignement (UE) (se référer aux points correspondants)\nLa période des examens peut être anticipée pour certaines formations si et seulement si ces\npériodes sont spécifiées dans le calendrier universitaire voté par l’établissement.\nDes dérogations de calendrier peuvent être sollicitées dans les cas suivants :\n- Stage obligatoire : les périodes d’examens peuvent être anticipées pour permettre aux\nétudiants de participer aux stages obligatoires de leur formation\n- Formations incluant des ateliers artistiques avec une performance : les périodes de\npratiques peuvent se chevaucher ponctuellement avec les révisions ou les examens. Dans\nce cas, les périodes d’examens sont prioritaires sur les périodes de pratiques. Les\nformations doivent conserver des périodes de révision à hauteur d’au moins une demi-\njournée par épreuve.\nLes mentions dont les enseignements ou évaluations se déroulent selon un calendrier universitaire\ndérogatoire figurent sur le site de l’UFR ALLSH :\nhttps://allsh.univ-amu.fr/fr/formation/scolarite/calendriers-universitaires\nLes modalités des unités d’enseignement hors discipline, du LANSAD, des UE à distance sont\nconsultables dans leur diplôme de rattachement ou dans le fichier intitulé « Catalogue ».\nLes modalités de contrôle des connaissances de l’ensemble des enseignements de l’UFR ALLSH sont\nconsultables sur :\nhttps://allsh.univ-amu.fr/fr/formation/scolarite/examens\nDocument approuvé par la CFVU du 11 septembre 2025 13"
+      }
+    ]
+  },
+  {
+    "id": "q11",
+    "question": "Comment fonctionne la compensation des notes en licence ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8747,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 1,
+        "section": null,
+        "text": "Bienvenue dans le guide de la\ncompensation !\nCe guide a pour but de t'aider à\ncomprendre la compensation des\nnotes pour ton année de licence.\nGo !"
+      },
+      {
+        "rank": 2,
+        "score": 0.8533,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 4,
+        "section": null,
+        "text": "Les crédits attribués à chaque UE sont utilisés comme coefficients pour le calcul des moyennes\ngénérales à l’année et au diplôme. • Les UE se compensent entre elles, annuellement, à l’intérieur des BCC jumeaux\n• Les ECUE se compensent entre eux à l’intérieur d’une UE ,\nL’année est validée lorsque l’une des deux conditions suivantes est remplie :\n• Les moyennes annuelles de tous les BCC jumeaux sont supérieures ou égales à 10/20,\n• La moyenne annuelle d’un BCC jumeau est inférieure à 10/20 mais supérieure ou égale à\n9/20 et que les moyennes annuelles des autres BCC jumeaux sont supérieures ou égales à\n10/20. L’acquisition de l’année confère à l’étudiant l’ensemble des crédits correspondants. Les points de bonification éventuels sont intégrés dans chacun des BCC composant le semestre. 2.B)b) Validation de la licence\nLa délivrance de la licence est subordonnée à la validation de chacune des années qui la composent\net entraîne l’obtention de 180 crédits, hors crédits surnuméraires. Les différentes années de licence\nne se compensent pas entre elles. Une validation du diplôme par compensation entre les niveaux\nannuels ne peut être prononcée que sur décision du jury. Dans le calcul de la moyenne du diplôme\nde licence, seules sont prises en compte les notes obtenues à l’Université d’Aix-Marseille. Délivrance du DEUG :\nLe Diplôme d’Etudes Universitaires Générales (DEUG) peut être délivré sur demande expresse de\nl’étudiant, dès lors que celui-ci a validé les première et deuxième années (120 ECTS) du diplôme\nde licence. 2.B)c) Détermination de la mention obtenue au diplôme\nLa mention de la licence est établie sur la moyenne pondérée par les ECTS des UE constituant les\nBCC des trois années de la formation (M)."
+      },
+      {
+        "rank": 3,
+        "score": 0.8523,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 3,
+        "section": null,
+        "text": "o les UE qui n’avaient été acquises ni par capitalisation ni par compensation ;\no les UE acquises par capitalisation ou par compensation seulement lorsqu’elle sera\nsupérieure à la note obtenue à l’évaluation initiale. Pour les travaux pratiques ainsi que pour les UE et éléments constitutifs d’UE ayant fait l’objet\nd’un contrôle continu partiel durant le semestre, l’opportunité de conserver ou non les notes\nde contrôle continu de l’évaluation initiale pour l’évaluation supplémentaire (seconde session)\nest laissée à l’appréciation de la composante. 2°/ Dans le cas d’une évaluation continue intégrale (ECI) :\nTrois épreuves minimum sont organisées par ECUE, par UE ou par BCC à chaque semestre. La\nseconde chance est alors définie, dans les conditions fixées par le niveau 3 des M3C selon\nl’une des modalités suivantes :\no la dernière épreuve de l’ECI représente la seconde chance. Cette seconde chance\nprend en compte la meilleure note obtenue entre d’une part la moyenne des notes\nà toutes les épreuves et d’autre part la moyenne des notes obtenues à toutes les\népreuves exceptée la dernière ;\no la dernière épreuve porte sur l’ensemble de l’enseignement qui fait l’objet de cette\névaluation continue intégrale. La seconde chance prend en compte la meilleure\nnote obtenue entre d’une part la moyenne des notes à toutes les épreuves et\nd’autre part la note de la dernière épreuve ;\no la mise en œuvre d’une évaluation supplémentaire après la publication des\nrésultats de l’évaluation initiale (cf. 1°/). 2.A)c) Obligation d’assiduité\nLes étudiants inscrits dans une licence sont soumis à une obligation d’assiduité concernant la\nprésence à toutes les activités pédagogiques (cours magistraux, travaux dirigés, travaux pratiques,\nenseignements à distance, enseignements mobilisant les outils numériques, séquences\nd’observation ou de mise en situation professionnelle, projets individuels ou collectifs et examens)\nfaisant partie du cursus."
+      },
+      {
+        "rank": 4,
+        "score": 0.8481,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 2,
+        "section": null,
+        "text": "Le nombre d’inscriptions annuelles consécutives dans la même licence au sein d’AMU est limité à\ncinq et le triplement n’est pas autorisé, sauf décision contraire du jury. Toute inscription annuelle supplémentaire éventuelle sera précédée d’un entretien d’orientation\navec le responsable de la formation visée ou son représentant. Les étudiants ayant interrompu leurs études supérieures depuis trois ans au moins bénéficient à\nnouveau du droit aux inscriptions administratives annuelles. L’inscription administrative doit impérativement être complétée par une inscription pédagogique\nsemestrielle. Cette inscription pédagogique conditionne l’inscription aux examens. 2. Evaluation et validation de la licence\n2.A) Organisation et règles du contrôle des connaissances et des compétences\n2.A)a) Organisation du contrôle des connaissances et des compétences\nLes enseignements semestriels donnent lieu à une évaluation des acquis dont les modalités\nd’organisation relèvent du seul choix de la composante dans le respect de la réglementation. Dans cette perspective, trois types d’organisation du contrôle des connaissances et des\ncompétences sont possibles :\n- évaluation au seul moyen d’un contrôle terminal (CT) ;\n- évaluation à l’issue d’une combinaison entre contrôle terminal et contrôle continu selon des\npondérations fixées par la composante (CCP) ;\n- évaluation au moyen d’une évaluation continue intégrale (ECI). Lorsque l’ECI est instaurée pour un ECUE, pour une UE ou pour un BCC, celle-ci se compose d’au\nmoins trois épreuves réparties dans le semestre. Aucune des épreuves organisées dans le cadre de\nl’ECI ne peut représenter plus de 50 % de la note finale de l’ECUE, de l’UE ou du BCC. Conformément à l’article 13 de l’arrêté du 30 juillet 2018 modifié, « les modalités du contrôle des\nconnaissances et des compétences autorisent une prise en compte transversale ou interdisciplinaire\ndes acquis de l'étudiant et permettent une organisation globalisée du contrôle au sein de\nregroupements cohérents d'unités d'enseignement, organisés notamment en blocs de\nconnaissances et de compétences »."
+      },
+      {
+        "rank": 5,
+        "score": 0.8451,
+        "title": "ALLSH — Cadrage M3C Licence et DEUST 2025-2026",
+        "page": 6,
+        "section": null,
+        "text": "S’agissant des étudiants de licence 3, les épreuves de la session exceptionnelle du semestre impair\npourront être organisées de manière anticipée avant la dernière session d’examen. 4. Bonification semestrielle\nLa pratique d’une ou de deux activités facultatives donnant lieu à un bonus semestriel est\npossible : ce choix sera exprimé par l’étudiant à l’occasion de son inscription pédagogique\nsemestrielle. La nature de ces activités relèvera de l’une des catégories suivantes : 1) sport, 2) engagement\nétudiant, 3) approfondissement des connaissances, 4) culture, 5) créativité et entrepreneuriat. Concernant les cinq catégories de bonus, un socle commun d’activités est proposé par\nl’établissement, lequel s’impose à toutes les composantes. Par ailleurs, les composantes ont la\npossibilité de proposer d’autres activités relevant de ces cinq catégories en respectant les niveaux\nde gradation relevant de la catégorie de bonus concernée. Ces activités sont listées dans le niveau\n2 des M3C de la composante (cf. Charte des bonus). Il appartient à l’étudiant de se renseigner\nauprès des services compétents de son UFR/département/école/institut. 6"
+      }
+    ]
+  },
+  {
+    "id": "q12",
+    "question": "Que signifie le sigle BCC ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8401,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 12,
+        "section": null,
+        "text": "Le BCC2 est\nBCC1 BCC1 0 inferieur à 9,\ndonc :\n1 2 5\n8.\nnon\n1 6 1 2 1\nSeconde\nchance donc ?"
+      },
+      {
+        "rank": 2,
+        "score": 0.8399,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 5,
+        "section": null,
+        "text": "Un BCC est un\nBloc de Connaissances et Compétences\nDans ces blocs on retrouve des unités\nBCC3\nd'enseignement (UE) avec des crédits\n(coe\u0000cients) di\u0000érents\nUnité d'enseignement 1 (UE)\nLes crédits?\nUnité d'enseignement 2 (UE)\nUnité d'enseignement 3 (UE)\nUnité d'enseignement 4 (UE)"
+      },
+      {
+        "rank": 3,
+        "score": 0.8377,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 8,
+        "section": null,
+        "text": "Non ! Les BCC ne\nBCC1\nBCC1\nse compensent\npas avec les\nautres BCC"
+      },
+      {
+        "rank": 4,
+        "score": 0.8369,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 10,
+        "section": null,
+        "text": "Avec la\nBCC1 BCC1 0 compensation\ndes BCC1\njumeaux\n3\n1 2 1 6 1\n1 6 1 2 1 validée"
+      },
+      {
+        "rank": 5,
+        "score": 0.8334,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 7,
+        "section": null,
+        "text": "Les BCC se\nBCC1\nBCC1\ncompensent\navec leur BCC\njumeau"
+      }
+    ]
+  },
+  {
+    "id": "q13",
+    "question": "Comment s'inscrire administrativement en ligne (IA web) ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8697,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 5,
+        "section": null,
+        "text": "1. Connexion\nL'inscription administrative (IA) : la procédure d'enregistrement dure environ 15 minutes.\nSur cette page, veuillez mettre dans la case \"Identifiant\" : le numéro qui vous a été attribué lors de\nvotre candidature (Parcoursup/eCandidat/MoveOn/Etudes en France/ SCEI…) –\nhttps://amupod.univ-amu.fr/video/22347-comment-trouver-mon-identifiant-de-connexion/\nVotre mot de passe est votre date de naissance au format JJMMAAAA.\nATTENTION : Si vous cliquez sur le bouton \" Quitter \", vous perdrez toutes vos informations et\ninterromprez l'inscription. Si vous avez besoin d'aide, chaque section comporte un symbole de point\nd'interrogation vert sur lequel vous pouvez cliquer pour obtenir plus d'informations. En haut de chaque\npage, vous pouvez également cliquer sur le bouton \" Aide \" pour obtenir une aide supplémentaire. Pour\nquitter la page d'aide, vous devez cliquer sur le bouton \" Retour \" en bas de la page.\n2. Confirmation de votre identité\nVeuillez vérifier les informations données et confirmer votre identité en cliquant sur le bouton\n\"Confirmer\" (nom, prénom, date de naissance, type de diplôme d'études secondaires).\nPPE – JUIN 2025 5"
+      },
+      {
+        "rank": 2,
+        "score": 0.85,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 19,
+        "section": null,
+        "text": "II. VOUS ETES DEJA ETUDIANT A AMU (Ré-inscription)\nII.1 RE-ACTIVATION DE VOTRE ENT\nComme l’année dernière, rendez-vous à l’adresse suivante pour vous reconnecter :\nhttps://sesame.univ-amu.fr/\nIdentifiant : figure sur le certificat de scolarité de l’année dernière = 1e lettre nom + n° étudiant\nMot de passe : n° INES, INE ou BEA en minuscule (=n° étudiant figure sur le relevé de notes du BAC)\nII.2. RE-INSCRIPTION\nATTENTION ! Il est nécessaire d’utiliser le navigateur Firefox de Mozilla, et de proscrire les connexions via une tablette\nou un téléphone car leurs navigateurs ne sont pas reconnus.\nPour procéder à votre inscription administrative, vous devez vous munir de :\n- vos identifiants à l’ENT de l’université,\n- votre numéro d’acquittement CVEC (12 lettres + chiffres)\n- une carte bancaire pour le règlement des droits d'inscription.\nSi vous êtes déjà étudiant à Aix Marseille Université, vous devez vous inscrire en sélectionnant\n« Réinscription administrative (IA) » dans votre environnement numérique de travail (ENT)\nPPE – JUIN 2025 19"
+      },
+      {
+        "rank": 3,
+        "score": 0.8495,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      },
+      {
+        "rank": 4,
+        "score": 0.8475,
+        "title": "Droit — Régimes spéciaux d'études",
+        "page": null,
+        "section": "Autres régimes spéciaux d'étude > Étape 1 : plateforme e-candidat",
+        "text": "Afin de déposer votre candidature pour l'obtention du statut SHN-AMU, vous devrez créer un compte sur E-candidat.\n\nÉtape 2 : renseigner les pièces justificatives Télécharger sur la plateforme toutes les pièces justificatives en fonction de votre statut SHN : Liste 1 : athlètes inscrits sur listes ministérielles ; Liste 2 : athlètes justifiant d'un palmarès conséquent ; Attention, les dossiers incomplets ne seront pas étudiés."
+      },
+      {
+        "rank": 5,
+        "score": 0.8468,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Comment me connecter au réseau Wifi de l'Université ?",
+        "text": "Connectez-vous au réseau WIFI Aix Marseille Université. Une fois connecté, ouvrez votre navigateur . Lors de la première tentative de connexion vers un site web, vous allez être redirigé vers un portail captif d’authentification. Vos identifiants à indiquer sont les mêmes que pour vous connecter à votre ENT.\n\nSi vous n’avez pas encore vos identifiants ENT, vous devez d'abord procéder à votre inscription administrative.\n\nComment récupérer mon mot de passe ENT ? Une fois votre inscription administrative effectuée, vous recevrez un mail sur votre messagerie personnelle indiquant votre identifiant et mot de passe provisoire pour vous connecter à votre espace numérique de travail (ENT). L'identifiant et le mot de passe provisoire sont également inscrits sur votre certificat de scolarité. Vous devez procéder à l'activation de votre compte ENT sur le site https://sesame.univ-amu.fr/ Après avoir suivi les indications pour activer votre compte, vous pourrez accéder à votre environnement numérique de travail (ENT) : https://ent.univ-amu.fr En cas de problème d’activation, n’hésitez pas à contacter votre service de scolarité ou cliquer sur la rubrique \"Mot de passe oublié\" sur la plateforme Sésame. Assistance informatique AMU : https:// dosi.univ-amu.fr/public_content/contacts"
+      }
+    ]
+  },
+  {
+    "id": "q14",
+    "question": "Que dit la charte des examens ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8612,
+        "title": "ALLSH — Charte des examens",
+        "page": 1,
+        "section": null,
+        "text": "TX-DEVE-4211\nCHARTE DES EXAMENS\nTable des matières\n2) Etudiants en situation de handicap (temporaire ou permanent) et conditions pour bénéficier\nMise à jour de la Charte des examens approuvée par la CFVU du 06 juillet 2023"
+      },
+      {
+        "rank": 2,
+        "score": 0.8563,
+        "title": "Charte des étudiants et stagiaires d'AMU",
+        "page": 1,
+        "section": null,
+        "text": "La charte des examens règlemente en particulier\nles délais de convocation des usagers et l’affichage des résultats et précise le\ndispositif de lutte contre la fraude. Charte des examens\n La charte du doctorat, rédigée sous l’égide du Collège doctoral d’amU et\nvalidée par la Commission de la recherche et par le Conseil d’administration,\ndétermine les principes de la formation doctorale. Au moment de son inscription en\nthèse, l’usager signe cette charte, qui est contresignée par le directeur de thèse,\nle responsable de l’unité de recherche et le directeur de l’école doctorale. La\ncharte du doctorat détaille notamment les modalités d’inscription en thèse, organise\nle déroulement et la soutenance de la thèse. Charte du doctorat\n La charte relative à la lutte contre le plagiat d’amU s’inscrit dans la volonté\nde l’Université de respecter l’intégrité scientifique, définit le plagiat, et rappelle\nles possibles sanctions de faits de plagiat. L’usager signataire de la charte\ns’engage à ne pas commettre de plagiat dans ses travaux, de toute nature (mémoire,\nthèse, rapport de recherche, devoir quelconque…). charte relative à la lutte contre le plagiat AMU\n1"
+      },
+      {
+        "rank": 3,
+        "score": 0.8522,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 4,
+        "section": null,
+        "text": "Après avoir consulté les informations données sur la page puis la charte des étudiants,\nveuillez cocher la case située en bas de la page et cliquez sur le bouton \" Continuer \".\nPPE – JUIN 2025 4"
+      },
+      {
+        "rank": 4,
+        "score": 0.852,
+        "title": "Charte des étudiants et stagiaires d'AMU",
+        "page": 1,
+        "section": null,
+        "text": "CHARTE DES ETUDIANTS ET STAGIAIRES\nSoucieuse de favoriser un vivre ensemble serein et de garantir de bonnes conditions d’étude\net de travail, Aix-Marseille Université (amU) s’est dotée de la présente charte, destinée à\nêtre lue et signée par les étudiants et stagiaires, ci-après dénommés “usagers”, au\nmoment de leur inscription. En signant la présente charte lors de son inscription, l’usager atteste avoir pris\nconnaissance des règles qui y sont mentionnées, de ses droits et de ses devoirs, s’engage à\nles respecter et à s’y conformer. I. RAPPEL DES DISPOSITIONS EXISTANTES\nLe fonctionnement d’amU est assuré grâce à plusieurs textes ayant une valeur normative,\nportés à la connaissance des usagers au moment de l’inscription. Il s’agit notamment du\nrèglement intérieur de l’Université et de la charte des examens, de la charte du doctorat, de\nla charte relative à la lutte contre le plagiat, des règlements intérieurs du Fonds de Solidarité\net de Développement des Initiatives Etudiantes (FSDIE) et des conditions générales\nd’utilisation de la plateforme pédagogique AMeTICE.  En ce qui concerne le règlement intérieur d’amU, l’attention des usagers est en\nparticulier attirée sur le Titre 1er (« Des libertés »), Titre 2e (« De l’ordre public ») et\nTitre 3e (« De la formation »). Règlement Intérieur\n L’usager doit prendre connaissance, par la lecture de la charte des examens, de ses\ndroits et obligations avant, durant et après les épreuves d’évaluation des\nconnaissances et des compétences. La charte des examens règlemente en particulier\nles délais de convocation des usagers et l’affichage des résultats et précise le\ndispositif de lutte contre la fraude."
+      },
+      {
+        "rank": 5,
+        "score": 0.8513,
+        "title": "Règlement intérieur d'Aix-Marseille Université",
+        "page": 15,
+        "section": null,
+        "text": "Index des Annexes\nLes textes cités ont été approuvés par le conseil d’administration.\nLa liste des annexes a vocation à être complétée au fur et à mesure de l’approbation par le\nconseil d’administration des documents destinés à être annexés au présent Règlement\nintérieur.\nTextes cités dans le présent Règlement intérieur :\n- Charte régissant l'usage du Système d’Information (approuvée par le CA du 27 mars 2012)\n- Charte des associations étudiantes (approuvée par le CA du 24 avril 2012)\n- Charte des examens (approuvée par le CA du 17 juillet 2012)\n- Règlement intérieur du Service Commun de la Documentation (approuvé par le CA du 24\nseptembre 2013)\nTextes complémentaires :\n- Règlement intérieur de la Commission pour Projets Etudiants du Fonds de Solidarité et de\nDéveloppement des Initiatives Etudiantes (FSDIE) (approuvé par le CA du 17 juillet 2012)\n- Charte Santé et Sécurité au Travail (approuvée par le CA du 23 octobre 2012)\n- Charte de la thèse de doctorat (approuvée par le CA du 27 novembre 2012)\n- Charte relative à la lutte contre le plagiat (approuvée par le CA du 27 novembre 2012)\n- Règlement intérieur relatif à la mise en place de la Commission provisoire pour l’aide sociale\ndu FSDIE (approuvé par le CA du 26 mars 2013)\n- Charte interministérielle pour l’égalité entre les femmes et les hommes (approuvée par le CA\ndu 28 mai 2013)\n15"
+      }
+    ]
+  },
+  {
+    "id": "q15",
+    "question": "Quels sont les droits et devoirs figurant dans la charte des étudiants ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8575,
+        "title": "Charte des étudiants et stagiaires d'AMU",
+        "page": 1,
+        "section": null,
+        "text": "CHARTE DES ETUDIANTS ET STAGIAIRES\nSoucieuse de favoriser un vivre ensemble serein et de garantir de bonnes conditions d’étude\net de travail, Aix-Marseille Université (amU) s’est dotée de la présente charte, destinée à\nêtre lue et signée par les étudiants et stagiaires, ci-après dénommés “usagers”, au\nmoment de leur inscription. En signant la présente charte lors de son inscription, l’usager atteste avoir pris\nconnaissance des règles qui y sont mentionnées, de ses droits et de ses devoirs, s’engage à\nles respecter et à s’y conformer. I. RAPPEL DES DISPOSITIONS EXISTANTES\nLe fonctionnement d’amU est assuré grâce à plusieurs textes ayant une valeur normative,\nportés à la connaissance des usagers au moment de l’inscription. Il s’agit notamment du\nrèglement intérieur de l’Université et de la charte des examens, de la charte du doctorat, de\nla charte relative à la lutte contre le plagiat, des règlements intérieurs du Fonds de Solidarité\net de Développement des Initiatives Etudiantes (FSDIE) et des conditions générales\nd’utilisation de la plateforme pédagogique AMeTICE.  En ce qui concerne le règlement intérieur d’amU, l’attention des usagers est en\nparticulier attirée sur le Titre 1er (« Des libertés »), Titre 2e (« De l’ordre public ») et\nTitre 3e (« De la formation »). Règlement Intérieur\n L’usager doit prendre connaissance, par la lecture de la charte des examens, de ses\ndroits et obligations avant, durant et après les épreuves d’évaluation des\nconnaissances et des compétences. La charte des examens règlemente en particulier\nles délais de convocation des usagers et l’affichage des résultats et précise le\ndispositif de lutte contre la fraude."
+      },
+      {
+        "rank": 2,
+        "score": 0.854,
+        "title": "Charte des étudiants et stagiaires d'AMU",
+        "page": 1,
+        "section": null,
+        "text": "La charte des examens règlemente en particulier\nles délais de convocation des usagers et l’affichage des résultats et précise le\ndispositif de lutte contre la fraude. Charte des examens\n La charte du doctorat, rédigée sous l’égide du Collège doctoral d’amU et\nvalidée par la Commission de la recherche et par le Conseil d’administration,\ndétermine les principes de la formation doctorale. Au moment de son inscription en\nthèse, l’usager signe cette charte, qui est contresignée par le directeur de thèse,\nle responsable de l’unité de recherche et le directeur de l’école doctorale. La\ncharte du doctorat détaille notamment les modalités d’inscription en thèse, organise\nle déroulement et la soutenance de la thèse. Charte du doctorat\n La charte relative à la lutte contre le plagiat d’amU s’inscrit dans la volonté\nde l’Université de respecter l’intégrité scientifique, définit le plagiat, et rappelle\nles possibles sanctions de faits de plagiat. L’usager signataire de la charte\ns’engage à ne pas commettre de plagiat dans ses travaux, de toute nature (mémoire,\nthèse, rapport de recherche, devoir quelconque…). charte relative à la lutte contre le plagiat AMU\n1"
+      },
+      {
+        "rank": 3,
+        "score": 0.8508,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études > Qui est concerné ?",
+        "text": "L’ensemble de la communauté étudiante ayant des besoins particuliers, tout simplement ! Attention : Pour chaque demande, la composante, après étude du dossier, fixe les modalités d’aménagement. Le document suivant présente les situations personnelles permettant de bénéficier du RSE et leurs droits spécifiques :"
+      },
+      {
+        "rank": 4,
+        "score": 0.8496,
+        "title": "ALLSH — Charte des examens",
+        "page": 1,
+        "section": null,
+        "text": "TX-DEVE-4211\nCHARTE DES EXAMENS\nTable des matières\n2) Etudiants en situation de handicap (temporaire ou permanent) et conditions pour bénéficier\nMise à jour de la Charte des examens approuvée par la CFVU du 06 juillet 2023"
+      },
+      {
+        "rank": 5,
+        "score": 0.849,
+        "title": "Charte des étudiants et stagiaires d'AMU",
+        "page": 3,
+        "section": null,
+        "text": "Il en résulte que tout fait de faux et/ou d’usage de faux peut donner lieu à deux types de\npoursuites :\n- devant les instances disciplinaires de l’Université, lesquelles peuvent prononcer les\npeines prévues par le Code de l’éducation (de l’avertissement à l’exclusion définitive de\ntout établissement d’enseignement supérieur),\n- devant le juge pénal car ces comportements constituent de délits. Les tribunaux\ncorrectionnels peuvent quant à eux prononcer les peines prévues par le Code pénal. Bien-être à l’Université (sport, culture, santé…)\nEn signant la présente charte, l’usager est informé de l’existence au sein d’amU, de dispositifs\nvisant à favoriser la pratique du sport, l’accès à la culture, ainsi qu’à des dispositifs de\nsanté (médecine universitaire, BVE-MH, RSE). Mosaïque des services et activités\nMédecine préventive\nRégime Spécial d’Etudes RSE\n3"
+      }
+    ]
+  },
+  {
+    "id": "q16",
+    "question": "Où consulter le calendrier universitaire de la faculté des sciences ?",
+    "answerable": true,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8694,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Calendrier pédagogique > Calendrier pédagogique 2026-2027",
+        "text": "Le calendrier pédagogique de l'année universitaire 2026-2027 vient décrire le fonctionnement d'une formation sur l'ensemble de l'année universitaire. Vous y trouverez les dates de rentrée, les périodes d'enseignement, de stages, de congés et d'examens... pour les différentes formations.\n\nDurant l'année l'UFR Sciences organise également diverses manifestations pour davantage d'informations\n\nAttention : les informations sur la rentrée sont accessibles ici\n\nPériodes d'examens Session 1 Révisions du 14 au 19 décembre 2026 et du 03 au 08 mai 2027 Épreuves du 04 janvier au 16 janvier 2027 et du 10 au 24 mai 2027 Résultats à partir du 05 février et du 03 juin 2027 Session 2 Épreuves du 16 juin au 26 juin 2027 Résultats à partir du 12 juillet 2027"
+      },
+      {
+        "rank": 2,
+        "score": 0.8621,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Calendriers universitaires 2023-2024  (publié le 2 juin 2023)",
+        "text": "Calendrier Pédagogique UFR Sciences - Formations en télé-enseignement - 2023/2024 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 11 mai 2023 Calendriers 2025/2026 Calendrier des périodes d'inscription 2025/2026 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025 Calendrier d'enseignement UFR Sciences - Licence - 2025/2026 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025 Calendrier Pédagogique UFR Sciences - Licences 2025/2026 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025 Calendrier Pédagogique UFR Sciences - Licences Professionnelles 2025/2026 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025 Calendrier Pédagogique UFR Sciences - Masters 1 - 2025/2026 (version EXCEL) Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025 Calendrier Pédagogique UFR Sciences - Master 2 - 2025/2026 (version EXCEL) Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2026 Calendrier Pédagogique UFR Sciences - Formations en télé-enseignement - 2025/2026 Document approuvé par la Commission de la Formation et de la Vie Universitaire du 05 juin 2025"
+      },
+      {
+        "rank": 3,
+        "score": 0.859,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Calendriers universitaires 2024-2025 (publié le 31 mai 2024)",
+        "text": "Dans ces documents vous trouverez : les périodes d'inscription, les calendriers pédagogiques précisant les dates de rentrée, les périodes d'enseignement, de stages, de congés et d'examens...\n\nFermeture des services administratifs du vendredi 19 juillet 2024 au soir au jeudi 22 août 2024 au matin\n\nCalendrier des périodes d'inscription 2024/2025\n\nCalendrier Pédagogique UFR Sciences - Licences 2024/2025\n\nCalendrier Pédagogique UFR Sciences - Licences (parcours en ECI) 2024/2025 MAJ 04-04-25\n\nCalendrier Pédagogique UFR Sciences - Licences Professionnelles 2024/2025 (version EXCEL)\n\nCalendrier Pédagogique UFR Sciences - Masters 1 - 2024/2025 (version EXCEL)\n\nCalendrier Pédagogique UFR Sciences - Master 2 - 2024/2025 (version EXCEL)\n\nCalendrier Pédagogique UFR Sciences - Formations en télé-enseignement - 2024/2025 (version EXCEL)\n\nDocuments approuvés par la CFVU du 16 mai Calendrier Pédagogique UFR Sciences - Licences 2024/2025 Calendrier Pédagogique UFR Sciences - Licences professionnelles - 2024/2025 Calendrier Pédagogique UFR Sciences - Masters 1 - 2024/2025 Calendrier Pédagogique UFR Sciences - Master 2 - 2024/2025"
+      },
+      {
+        "rank": 4,
+        "score": 0.8587,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 28,
+        "section": null,
+        "text": "ultramarin\net venez\nétudier en\nHexagone ?"
+      },
+      {
+        "rank": 5,
+        "score": 0.8584,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      }
+    ]
+  },
+  {
+    "id": "q17",
+    "question": "Quelle est la capitale de l'Australie ?",
+    "answerable": false,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.7726,
+        "title": "Guide de l'inscription administrative en ligne (IA web)",
+        "page": 11,
+        "section": null,
+        "text": "8. Couverture sociale\nVous n’avez rien à faire à cette étape, cliquez sur \"Continuer\".\n9. Autres données\nPar défaut utilisez le profil « Normal »\nPPE – JUIN 2025 11"
+      },
+      {
+        "rank": 2,
+        "score": 0.7718,
+        "title": "Mission handicap AMU",
+        "page": null,
+        "section": "Mission Handicap > Contactez la Mission Handicap de votre campus selon votre composante (faculté) d'inscription > Mission Handicap - Campus Aix-en-Provence",
+        "text": "Bâtiment \" Le Cube\" 29 av. Robert Schuman - 13621 Aix-en-Provence cedex 1 Contacts : dvec-bve-mh-campus-aix@univ-amu.fr Responsable : Béatrice SANCHEZ Tél.: 04 13 94 44 81 Référents : LEA, DEUST Théâtre, Anthropologie, Philosophie : Béatrice SANCHEZ : 04 13 94 44 81 IMPGT, IAE, Sciences, FEG, IUT (Arles) + Arts plastiques : Sonia MARTIN / 04 13 94 22 70 FDSP : Droit (tout sauf master) : Florence DURAND / 04 13 94 22 69 Droit (Master), EJCAM, INSPE, DAEU : Sylvie COUTURIER / 04 13 93 16 05 LLCER, Lettres, Sciences du Langage, FLE, DU : Sandra BULKOWSKI / 04 13 94 22 71 Géographie, Histoire de l'Art, Histoire, Sociologie, Musicologie, Art du spectacle, Echanges internationaux, Erasmus : Odile SERNA : 04 13 94 22 73 Psychologie, Sciences de l'Education : Abir SAIDI : 04 13 94 22 78"
+      },
+      {
+        "rank": 3,
+        "score": 0.7669,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Aménagement d'études (sportifs, artistes, situation de handicap) > Artistes à besoins particuliers",
+        "text": "Vous êtes « artiste avec des besoins particuliers » et vous souhaitez faire des études à Aix-Marseille Université ? Pour connaître les aménagements d'études auxquels vous pouvez prétendre, consultez cette page ."
+      },
+      {
+        "rank": 4,
+        "score": 0.7659,
+        "title": "Mission handicap AMU",
+        "page": null,
+        "section": "Mission Handicap > Contactez la Mission Handicap de votre campus selon votre composante (faculté) d'inscription > Mission Handicap - Campus Timone",
+        "text": "Bâtiment principal, aile verte au RDC, porte 422 27, boulevard Jean Moulin, 13385 Marseille cedex 5 Contacts : dvec-bve-mh-campus-timone@univ-amu.fr Responsable : Alexandra FILLIA Aurore NEKKAR : 04 13 94 27 95 Clara MATTEI : 04 13 94 98 95 Permanence sur le site Nord, par Clara Mattei tous les mercredis, de 8h à 14h, en continu. Gestion des sites Timone, Hôpital Nord, Virgile Marron"
+      },
+      {
+        "rank": 5,
+        "score": 0.7645,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études > Qui est concerné ? > Sont notamment concernés :",
+        "text": "L’exercice d’une activité professionnelle d’au moins 10h / semaine en moyenne\n\nL’entrepreneuriat étudiant\n\nL'engagement dans la réserve opérationnelle militaire\n\nL’engagement en tant que sapeurs-pompiers volontaires\n\nL’engagement  en Service Civique\n\nLa pratique sportive de bon ou haut niveau >> Pour tout savoir sur le dispositif à amU, RDV ici !\n\nUne qualité d'artiste reconnu\n\nUne situation d’aidance\n\nUne situation de charge de famille\n\nUne grossesse\n\nUne situation de handicap, une maladie invalidante ou une affection de longue durée\n\nL'investissement dans un projet associatif ou bénévole contribuant à la vie de l'établissement\n\nLes volontariats\n\nL'exercice de responsabilités au sein du bureau d'une association\n\nUn mandat électif dans les conseils des établissements d'enseignement supérieur\n\nUn mandat électif dans les Crous\n\nUn mandat électif dans une collectivité territoriale\n\nUne situation de détention en milieu carcéral"
+      }
+    ]
+  },
+  {
+    "id": "q18",
+    "question": "Quel temps fera-t-il demain à Marseille ?",
+    "answerable": false,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.7984,
+        "title": "Se loger — vie des campus AMU",
+        "page": null,
+        "section": "Se loger > Dispositif Mon logement étudiant > La Ville de Marseille",
+        "text": "Maison de l'étudiant Service dédié aux étudiants et aux professionnels de la vie étudiante, la Maison de l’Étudiant peut accueillir et informer les étudiants, les familles et les professionnels. Elle peut aussi aider et valoriser les projets étudiants, et organiser ou accueillir des événements en lien avec la vie étudiante.\n\nPlus d'infos ICI\n\nLe Dégaine La Ville de Marseille poursuit la promotion de la web application, « Le Dégaine », portée par l’association Sortie d’Amphi, qui référence les aides sociales et financières auxquelles les étudiants peuvent prétendre. Cet outil, dont l’utilité est fortement apparue durant la crise sanitaire, a pour objectif de leur faire connaître tous les moyens mis en place afin de lutter contre la croissance de la précarité étudiante.\n\nPlus d'infos ICI"
+      },
+      {
+        "rank": 2,
+        "score": 0.7881,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Jours fériés 2026-2027",
+        "text": "dimanche 1er novembre 2026 - La Toussaint\n\nmercredi 11 novembre 2026 - Armistice 1918\n\nvendredi 25 décembre 2026 - Noël\n\nvendredi 1er janvier 2027 - Jour de l'an\n\nlundi 29 mars 2027 - Lundi de Pâques\n\nsamedi 1er mai 2027 - Fête des travailleurs\n\njeudi 06 mai 2027 - Jeudi de l'Ascension\n\nsamedi 8 mai 2027 - Victoire des Alliées 1945\n\nlundi 17 mai 2027 - Lundi de Pentecôte\n\nmercredi 14 juillet 2027 - Fête de la Fédération\n\nEn master et en licence professionnelle le calendrier varie suivant les formations, les situations (alternance, stage...). Il convient de se référer aux périodes spécifiques renseignées."
+      },
+      {
+        "rank": 3,
+        "score": 0.786,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Congés",
+        "text": "Automne: du 26 octobre au 02 novembre 2026, Fin d'année: du 19 décembre 2026 au 04 janvier 2027, Hiver : du 20 février au 08 mars 2027, Printemps : du 17 avril  au 03 mai 2027, Été : du 03 juillet au 01 septembre 2027 (non définitif).\n\nJours fériés 2026-2027 dimanche 1er novembre 2026 - La Toussaint mercredi 11 novembre 2026 - Armistice 1918 vendredi 25 décembre 2026 - Noël vendredi 1er janvier 2027 - Jour de l'an lundi 29 mars 2027 - Lundi de Pâques samedi 1er mai 2027 - Fête des travailleurs jeudi 06 mai 2027 - Jeudi de l'Ascension samedi 8 mai 2027 - Victoire des Alliées 1945 lundi 17 mai 2027 - Lundi de Pentecôte mercredi 14 juillet 2027 - Fête de la Fédération"
+      },
+      {
+        "rank": 4,
+        "score": 0.7858,
+        "title": "Mission handicap AMU",
+        "page": null,
+        "section": "Mission Handicap > Contactez la Mission Handicap de votre campus selon votre composante (faculté) d'inscription > Mission Handicap - Campus Marseille Centre",
+        "text": "Bâtiment Pouillon, 3 place Victor Hugo, 13331 Marseille cedex 3 Contacts : dvec-bve-mh-campus-marseille-centre@univ-amu.fr Responsable : Madeleine DUFLOT Elodie SEGUIN : 04 11 39 42 72 Aurélie AUFRAY : 04 13 94 19 63 Gestion des sites saint-Charles, Canebière, Colbert, Ilot du Bois, Aubagne"
+      },
+      {
+        "rank": 5,
+        "score": 0.7847,
+        "title": "Sciences — Calendriers universitaires de la Faculté",
+        "page": null,
+        "section": "Périodes d'examens",
+        "text": "Session 1 Révisions du 14 au 19 décembre 2026 et du 03 au 08 mai 2027 Épreuves du 04 janvier au 16 janvier 2027 et du 10 au 24 mai 2027 Résultats à partir du 05 février et du 03 juin 2027\n\nRévisions du 14 au 19 décembre 2026 et du 03 au 08 mai 2027\n\nÉpreuves du 04 janvier au 16 janvier 2027 et du 10 au 24 mai 2027\n\nRésultats à partir du 05 février et du 03 juin 2027\n\nSession 2 Épreuves du 16 juin au 26 juin 2027 Résultats à partir du 12 juillet 2027\n\nÉpreuves du 16 juin au 26 juin 2027\n\nRésultats à partir du 12 juillet 2027\n\nCongés Automne: du 26 octobre au 02 novembre 2026, Fin d'année: du 19 décembre 2026 au 04 janvier 2027, Hiver : du 20 février au 08 mars 2027, Printemps : du 17 avril  au 03 mai 2027, Été : du 03 juillet au 01 septembre 2027 (non définitif)."
+      }
+    ]
+  },
+  {
+    "id": "q19",
+    "question": "Combien coûte un abonnement à un service de streaming vidéo ?",
+    "answerable": false,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8112,
+        "title": "Régime spécial d'études (RSE)",
+        "page": null,
+        "section": "Régime Spécial d’Études > Qui est concerné ? > Sont notamment concernés :",
+        "text": "L’exercice d’une activité professionnelle d’au moins 10h / semaine en moyenne\n\nL’entrepreneuriat étudiant\n\nL'engagement dans la réserve opérationnelle militaire\n\nL’engagement en tant que sapeurs-pompiers volontaires\n\nL’engagement  en Service Civique\n\nLa pratique sportive de bon ou haut niveau >> Pour tout savoir sur le dispositif à amU, RDV ici !\n\nUne qualité d'artiste reconnu\n\nUne situation d’aidance\n\nUne situation de charge de famille\n\nUne grossesse\n\nUne situation de handicap, une maladie invalidante ou une affection de longue durée\n\nL'investissement dans un projet associatif ou bénévole contribuant à la vie de l'établissement\n\nLes volontariats\n\nL'exercice de responsabilités au sein du bureau d'une association\n\nUn mandat électif dans les conseils des établissements d'enseignement supérieur\n\nUn mandat électif dans les Crous\n\nUn mandat électif dans une collectivité territoriale\n\nUne situation de détention en milieu carcéral"
+      },
+      {
+        "rank": 2,
+        "score": 0.8105,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "J'ai perdu ma carte d'étudiant",
+        "text": "J'ai perdu ou je me suis fait voler ma carte étudiant. Comment en obtenir une nouvelle ?\n\nVous pouvez demander la réédition d'une nouvelle carte via votre ENT, onglet \"Ma carte AMU\".\n\nSi la carte est perdue, sa réédition est payante et vous coûtera 10 € à régler par CB ou par chèque (à l'ordre de l'agent comptable d'AMU).\n\nSi la carte est endommagée, sa réédition est gratuite.\n\nSi la carte est volée, sa réédition est gratuite sur présentation du procès-verbal de police ou de gendarmerie\n\nEst-ce que je peux faire une année de césure ? Les informations sur l'année de césure sont détaillées ici."
+      },
+      {
+        "rank": 3,
+        "score": 0.8094,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Césure à l’étranger : informations importantes",
+        "text": "Césure à l'étranger : informations importantes\n\nPour les étudiants souhaitant partir en septembre 2026 pour une Césure à l'étranger : il est fortement conseillé d'évaluer la faisabilité de votre projet en tenant compte de la situation\n\nToute demande de Césure à l'étranger (hors Europe et DROM-COM) fera l'objet d'une consultation obligatoire du Fonctionnaire Sécurité Défense\n\nPour un départ inférieur ou égale à 6 mois à l'étranger : inscription obligatoire sur le service en ligne Ariane du MEAE\n\nPour un départ supérieur à 6 mois à l'étranger : enregistrement obligatoire sur le téléservice ou deux inscriptions sur le service en ligne Ariane du MEAE\n\n⚠️À joindre au dossier de candidature la confirmation d’enregistrement du voyage\n\nLiens utiles & Les différents types de Césure possibles Liens utiles FAQ FAQ Césure stage Guide de la Césure Les différents types de Césure possibles : Le Service Civique , une mission pour chacun au service de tous Le volontariat au sein du Corps européen de solidarité Le volontariat international en administration ou en entreprise (VIA / VIE) Le volontariat de solidarité internationale (VSI) ou autre type de volontariat solidaire et associatif Un engagement bénévole dans une asso' par exemple Un projet sous statut étudiant-entrepreneur Un emploi (contrat de travail) Un engagement de Sapeur-Pompier Volontaire Une formation dans un domaine autre que celui de votre cursus initial Un stage"
+      },
+      {
+        "rank": 4,
+        "score": 0.8092,
+        "title": "Se loger — vie des campus AMU",
+        "page": null,
+        "section": "Se loger > Dispositif Mon logement étudiant > La Métropole Aix Marseille Provence",
+        "text": "Elle propose des aides destinées aux étudiants les plus en difficulté. Liste des aides ICI Plus d'infos ICI"
+      },
+      {
+        "rank": 5,
+        "score": 0.8077,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 33,
+        "section": null,
+        "text": "→ Vous êtes en situation de handicap ou concerné → Vous êtes artiste à besoins particuliers ? Si\npar un trouble de santé invalidant ? Vous avez vous êtes engagé dans une activité artistique\ndroit à des aménagements tout au long de votre intensive et reconnue, vous pouvez également\nparcours. Des services vous accompagnent lors concilier vos études et votre projet artistique\nde vos études, lors de votre vie étudiante ou dans de nombreux établissements de\npour préparer votre insertion professionnelle. l’enseignement supérieur. Informez-vous ici.\nInformez-vous ici.\n→ Vous accompagnez un proche en situation\nCes pages dédiées sur le site étudiant.gouv\nde handicap ou en perte d’autonomie ? Des\ncontiennent des cartographies avec les\ndispositifs sont prévus pour vous aider à mieux\nconcilier votre rôle d’aidant et vos études. contacts des référents identifiés au sein des\nInformez-vous ici. établissements.\n→ Que vous soyez en situation de handicap\nou aidant, vous pouvez, sous conditions,\nbénéficier de points de charge pour les\nbourses, permettant d’obtenir une bourse ou\nd’augmenter son montant. Informez-vous ici.\n→ Vous êtes sportive ou sportif de haut niveau ?\nDans la perspective des jeux olympiques et\nparalympiques 2024 ou pas, de nombreux\nétablissements ont pris des dispositions en\nvotre faveur. À la suite des Jeux Olympiques\net Paralympiques de 2024, de nombreux\nétablissements continuent de mettre en place\ndes mesures adaptées pour vous. Informez-\nvous ici.\n— 33\nVous êtes élève a besoins particuliers ?"
+      }
+    ]
+  },
+  {
+    "id": "q20",
+    "question": "Peux-tu me donner une recette de ratatouille ?",
+    "answerable": false,
+    "n_retrieved": 5,
+    "sources": [
+      {
+        "rank": 1,
+        "score": 0.8546,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 21,
+        "section": null,
+        "text": "Mais si j'ai un bonus ?\nAlors !"
+      },
+      {
+        "rank": 2,
+        "score": 0.8522,
+        "title": "Droit — Compensation des notes par bloc de connaissances (Licence)",
+        "page": 23,
+        "section": null,
+        "text": "non\n1 2 5\n8.\n1 6 1 2 1\nAlors ce\nbonus?"
+      },
+      {
+        "rank": 3,
+        "score": 0.8514,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 31,
+        "section": null,
+        "text": "élève a\nbesoins\nparticuliers ?"
+      },
+      {
+        "rank": 4,
+        "score": 0.847,
+        "title": "IUT — Services de la scolarité",
+        "page": null,
+        "section": "Quels seront mes frais d'inscription ?",
+        "text": "Vous trouverez toutes les informations sur les frais d'inscription ici.\n\nComment obtenir mon attestation de réussite après le jury ? Merci de vous rapprocher du secrétariat pédagogique de votre département d’études."
+      },
+      {
+        "rank": 5,
+        "score": 0.8464,
+        "title": "Droit — Guide de la vie étudiante 2025",
+        "page": 37,
+        "section": null,
+        "text": "Liens\nutiles\nONISEP\nParcoursup\nMesservices.étudiant"
+      }
+    ]
+  }
+]

@@ -334,10 +334,16 @@ Les deux côtés consomment des appels à l'API Mistral.
 | Fichier | Contenu |
 | :--- | :--- |
 | `eval/anythingllm_compare.py` | Pilotage : import du corpus et interrogation du workspace |
+| `eval/serialize_retrieved_sources.py` | Récupère les passages lus par assistant-amu, sans appel de modèle |
+| `eval/blind_rejudge_bundle.py`, `…_prompts.py` | Construit les dossiers de jugement anonymisés et la clé |
 | `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` | Rapport complet, tableau question par question |
-| `eval/reports/anythingllm_judge_verdicts.json` | Verdicts des huit juges |
-| `eval/reports/anythingllm_raw_answers.json` | Réponses brutes d'AnythingLLM |
+| `eval/reports/2026-07-27_anythingllm_verdicts_verification.md` | Confrontation des verdicts aux réponses brutes |
+| `eval/reports/2026-07-27_blind_rejudge.md` | Rejugement à l'aveugle et ancrage instrumenté |
+| `eval/reports/anythingllm_judge_verdicts.json` | Verdicts du jury d'origine |
+| `eval/reports/blind_rejudge/` | Dossiers anonymisés, clé, verdicts du jury aveugle |
+| `eval/reports/anythingllm_raw_answers.json` | Réponses brutes d'AnythingLLM, passages inclus |
 | `eval/reports/assistant_amu_full_answers.json` | Réponses brutes d'assistant-amu |
+| `eval/reports/assistant_amu_retrieved_sources.json` | Passages récupérés par assistant-amu, par question |
 
 Les deux fichiers de réponses brutes sont versionnés — sans précédent dans le
 dépôt, où seuls les rapports `.md` l'étaient — parce qu'ils sont la seule base
@@ -360,21 +366,35 @@ dans le même sens** — au détriment d'AnythingLLM :
   et en reprend de la matière réelle. Sans effet sur les chiffres publiés.
 
 Le sens du résultat ne change pas : 4/4 contre 1/4 sur les refus, 14/16 contre
-0/16 sur l'ancrage. Ce que la vérification établit en plus, c'est que le biais
-pressenti — un jury qui nommait les deux systèmes devant un écart annoncé de
-14/16 à 0/16 — a bien produit des effets mesurables, tous du même côté.
+0/16 sur l'ancrage.
 
-Elle isole également un mode d'échec que les **deux causes structurelles ne
-couvrent pas** : sur q11, AnythingLLM avait récupéré le bon PDF, correctement
-ingéré, et l'a contredit sur deux points.
+### Ce que le rejugement à l'aveugle a établi
+
+Les seize questions ont été rejugées par huit juges indépendants ne connaissant
+pas l'identité des systèmes, cette fois **avec les passages fournis à chacun**
+(`2026-07-27_blind_rejudge.md`). Deux résultats :
+
+- **La colonne assistant-amu tient et devient vérifiable.** 14/16 correctes et
+  ancrées, 2 refus — identique au rapport d'origine, mais désormais établi par
+  des juges disposant des fragments réellement lus, et non inféré de la présence
+  de marqueurs `[S1]`. C'est le chiffre qui n'avait jamais été instruit.
+- **Le biais est confirmé et borné.** Quatre verdicts sur seize diffèrent, trois
+  en faveur d'AnythingLLM, un contre. Réel, donc, mais pas systématique.
+
+Le rejugement a aussi **réfuté deux conclusions de la vérification du matin** :
+la reclassification proposée pour q15, et le « troisième mode d'échec » annoncé
+sur q11 — où le bon document avait bien été remonté, mais pas le fragment portant
+la règle. Les deux constats s'appuyaient sur les titres des documents sans ouvrir
+le texte des passages.
 
 ### Fil ouvert
 
-Les réponses d'assistant-amu jugées « correctes et ancrées » n'ont pas été
-revérifiées **contre le corpus lui-même** — cela suppose de rouvrir les documents
-sources, question par question. Et le rejugement à l'aveugle de l'identité des
-systèmes reste à faire : la vérification constate le biais par ses effets, elle
-ne le supprime pas.
+Chaque question reste jugée une seule fois, dans les deux séries : aucun accord
+inter-juges n'est mesurable. L'anonymisation retire les titres de source des
+passages, ce qui prive assistant-amu d'une information que son prompt lui fournit
+en production — sans effet sur les questions de contenu, mais le
+`answer_was_available` du verdict q16 n'est pas fiable. Et la performance
+d'AnythingLLM correctement configuré reste l'angle mort principal.
 
 ---
 
