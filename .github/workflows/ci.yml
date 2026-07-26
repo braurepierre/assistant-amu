@@ -45,12 +45,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       # Construction de l'image réelle, préchargement du modèle compris : ce qui
       # est vérifié ici est bien l'artefact livré, pas une variante allégée.
       - name: Construire l'image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           load: true
