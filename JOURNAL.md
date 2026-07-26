@@ -1288,6 +1288,57 @@ quoi que ce soit, et c'est précisément pourquoi ils ont survécu à quatorze c
 **Reste à faire.** Côté AnythingLLM, l'absence d'accord inter-juges mesurable et
 la performance du produit correctement configuré.
 
+## 2026-07-27 — Accord inter-juges : 91 %, aucun chiffre publié ne bouge
+
+**Fait.** La dernière faiblesse méthodologique des deux séries de verdicts —
+chaque question n'était notée qu'une fois — est levée. Trois passes couvrent les
+seize questions, vingt-quatre juges au total. Rapport
+`eval/reports/2026-07-27_inter_judge_agreement.md` sur la branche, verdicts et
+script d'accord versionnés. Aucun appel de modèle aux systèmes comparés : les
+réponses et les passages étaient déjà là.
+
+**Le point de méthode qui décide de la valeur du résultat.** Rejouer trois fois
+des instructions identiques aurait mesuré le **déterminisme du modèle**, pas la
+solidité du jugement — un accord de 100 % n'aurait rien voulu dire. Chaque passe
+change donc une condition à matériel constant : la deuxième **échange les
+étiquettes A et B**, la troisième **décale l'appariement** des questions entre
+juges. La première comparaison isole le biais de position ; la seconde évite que
+deux verdicts censés être indépendants le cessent parce qu'ils viennent du même
+juge.
+
+**Résultat : accord sur 29 des 32 couples, soit 91 %.** Le biais de position est
+nul ou presque — **31 verdicts sur 32 sont identiques** quand A et B sont
+échangés, et le seul qui bouge glisse d'une catégorie à sa voisine. Les trois
+désaccords ne franchissent jamais plus d'un cran, portent tous sur AnythingLLM, et
+le verdict majoritaire ne déplace **aucun chiffre publié** : le seul mouvement,
+q05, va d'une catégorie à celle qui lui est agrégée sur la même ligne du tableau
+de synthèse. La colonne assistant-amu — 14 correctes, 2 refus — est identique
+dans les trois passes.
+
+**Ce que ça vaut, et il faut le dire tout de suite.** Le 16/16 d'assistant-amu est
+un accord **bon marché** : quatorze de ses seize verdicts tombent dans la même
+catégorie, et s'entendre sur une distribution quasi constante ne demande rien. Le
+chiffre qui porte de l'information est le 13/16 d'AnythingLLM, réparti sur quatre
+catégories — c'est là que les juges avaient une occasion réelle de diverger, et
+ils l'ont saisie trois fois, jamais de plus d'un cran. Présenter le 29/32 global
+sans cette distinction serait exactement le genre de moyenne qui flatte.
+
+**Ce que ça ne mesure pas.** Les trois passes emploient le même modèle et le même
+barème. Ce qui est établi, c'est la **stabilité d'un verdict quand la présentation
+change** — pas la convergence de points de vue indépendants. Si le barème lui-même
+oriente les verdicts, aucune des trois passes ne peut le voir. Seul un juge humain,
+ou un modèle d'une autre famille, le dirait.
+
+**Décision.** Les rapports gardent leurs chiffres : le rejugement les confirme,
+il ne les corrige pas. Le README de la branche publie le résultat d'accord et sa
+réserve.
+
+**Reste à faire.** Côté AnythingLLM, il ne subsiste que la performance du produit
+correctement configuré — le rapport impute l'essentiel de l'écart à deux réglages
+par défaut, dont l'échec du scraper sur cinq pages web sur neuf, et rien ne dit ce
+que vaudrait le produit une fois ces deux points corrigés. C'est la seule question
+ouverte qui demanderait de relancer Docker et de payer des appels.
+
 ## 2026-07-27 — Le cache de contextes versionné : une exception à la règle, et sa raison
 
 **Fait.** `corpus/contexts.jsonl` (436 entrées, 143 Ko) sort du `.gitignore`.
