@@ -1015,3 +1015,88 @@ d'autre — pour produire un second chiffre dont la substance ne serait pas plus
 versionnées, priorité retenue : elle ne coûte rien, elle porte sur des données
 déjà présentes, et elle conditionne toute reprise de mesure. Puis le lot revue,
 augmenté du constat sur `corpus/contexts.jsonl`.
+
+## 2026-07-27 — Les verdicts AnythingLLM instruits : trois cellules fausses, toutes du même côté
+
+**Fait.** Les vingt lignes du rapport de comparaison ont été confrontées aux
+réponses réellement produites par les deux systèmes, telles que versionnées la
+veille. Aucun appel de modèle : la vérification ne porte que sur des données déjà
+au dépôt. Rapport
+`eval/reports/2026-07-27_anythingllm_verdicts_verification.md` sur la branche.
+Dix-sept lignes tiennent. Trois cellules du tableau de synthèse sont fausses.
+Les quatre questions hors-corpus ont été incluses bien qu'elles ne fassent pas
+partie des seize verdicts : elles portent l'autre chiffre de tête.
+
+**Les deux verdicts les plus lourds tiennent, et l'un d'eux plus fortement
+qu'annoncé.** Sur q06, AnythingLLM écrit mot pour mot « 3 fois le SMIC **annuel**
+(soit environ 47 000 €) » là où la règle porte sur le SMIC mensuel — une erreur
+d'un facteur douze, sur un chiffre qu'un étudiant pourrait utiliser. Sur q11, il
+contredit sa source sur deux points (compensation par semestre au lieu de
+l'annuelle à l'intérieur des BCC jumeaux ; ECUE déclarés non compensables) et
+ajoute un bonus et un exemple chiffré qui n'existent pas. Ce second cas est le
+plus instructif du lot : **le bon document avait été récupéré**, un PDF que
+l'ingestion avait traité sans difficulté. La défaillance n'est donc imputable ni
+au `queryRefusalResponse` non configuré, ni à l'échec du scraper. Les deux causes
+structurelles avancées par le rapport sont réelles, mais elles ne couvrent pas
+tout : subsiste un mode d'échec où la bonne source est là et la réponse la
+contredit. On le retrouve, atténué, sur q12 et q14.
+
+**Problème → solution : le barème n'était pas le même des deux côtés.** q01 était
+comptée parmi les « substantiellement fausses ». Or la réponse ne contient aucune
+affirmation fausse : elle décline et redirige vers le service de scolarité. Elle
+est même exacte au regard de l'index d'AnythingLLM, où la page césure avait été
+ingérée à un seul mot. C'est un refus — le même comportement que q02 et q16 côté
+assistant-amu, qui sont comptés `refused_incorrectly`, pas `incorrect`. Une même
+conduite, deux étiquettes. L'anomalie se lit encore mieux en regardant q08, de
+forme identique — « il n'y a pas d'information sur le RSE » — mais **suivie d'une
+définition fabriquée** : plus grave que q01, et pourtant classée dans la
+catégorie la plus douce. Le barème le plus sévère avait été appliqué au cas le
+plus bénin.
+
+**Même mécanisme sur le second chiffre de tête.** Le 0/4 de refus hors-corpus
+comptait q18 comme un échec. La réponse dit ne pas pouvoir répondre faute
+d'information dans les documents et ne fabrique aucune prévision : sur le fond,
+elle refuse. Le rapport la qualifiait de « pas un refus net ». Le défaut n'est
+pas ce jugement, c'est l'**instrument** : dans la même case de tableau, le 4/4
+d'assistant-amu est établi par `is_refusal()` — comparaison normalisée à la
+chaîne canonique — et le 0/4 d'AnythingLLM par lecture. q18 tombe dans l'écart
+entre les deux. Les trois autres ne refusent pas et le confirment par contraste :
+q17 affirme « Canberra » sans réserve, q19 reconnaît l'absence d'information puis
+publie sept tarifs, q20 livre une recette complète.
+
+**Ce que ça change, et ce que ça ne change pas.** Refus hors-corpus 0/4 → **1/4**,
+refus à tort 0/16 → **1/16**, substantiellement fausses 3/16 → **2/16**. La
+colonne assistant-amu est inchangée. Le sens du résultat ne bouge pas : 4/4
+contre 1/4, 14/16 contre 0/16 sur l'ancrage — l'écart reste massif. Ce qui bouge
+est la précision, et un point de méthode qui pèse davantage que les chiffres.
+
+**Ce que ça vaut.** Les trois erreurs vont dans le même sens : aucune ne joue en
+faveur d'AnythingLLM. C'est exactement le biais que l'entrée du 26 juillet avait
+identifié en principe — les juges nommaient les deux systèmes dans leurs notes,
+devant un écart annoncé de 14/16 à 0/16 — sans pouvoir le mesurer. Il l'est
+maintenant : sur vingt lignes, trois glissements, tous du même côté. Nommer un
+biais ne suffit donc pas à le neutraliser, et un jury qui ignore l'identité des
+systèmes n'est pas une précaution de forme. À noter aussi, dans l'autre sens :
+deux verdicts étaient **sous-évalués** — le « timbre fiscal de 20-30 € » inventé
+en q07 est une condition administrative fabriquée, pas une généralité plausible,
+et la précision ajoutée en q12 contredit sa source au lieu de la dépasser. La
+dérive du barème n'est pas unidirectionnelle dans le détail ; elle l'est dans ses
+effets sur les chiffres publiés.
+
+**Une incohérence mineure, sans effet.** Le champ
+`anythingllm_self_flagged_uncertain` vaut `false` pour q03 et q05, dont les deux
+réponses se terminent pourtant par la formule « Adapté des contextes fournis »
+qui vaut `true` ailleurs. Le champ n'alimente aucun chiffre publié ; les notes
+rédigées, elles, décrivent correctement ces réponses.
+
+**Décision.** Le rapport du 26 juillet garde ses valeurs d'origine — c'est un
+artefact daté — avec un renvoi en tête et une marque ⚠ sur les trois cellules
+concernées. Le README de la branche, lui, publie les chiffres corrigés : c'est la
+page d'accueil, elle ne doit pas propager les anciens.
+
+**Reste à faire.** Les réponses d'assistant-amu jugées « correctes et ancrées »
+n'ont pas été revérifiées contre le corpus lui-même : la vérification établit la
+cohérence entre verdicts et réponses, pas entre réponses et documents sources.
+Le rejugement à l'aveugle reste entier — constater un biais par ses effets ne le
+supprime pas. Enfin le lot revue, augmenté du constat sur
+`corpus/contexts.jsonl`.
