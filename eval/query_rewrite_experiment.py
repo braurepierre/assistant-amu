@@ -31,9 +31,10 @@ import time
 from datetime import date
 from pathlib import Path
 
+from assistant_amu.backoff import with_retry
 from assistant_amu.config import PROJECT_ROOT, get_settings
 from assistant_amu.evaluation import Question, evaluate_retrieval, load_questions
-from assistant_amu.generation.llm import LLMBackend, LLMBackendError, build_backend
+from assistant_amu.generation.llm import LLMBackend, build_backend
 from assistant_amu.generation.rewrite import rewrite_query, strip_query
 from assistant_amu.models import RetrievedChunk
 from assistant_amu.retrieval.vector_store import SemanticRetriever, VectorStore
@@ -62,11 +63,9 @@ class LlmRewriter:
     out of the LLM abstraction, which stays "no elaborate retry" (PRD §7.4).
     """
 
-    RETRY_CAUSES = ("quota", "timeout", "connection")
-    RETRY_DELAYS = (5.0, 15.0, 45.0)
-
-    def __init__(self, backend: LLMBackend):
+    def __init__(self, backend: LLMBackend, *, sleep=time.sleep):
         self._backend = backend
+        self._sleep = sleep
         self._cache: dict[str, str] = {}
 
     def __call__(self, question: str) -> str:
@@ -75,15 +74,11 @@ class LlmRewriter:
         return self._cache[question]
 
     def _rewrite(self, question: str) -> str:
-        for delay in (*self.RETRY_DELAYS, None):
-            try:
-                return rewrite_query(question, "llm", self._backend)
-            except LLMBackendError as exc:
-                if delay is None or exc.cause not in self.RETRY_CAUSES:
-                    raise
-                print(f"    ! {exc.cause} — nouvelle tentative dans {delay:g}s")
-                time.sleep(delay)
-        return question  # unreachable: the last iteration returns or raises
+        # Shared with ingestion/contextualize.py: the two copies had drifted to
+        # different delays, and this one was untestable without a real clock.
+        return with_retry(
+            lambda: rewrite_query(question, "llm", self._backend), sleep=self._sleep
+        )
 
 
 # --- Retriever wrapper ----------------------------------------------------

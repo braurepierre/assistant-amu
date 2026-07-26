@@ -20,7 +20,13 @@ defines, so silent drift is caught rather than shipped.
 
 Usage:
     python docs/build_concepts.py            # rewrite the page in place
-    python docs/build_concepts.py --check    # exit 1 if the page is stale (CI-friendly)
+    python docs/build_concepts.py --check    # exit 1 if the page is stale
+
+NOT usable in CI as it stands: the page records the current commit SHA, so any
+commit touching the page makes it "stale" against HEAD at once. Wiring it as a
+guard would mean excluding `commit` and `updated` from the comparison. See
+docs/README.md, which has always said so — the two documents contradicted each
+other from the same commit.
 """
 
 from __future__ import annotations

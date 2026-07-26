@@ -46,17 +46,18 @@ from __future__ import annotations
 
 import argparse
 import sys
-from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
 from assistant_amu.config import PROJECT_ROOT, get_settings
 from assistant_amu.evaluation import (
     Question,
+    RawTextRetriever,
     RetrievalRow,
     RrfRetriever,
     evaluate_retrieval,
     load_questions,
+    with_raw_text,
 )
 from assistant_amu.ingestion.contextualize import contextual_collection_name
 from assistant_amu.models import RetrievedChunk
@@ -72,27 +73,20 @@ METHODS = ("semantic", "bm25", "rrf")
 FLAGSHIP = "Parle-moi des régimes spéciaux."  # the motivating case of the rewriting experiment
 RSE_CENTRAL = "régime spécial d'études"
 
+# Significance threshold, fixed BEFORE measuring and stated in the report — same
+# bar as eval/reports/2026-07-26_corpus_scaling.md, which declares it up front.
+# A gap below it is neither a gain nor a loss, whatever its sign.
+SIGNIFICANCE_QUESTIONS = 3
+
 
 # --- Retriever wrapper (measurement validity) ------------------------------
+#
+# RawTextRetriever and with_raw_text now live in assistant_amu.evaluation, where
+# tests can reach them without a corpus: they carry the validity of this whole
+# experiment, and no test covered them while they lived here. Re-exported under
+# their former private names so the offline replay script keeps working.
 
-class RawTextRetriever:
-    """Delegate ranking, then restore each chunk's pre-contextualisation text.
-
-    Retrieval runs on the contextualised text (that is the whole point); the hit
-    condition is then evaluated on the original one, so a context sentence that
-    happens to quote an expected keyword cannot manufacture a hit.
-    """
-
-    def __init__(self, inner):
-        self._inner = inner
-
-    def rank(self, question: str, depth: int) -> list[RetrievedChunk]:
-        return [_with_raw_text(c) for c in self._inner.rank(question, depth)]
-
-
-def _with_raw_text(chunk: RetrievedChunk) -> RetrievedChunk:
-    raw = chunk.metadata.get("text_raw")
-    return chunk if not raw else replace(chunk, text=str(raw))
+_with_raw_text = with_raw_text
 
 
 def _build_methods(store: VectorStore, *, strict: bool) -> dict[str, object]:
@@ -138,6 +132,16 @@ def _delta(delta: float, n: int) -> str:
     if abs(questions) == 0:
         return "±0"
     return f"{delta:+.2f} ({questions:+d} q)"
+
+
+def _questions(n: int) -> str:
+    """'1 question' / '4 questions' — the report published '(+4 question)' for a while."""
+    return "question" if abs(n) <= 1 else "questions"
+
+
+def _cells(n: int, adjective: str) -> str:
+    """'1 cellule gagnante' / '8 cellules gagnantes'."""
+    return f"cellule {adjective}" if abs(n) <= 1 else f"cellules {adjective}s"
 
 
 def _truncate(text: str, width: int = 60) -> str:
@@ -198,8 +202,11 @@ def main(argv: list[str] | None = None) -> int:
 
     hard_recall, easy_recall = recalls(hard, strict), recalls(easy, strict)
     easy_naive = recalls(easy, naive)  # keyword annotations live in the easy set only
-    hard_rows = evaluate_retrieval(hard, strict, 5).rows
-    easy_rows = evaluate_retrieval(easy, strict, 5).rows
+    # Per-question tables at *every* k in KS, not only at 5: the headline figure of
+    # this experiment is read at k=3, and while the tables existed only at k=5 no
+    # document in the repository said which questions composed it.
+    hard_rows = {k: evaluate_retrieval(hard, strict, k).rows for k in KS}
+    easy_rows = {k: evaluate_retrieval(easy, strict, k).rows for k in KS}
 
     flagship = {
         name: _flagship_rank(strict[name])
@@ -326,28 +333,30 @@ def _write_report(settings, base_name, ctx_name, hard, easy, hard_recall, easy_r
         "",
     ]
 
-    # Per-question movement, per method and per set.
-    for label, rows, n in (("dur", hard_rows, n_hard), ("facile", easy_rows, n_easy)):
-        lines += [f"## Détail par question — jeu « {label} » (k=5)", ""]
-        moved = False
-        for method in METHODS:
-            won, lost = _changed_rows(rows, method)
-            if not won and not lost:
-                continue
-            moved = True
-            lines.append(f"**{method}** — gagnées : {len(won)} · perdues : {len(lost)}")
-            lines.append("")
-            lines.append("| id | question | baseline | contextuel |")
-            lines.append("|---|---|---|---|")
-            for row in won + lost:
-                lines.append(
-                    f"| {row.id} | {_truncate(row.question)} | "
-                    f"{'✅' if row.hits[f'base_{method}'] else '❌'} | "
-                    f"{'✅' if row.hits[f'ctx_{method}'] else '❌'} |"
-                )
-            lines.append("")
-        if not moved:
-            lines += ["Aucune question ne change de statut sur ce jeu.", ""]
+    # Per-question movement, per method, per set AND per k — so every headline
+    # figure is traceable to the questions that compose it.
+    for label, rows_by_k in (("dur", hard_rows), ("facile", easy_rows)):
+        for k in KS:
+            lines += [f"## Détail par question — jeu « {label} », k={k}", ""]
+            moved = False
+            for method in METHODS:
+                won, lost = _changed_rows(rows_by_k[k], method)
+                if not won and not lost:
+                    continue
+                moved = True
+                lines.append(f"**{method}** — gagnées : {len(won)} · perdues : {len(lost)}")
+                lines.append("")
+                lines.append("| id | question | baseline | contextuel |")
+                lines.append("|---|---|---|---|")
+                for row in won + lost:
+                    lines.append(
+                        f"| {row.id} | {_truncate(row.question)} | "
+                        f"{'✅' if row.hits[f'base_{method}'] else '❌'} | "
+                        f"{'✅' if row.hits[f'ctx_{method}'] else '❌'} |"
+                    )
+                lines.append("")
+            if not moved:
+                lines += [f"Aucune question ne change de statut sur ce jeu à k={k}.", ""]
 
     # Flagship case.
     lines += [
@@ -428,61 +437,115 @@ def _rank_cell(rank: int | None) -> str:
 
 
 def _conclusion(hard_recall, easy_recall, easy_naive, n_hard, n_easy, window) -> list[str]:
-    """State the verdict from the numbers — including a trade-off, if that is what it is."""
-    def extremes(recalls, n) -> tuple[tuple, tuple]:
-        """Best and worst (method, k, delta, questions) across methods and k."""
-        deltas = [
-            (m, k, recalls[k][f"ctx_{m}"] - recalls[k][f"base_{m}"])
-            for m in METHODS
-            for k in KS
-        ]
-        best, worst = max(deltas, key=lambda t: t[2]), min(deltas, key=lambda t: t[2])
-        return (*best, round(best[2] * n)), (*worst, round(worst[2] * n))
+    """State the verdict from the numbers, naming the configuration each one comes from.
 
-    (hb_m, hb_k, hb_d, hb_q), (hw_m, hw_k, hw_d, hw_q) = extremes(hard_recall, n_hard)
-    (eb_m, eb_k, eb_d, eb_q), (ew_m, ew_k, ew_d, ew_q) = extremes(easy_recall, n_easy)
+    Every figure below is an extremum over twelve non-comparable cells (two
+    question sets x three methods x two values of k). Opposing a maximum to a
+    minimum as if it were a balance would be wrong — a set winning 8 questions in
+    one cell and losing 3 in eleven others would still read as a net win. So each
+    figure is labelled with its cell, and a dispersion line carries the balance.
+    """
+    cells = [
+        {
+            "set": label,
+            "method": m,
+            "k": k,
+            "delta": recalls[k][f"ctx_{m}"] - recalls[k][f"base_{m}"],
+            "q": round((recalls[k][f"ctx_{m}"] - recalls[k][f"base_{m}"]) * n),
+        }
+        for label, recalls, n in (("dur", hard_recall, n_hard), ("facile", easy_recall, n_easy))
+        for m in METHODS
+        for k in KS
+    ]
+
+    def where(c: dict) -> str:
+        return f"jeu « {c['set']} », `{c['method']}` à k={c['k']}"
+
+    def amount(c: dict) -> str:
+        return f"{c['delta']:+.2f} ({c['q']:+d} {_questions(c['q'])})"
+
+    best = max(cells, key=lambda c: c["q"])
+    worst = min(cells, key=lambda c: c["q"])
+    hard_best = max((c for c in cells if c["set"] == "dur"), key=lambda c: c["q"])
+    total = sum(c["q"] for c in cells)
+    n_win = sum(1 for c in cells if c["q"] > 0)
+    n_lose = sum(1 for c in cells if c["q"] < 0)
+    n_flat = len(cells) - n_win - n_lose
+
     naive_gap = max(
         easy_naive[k][f"ctx_{m}"] - easy_recall[k][f"ctx_{m}"] for m in METHODS for k in KS
     )
-    # "Significant" = strictly more than one question, the granularity of each set.
-    best_gain = max(hb_q, eb_q)
-    worst_loss = -min(hw_q, ew_q)
-    gains, losses = best_gain >= 2, worst_loss >= 2
+    naive_q = round(naive_gap * n_easy)
+
+    gains = best["q"] >= SIGNIFICANCE_QUESTIONS
+    losses = -worst["q"] >= SIGNIFICANCE_QUESTIONS
     if gains and losses:
-        # Both move: the verdict is the *ratio*, not the mere coexistence.
         verdict = (
-            f"la contextualisation **gagne nettement plus qu'elle ne perd** "
-            f"({best_gain} questions contre {worst_loss})"
-            if best_gain >= 2 * worst_loss
-            else f"la contextualisation **perd plus qu'elle ne gagne** "
-            f"({worst_loss} questions contre {best_gain})"
-            if worst_loss >= 2 * best_gain
-            else f"la contextualisation **échange** des réussites contre d'autres "
-            f"({best_gain} gagnées, {worst_loss} perdues)"
+            f"la contextualisation **gagne et perd selon la configuration** : jusqu'à "
+            f"{best['q']} {_questions(best['q'])} gagnées ({where(best)}) et jusqu'à "
+            f"{-worst['q']} perdues ({where(worst)})"
+        )
+    elif gains:
+        verdict = (
+            f"la contextualisation **améliore** la recherche — au mieux {best['q']} "
+            f"{_questions(best['q'])} ({where(best)}), aucune perte n'atteignant le seuil"
+        )
+    elif losses:
+        verdict = (
+            f"la contextualisation **dégrade** la recherche — au pire {-worst['q']} "
+            f"{_questions(worst['q'])} ({where(worst)}), aucun gain n'atteignant le seuil"
         )
     else:
         verdict = (
-            "la contextualisation **améliore** la recherche"
-            if gains
-            else "la contextualisation **dégrade** la recherche"
-            if losses
-            else "la contextualisation **ne se distingue pas** de la baseline"
+            "la contextualisation **ne se distingue pas** de la baseline : aucun écart, "
+            "dans aucune des douze cellules, n'atteint le seuil"
         )
+
+    # "What it breaks" must follow the sign of the worst cell, and its explanation
+    # must follow that cell's *method* — the vector-displacement account only holds
+    # for semantic search.
+    why_loss = {
+        "semantic": "Le préfixe déplace le vecteur du fragment vers le sujet du "
+        "*document* et l'éloigne de son contenu propre.",
+        "bm25": "Hypothèse à vérifier : le préfixe place l'intitulé du document en tête "
+        "de chaque fragment, si bien que l'IDF des termes de titre s'effondre et que la "
+        "longueur moyenne croît — les termes qui distinguaient un document d'un autre "
+        "perdent leur pouvoir discriminant.",
+        "rrf": "La fusion dépend de la composition des deux classements qui "
+        "l'alimentent : un déplacement dans l'un d'eux suffit à changer le top-k fusionné.",
+    }
+    repairs = (
+        f"- **Ce qu'elle répare** : les formulations conversationnelles — {where(hard_best)}, "
+        f"{amount(hard_best)}. C'est le mode d'échec que la méthode vise : un fragment que "
+        "rien ne rattachait à son sujet devient retrouvable."
+        if hard_best["q"] > 0
+        else f"- **Ce qu'elle ne répare pas** : sur le jeu « dur » — le mode d'échec que la "
+        f"méthode vise — le meilleur écart est {amount(hard_best)} ({where(hard_best)}). "
+        "La méthode n'y gagne rien."
+    )
+    breaks = (
+        f"- **Ce qu'elle casse** : {where(worst)}, {amount(worst)}. "
+        + why_loss[worst["method"]]
+        if worst["q"] < 0
+        else "- **Elle ne casse rien** : aucune des douze cellules ne recule ; le pire "
+        f"écart vaut {amount(worst)} ({where(worst)})."
+    )
+
     return [
         "## Conclusion",
         "",
+        f"- **Seuil de signification, fixé avant la mesure : {SIGNIFICANCE_QUESTIONS} "
+        "questions.** En deçà, un écart n'est retenu ni comme un gain ni comme une perte. "
+        "Même barre que le rapport de sensibilité à la taille du corpus.",
         f"- Sur ce corpus et ce jeu d'évaluation, {verdict}.",
-        f"- **Ce qu'elle répare** : les formulations conversationnelles en recherche "
-        f"sémantique — jeu « dur », `{hb_m}` à k={hb_k}, {hb_d:+.2f} ({hb_q:+d} questions). "
-        "C'est le mode d'échec que la méthode vise : un fragment que rien ne rattachait "
-        "à son sujet devient retrouvable.",
-        f"- **Ce qu'elle casse** : les formulations définitionnelles — jeu « facile », "
-        f"`{ew_m}` à k={ew_k}, {ew_d:+.2f} ({ew_q:+d} questions). Ces questions "
-        "fonctionnaient déjà ; le préfixe déplace le vecteur du fragment vers le sujet "
-        "du *document* et l'éloigne de son contenu propre.",
-        f"- Sur le jeu « dur », le pire écart est {hw_d:+.2f} ({hw_q:+d} question, "
-        f"`{hw_m}` à k={hw_k}) ; sur le jeu « facile », le meilleur est {eb_d:+.2f} "
-        f"({eb_q:+d} question, `{eb_m}` à k={eb_k}).",
+        f"- **Dispersion** : sur les {len(cells)} cellules (2 jeux × {len(METHODS)} méthodes "
+        f"× {len(KS)} valeurs de k), la somme des écarts vaut {total:+d} "
+        f"{_questions(total)} — {n_win} {_cells(n_win, 'gagnante')}, "
+        f"{n_lose} {_cells(n_lose, 'perdante')}, {n_flat} {_cells(n_flat, 'inchangée')}. "
+        "Les deux chiffres ci-dessus sont des extrema, non un solde : cette ligne est ce "
+        "qui les met en perspective.",
+        repairs,
+        breaks,
         (
             f"- Réserve : {window['ctx']['over']} fragments sortent de la fenêtre de "
             f"{window['limit']} tokens après contextualisation, contre "
@@ -496,7 +559,7 @@ def _conclusion(hard_recall, easy_recall, easy_naive, n_hard, n_easy, window) ->
             "mesuré porte donc bien sur la méthode elle-même."
         ),
         f"- Artefact évité par le comptage strict : jusqu'à {naive_gap:+.2f} de recall "
-        f"({round(naive_gap * n_easy):+d} question) qu'un comptage naïf aurait crédité "
+        f"({naive_q:+d} {_questions(naive_q)}) qu'un comptage naïf aurait crédité "
         "à la contextualisation sans qu'aucun fragment ne soit mieux trouvé.",
         "- Rappel de granularité : le jeu « dur » compte "
         f"{n_hard} questions (1 question ≈ {1.0 / n_hard:.3f}) et le jeu « facile » "
@@ -505,21 +568,26 @@ def _conclusion(hard_recall, easy_recall, easy_naive, n_hard, n_easy, window) ->
         "l'échelle : un écart d'une question ici ne les confirme ni ne les infirme.",
         "",
         (
-            "**Décision.** `/ask` reste sur la collection de production. La méthode "
-            "n'est pas écartée pour autant : elle est mesurée ici dans une "
-            "configuration qui ne lui laisse pas la place de fonctionner, et la piste "
-            "à instruire est nommée ci-dessus."
+            "**Décision.** `/ask` reste sur la collection de production, en application "
+            "du principe « mesurer n'est pas brancher » (§40 du PRD) : le Contextual "
+            "Retrieval figure au §5.3 parmi les évolutions documentées et non "
+            "implémentées, au même titre que la RRF et la réécriture. **Aucune mesure, "
+            "si favorable soit-elle, ne suffirait à elle seule à le brancher en V1.** "
+            "Ce rapport reste par ailleurs mesuré dans une configuration qui ne laisse "
+            "pas à la méthode la place de fonctionner, et la piste à instruire est "
+            "nommée ci-dessus."
             if window["ctx"]["over"]
             else
-            "**Décision.** `/ask` reste, à ce stade, sur la collection de production : "
-            "la contextualisation demeure mesurée et non branchée, comme la RRF et la "
-            "réécriture. L'arbitrage est ici établi sans confusion possible avec la "
-            "troncature — le préfixe déplace le vecteur du fragment vers le sujet de son "
-            "document, ce qui sert les formulations vagues et dessert les questions "
-            "précises. Reste à trancher, au vu du rapport ci-dessus entre questions "
-            "gagnées et perdues, laquelle des deux populations `/ask` doit servir en "
-            "priorité — et si une contextualisation *sélective*, limitée aux fragments "
-            "réellement décontextualisés, ne prendrait pas les deux."
+            "**Décision.** `/ask` reste sur la collection de production, en application "
+            "du principe « mesurer n'est pas brancher » (§40 du PRD) : le Contextual "
+            "Retrieval figure au §5.3 parmi les évolutions documentées et non "
+            "implémentées, au même titre que la RRF et la réécriture. **Aucune mesure, "
+            "si favorable soit-elle, ne suffirait à elle seule à le brancher en V1.** "
+            "L'arbitrage est ici établi sans confusion possible avec la troncature. "
+            "Restent deux questions ouvertes, qui relèvent de l'instruction et non de la "
+            "décision : laquelle des deux populations de requêtes servir en priorité, et "
+            "si une contextualisation *sélective*, limitée aux fragments réellement "
+            "décontextualisés, ne prendrait pas les deux."
         ),
         "",
     ]

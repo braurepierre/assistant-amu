@@ -9,7 +9,10 @@ import pytest
 from assistant_amu.generation.llm import LLMBackendError
 from assistant_amu.ingestion.contextualize import (
     CONTEXT_SYSTEM,
+    MAX_CONTEXT_WORDS,
+    MAX_DOC_CHARS,
     PROMPT_VERSION,
+    RETRY_DELAYS,
     ContextCache,
     build_user_prompt,
     clean_context,
@@ -17,6 +20,7 @@ from assistant_amu.ingestion.contextualize import (
     contextual_collection_name,
     contextualize_chunks,
     contextualized_chunk,
+    document_char_budget,
     generate_context,
 )
 from assistant_amu.models import Chunk, Document, TextBlock
@@ -221,7 +225,8 @@ def test_transient_failures_are_retried_then_succeed(tmp_path, doc, chunks):
     )
 
     assert report.generated == 1 and not report.failed
-    assert backend.attempts == 3 and slept == [2.0, 5.0]  # backoff, no wall-clock cost
+    # Delays come from the shared assistant_amu.backoff, not a local copy.
+    assert backend.attempts == 3 and slept == list(RETRY_DELAYS[:2])
     assert out[0].metadata["context"] == backend.reply
 
 
@@ -274,3 +279,90 @@ def test_generate_context_does_not_retry_a_permanent_cause():
     with pytest.raises(LLMBackendError):
         generate_context(backend, "doc", "chunk", "Titre", sleep=lambda _: None)
     assert backend.attempts == 1
+
+
+# --- Defects found by the 2026-07-26 review --------------------------------
+
+def test_a_record_missing_its_context_does_not_lose_the_whole_cache(tmp_path):
+    """Reading record["context"] outside the try discarded every other entry."""
+    path = tmp_path / "contexts.jsonl"
+    good = json.dumps(
+        {"key": "k1", "chunk_id": "c1", "doc_id": "d1", "model": "m",
+         "prompt_version": PROMPT_VERSION, "context": "Contexte."},
+        ensure_ascii=False,
+    )
+    amputated = json.dumps(  # valid JSON, every key but the one that matters
+        {"key": "k2", "chunk_id": "c2", "doc_id": "d1", "model": "m",
+         "prompt_version": PROMPT_VERSION},
+        ensure_ascii=False,
+    )
+    path.write_text(f"{amputated}\n{good}\n", encoding="utf-8")
+
+    cache = ContextCache(path)
+
+    assert cache.get("k1", "m") == "Contexte."  # the sound entry survives
+    assert cache.get("k2", "m") is None
+    assert len(cache) == 1
+
+
+def test_the_document_budget_follows_the_backend_window():
+    """A guard fixed in characters could never fire; it now tracks the real window."""
+
+    class Local:
+        name = "ollama/mistral"
+        context_window = 8192
+
+    class Api:
+        name = "mistral/mistral-small-latest"
+        context_window = 128_000
+
+    local, api = document_char_budget(Local()), document_char_budget(Api())
+
+    # The corpus's largest document is 40 144 characters: it must trip the local
+    # backend's budget — the case the warning was written for — and not the API's.
+    assert local < 40_144 < api
+
+
+def test_a_backend_without_a_published_window_falls_back():
+    class Unknown:
+        name = "unknown"
+
+    assert document_char_budget(Unknown()) == MAX_DOC_CHARS
+
+
+def test_contexts_over_the_prompt_ceiling_are_counted_not_truncated(tmp_path, doc, chunks):
+    long_context = " ".join(f"mot{i}" for i in range(MAX_CONTEXT_WORDS + 5))
+    backend = FakeBackend(reply=long_context)
+
+    out, report = contextualize_chunks(
+        chunks[:1], [doc], backend, cache=ContextCache(tmp_path / "c.jsonl"),
+        progress=lambda _: None,
+    )
+
+    assert report.over_word_limit == [("c1", MAX_CONTEXT_WORDS + 5)]
+    assert out[0].metadata["context"] == long_context  # reported, never cut
+    assert str(MAX_CONTEXT_WORDS) in report.summary()
+
+
+def test_a_context_within_the_ceiling_is_not_flagged(tmp_path, doc, chunks):
+    _, report = contextualize_chunks(
+        chunks[:1], [doc], FakeBackend(reply="Règlement, partie césure."),
+        cache=ContextCache(tmp_path / "c.jsonl"), progress=lambda _: None,
+    )
+
+    assert report.over_word_limit == []
+
+
+def test_a_fully_cached_batch_still_reports_progress(tmp_path, doc, chunks):
+    """The progress call sat inside the generation branch: a cached batch was mute."""
+    cache = ContextCache(tmp_path / "contexts.jsonl")
+    backend = FakeBackend()
+    for chunk in chunks:
+        cache.put(context_key(chunk), chunk.chunk_id, "d1", backend.name, "Contexte connu.")
+    seen: list[str] = []
+
+    _, report = contextualize_chunks(chunks, [doc], backend, cache=cache, progress=seen.append)
+
+    assert report.cached == len(chunks) and not backend.calls
+    assert seen, "a batch served entirely from cache must still print its closing line"
+    assert f"{len(chunks)}/{len(chunks)}" in seen[-1]

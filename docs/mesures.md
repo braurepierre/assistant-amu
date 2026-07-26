@@ -120,15 +120,26 @@ conversationnelles.
 | **Facile** (50 questions, k=5) | sémantique | **0,86** | 0,82 |
 | **Facile** (50 questions, k=5) | RRF | 0,86 | **0,94** |
 
-À 500 tokens, la contextualisation **gagne nettement plus qu'elle ne perd** :
-**8 questions gagnées** sur les formulations conversationnelles — le mode
-d'échec qu'elle vise — contre **2 perdues** sur les formulations
-définitionnelles en recherche purement sémantique. Le préfixe rapproche le
-vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues
-et dessert les requêtes précises quand elles s'appuient sur la recherche
-sémantique seule. **La fusion RRF, elle, ne perd rien** sur le jeu élargi : elle
-gagne sur les deux jeux (+2 questions sur le dur à k=3, **+4 questions sur le
-facile à k=5**), la composante BM25 compensant ce que le sémantique cède.
+À 500 tokens, la contextualisation **améliore** la recherche. Son meilleur gain
+est de **8 questions** sur les formulations conversationnelles, en recherche
+sémantique à k=3 — le mode d'échec qu'elle vise ; sa pire perte, **2 questions**
+sur les formulations définitionnelles en sémantique à k=5, reste sous le seuil
+de signification de 3 questions fixé avant la mesure.
+
+**Ces deux chiffres sont des extrema tirés de configurations différentes, non un
+solde.** Les opposer comme un bilan reviendrait à ignorer la dispersion : un jeu
+gagnant huit questions dans une cellule et en perdant trois dans onze autres
+donnerait le même couple. La mise en perspective est la suivante — sur les douze
+cellules mesurées (2 jeux × 3 méthodes × 2 valeurs de k), la somme des écarts
+vaut **+18 questions**, avec huit cellules gagnantes, trois perdantes et une
+inchangée.
+
+Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui
+sert les requêtes vagues et dessert les requêtes précises quand elles s'appuient
+sur la recherche sémantique seule. **La fusion RRF, elle, ne perd rien** sur le
+jeu élargi : elle gagne sur les deux jeux (+2 questions sur le dur à k=3, **+4
+questions sur le facile à k=5**), la composante BM25 compensant ce que le
+sémantique cède.
 
 Deux précautions déterminent la validité de ces chiffres :
 
@@ -161,8 +172,20 @@ découpage, et si une contextualisation *sélective* — limitée aux fragments
 réellement décontextualisés — ne prendrait pas le meilleur des deux mondes.
 
 Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
-Reprise hors ligne des deux rapports, sans appel de modèle :
-`eval/repro_contextual_retrieval.py`.
+
+**Reprise hors ligne**, sans appel de modèle : `eval/repro_contextual_retrieval.py`
+reconstruit les quatre collections depuis le cache de contextes et retrouve les
+chiffres publiés à l'identique, avec un backend factice qui **lève** sur tout
+appel — un défaut de cache échoue au lieu de coûter.
+
+> **Portée de cette gratuité.** Elle suppose `corpus/contexts.jsonl`, qui n'est
+> **pas versionné** : donnée dérivée, au même titre que `chroma_db/` (§5.3.1).
+> Les collections d'origine ayant par ailleurs disparu, ce fichier est
+> aujourd'hui le **seul** chemin de reproduction des deux rapports. Sur ce
+> poste, la reprise ne coûte rien ; sur un clone neuf, elle suppose de
+> régénérer le cache — environ 316 appels de modèle. C'est un arbitrage ouvert :
+> versionner 143 Ko rendrait les rapports reproductibles par un tiers, au prix
+> d'une exception à la règle « les données dérivées ne sont pas versionnées ».
 
 ---
 

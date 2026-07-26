@@ -479,6 +479,13 @@ corpus redécoupé à 440 tokens, où plus aucun fragment ne déborde (le plus l
 atteint 475). **Les conclusions ne bougent pas** : l'arbitrage tient à la méthode,
 pas à la marge.
 
+> **Révisé le 2026-07-26** (voir l'entrée « Ce que le jeu élargi a aussi révélé
+> sur la contextualisation »). Cette affirmation ne vaut que pour la recherche
+> sémantique. Sur le jeu élargi à 50 questions, **BM25 se dégrade nettement à
+> 440 tokens** (−4 questions à k=3, −3 à k=5) — un effet que 16 questions ne
+> pouvaient pas montrer. Rapport et README ont été corrigés ; cette entrée garde
+> son texte d'origine et porte ce renvoi.
+
 **Problème → solution : le comptage risquait de se donner raison tout seul.** Le
 jeu « facile » exige la présence de mots-clés *dans le fragment récupéré*, et un
 contexte généré nomme presque toujours le sujet du fragment qu'il préfixe.
@@ -591,13 +598,19 @@ vérification (`chunk_matches` appliqué à chaque annotation contre l'index ré
 confirme les 50 annotations satisfiables, dont 3 ne tiennent qu'à un seul
 fragment — acceptable pour des questions de sigle, à surveiller sinon.
 
+> **Rectifié le 2026-07-27.** Les trois annotations sont q06 (« job »), q08
+> (« régime spécial ») et q28 (FOAD) : **une seule est une question de sigle**,
+> la dernière. La justification avancée ne couvrait donc pas les deux autres. Le
+> marqueur de q08 est de surcroît celui que ce même fichier documente comme peu
+> fiable pour q03.
+
 **La baseline recule, et ce n'est pas une régression.** Recall@5 : sémantique
 0,94 → **0,86**, BM25 0,81 → 0,84, RRF 0,88 → 0,86. Le repli sémantique n'est pas
 un défaut du système : le nouveau jeu couvre des documents qui n'avaient encore
 aucune question (règlement intérieur, droits d'inscription, sigles, Cadrage M3C
 Master, Mission handicap) et des procédures propres à une composante plutôt que
 génériques (la césure à l'IUT plutôt qu'au niveau central). Le jeu à 16 questions
-sur-représentait les documents déjà faciles à trouver ; le jeu à 50 measure une
+sur-représentait les documents déjà faciles à trouver ; le jeu à 50 mesure une
 tâche plus proche de ce qu'un vrai corpus de 18 documents impose.
 
 **Deux conclusions s'inversent.**
@@ -1182,3 +1195,101 @@ séries : aucun accord inter-juges n'est mesurable, et c'est désormais la
 faiblesse méthodologique dominante. La performance d'AnythingLLM correctement
 configuré demeure l'angle mort principal. Enfin le lot revue, augmenté du constat
 sur `corpus/contexts.jsonl`.
+
+## 2026-07-27 — Le lot revue traité : dix-neuf constats corrigés, dont un garde-fou qui ne pouvait pas se déclencher
+
+**Fait.** Les dix-neuf constats de `docs/revue-2026-07-26_contextual_retrieval.md`
+sont corrigés. La suite de tests passe de **142 à 161** cas. Les deux rapports
+ont été rejoués hors ligne avant et après : les chiffres publiés se reproduisent
+à l'identique aux deux budgets de découpage, ce qui établit que les correctifs
+n'ont pas touché la mesure. Le document de revue garde son texte et porte un
+en-tête signalant les deux points où le correctif s'écarte de celui proposé.
+
+**Ce que la correction du générateur change vraiment.** Les constats 2 à 4
+tenaient tous au même mécanisme : le rapport tirait des extrema de douze cellules
+non comparables, puis les présentait comme un solde. À 500 tokens, « gagne
+nettement plus qu'elle ne perd (8 contre 2) » opposait *jeu dur / semantic / k=3*
+à *jeu facile / semantic / k=5* ; à 440, « échange 4 contre 4 » opposait le
+sémantique à BM25 — rien n'était échangé. Trois changements y répondent : le
+seuil de signification est désormais **fixé à trois questions et déclaré dans le
+rapport** (la barre du rapport de sensibilité au corpus, qui la déclarait déjà
+avant de mesurer, là où le générateur tranchait à deux après coup) ; chaque
+chiffre **nomme sa configuration** ; et une ligne de **dispersion** donne la somme
+des écarts et le décompte des cellules gagnantes et perdantes. Résultat, à
+500 tokens : « améliore la recherche — au mieux 8 questions (jeu dur, semantic,
+k=3), aucune perte n'atteignant le seuil », avec +18 questions sur douze cellules,
+huit gagnantes, trois perdantes. À 440 : « gagne et perd selon la configuration »,
+les deux extrema nommés.
+
+**Les puces du verdict ne racontent plus une histoire indépendante du signe.** « Ce
+qu'elle casse » était codé en dur sur le pire écart du *jeu facile*, quel qu'en
+soit le signe : à 440 tokens ce pire écart valait zéro, et le rapport expliquait
+donc une perte inexistante tout en reléguant la perte réelle — BM25, jeu dur,
+−4 questions — à la puce suivante. Les deux puces sont maintenant conditionnelles
+au signe, la perte est choisie sur **les deux jeux**, et son explication suit la
+**méthode** concernée : le déplacement du vecteur pour le sémantique, et pour BM25
+l'hypothèse de l'effondrement de l'IDF des termes de titre — celle que l'annexe de
+la revue proposait pour la « sensibilité au budget de découpage » restée à
+comprendre. Enfin, les tables par question sont produites **à chaque valeur de k**
+et non plus au seul k=5 : le chiffre de tête se lit à k=3, et aucun document ne
+disait de quelles huit questions il s'agissait.
+
+**Problème → solution : un garde-fou qui ne pouvait pas se déclencher.**
+`MAX_DOC_CHARS = 60 000` (~14k tokens) devait prévenir la troncature silencieuse
+d'un document trop long pour la fenêtre du backend. Le plus long document du
+corpus fait 40 144 caractères pour 9 587 tokens : le seuil était inatteignable.
+Pendant ce temps, la commande proposée par le README tourne par défaut sur Ollama
+à `num_ctx=8192`, où ce document serait coupé sans un mot. Les backends publient
+désormais leur fenêtre réelle (`context_window`), et le budget en caractères en
+est **dérivé** : 8192 tokens donnent environ 24 500 caractères, donc l'avertissement
+se déclenche là où il devait le faire. Un test fixe la propriété par les deux
+bouts — le document de 40 144 caractères doit dépasser le budget local et tenir
+dans celui de l'API.
+
+**Problème → solution : la précaution centrale n'était pas testable.**
+`RawTextRetriever` et la restauration du texte d'origine avant comptage portent la
+validité de toute l'expérience — sans elles, une phrase de contexte citant un
+mot-clé attendu fabrique une réussite de recherche. Elles vivaient dans un script
+de `eval/`, que nul test n'atteint, tandis que la moitié ingestion était couverte
+trois fois. Elles rejoignent `evaluation.py` et sont couvertes par huit cas, dont
+la propriété elle-même énoncée comme une assertion exécutable : sur un fragment
+dont seul le contexte mentionne « césure », le comptage naïf réussit et le
+comptage strict échoue. Une régression inverserait désormais un test au lieu
+d'inverser silencieusement les conclusions publiées.
+
+**Un défaut de cache vérifié, et une option qui ne servait à rien.** La lecture de
+`record["context"]` était placée hors du `try` censé garantir qu'« une dernière
+ligne tronquée ne fait pas perdre tout le cache » : un enregistrement JSON valide
+mais privé de cette clé faisait échouer le chargement entier. Corrigé, avec le
+test correspondant. Par ailleurs l'aide de `--max-tokens` annonçait
+`CHUNK_MAX_TOKENS` depuis l'origine, alors qu'aucun chemin de production ne lisait
+`settings.chunk_max_tokens` — poser la variable dans `.env` n'avait **aucun
+effet**. Elle est maintenant branchée comme défaut réel, le drapeau gardant la
+priorité.
+
+**Ce que je n'ai pas fait, et pourquoi.** Le plafond de vingt-cinq mots du prompt,
+violé par 48 % des contextes, n'est **pas** imposé par troncature. Couper une
+phrase nominale en son milieu l'abîmerait, et modifierait silencieusement des
+contextes déjà mesurés et publiés — j'aurais échangé un défaut invisible contre un
+autre. Le dépassement est compté, porté par le rapport de lot et affiché par la
+commande. C'est la moitié de la recommandation, assumée : rendre l'écart visible
+plutôt que le résorber en abîmant la donnée.
+
+**Ce que ça vaut.** Sur les dix-neuf constats, deux classes se dégagent. Les
+défauts de *récit* — un verdict codé en dur, des extrema présentés comme un solde,
+un chiffre de tête non traçable — venaient tous du même endroit : un générateur qui
+sait produire une phrase mais pas vérifier qu'elle décrit ses propres chiffres. Les
+défauts de *garde-fou* — le seuil de troncature inatteignable, le plafond de mots
+non contrôlé, l'option jamais lue, le `try` mal placé — ont en commun d'avoir été
+écrits comme des protections et de n'en être plus que la trace : un commentaire
+promettait, le code ne tenait pas. Aucun des deux groupes n'a jamais fait échouer
+quoi que ce soit, et c'est précisément pourquoi ils ont survécu à quatorze commits.
+
+**Reste à faire.** `corpus/contexts.jsonl` est exclu de git — hygiène correcte pour
+une donnée dérivée — alors qu'il est aujourd'hui le seul chemin de reproduction des
+deux rapports, les collections d'origine ayant disparu. Sur ce poste la reprise ne
+coûte rien ; sur un clone neuf elle suppose de repayer environ 316 appels.
+Versionner 143 Ko lèverait l'obstacle au prix d'une exception à la règle. Arbitrage
+documenté dans `docs/mesures.md`, non tranché. Restent par ailleurs, côté
+AnythingLLM, l'absence d'accord inter-juges mesurable et la performance du produit
+correctement configuré.

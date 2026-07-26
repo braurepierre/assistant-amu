@@ -36,7 +36,21 @@ def _add_chunking(parser: argparse.ArgumentParser) -> None:
 
 
 def _chunking(args: argparse.Namespace) -> dict:
-    return {"max_tokens": args.max_tokens} if getattr(args, "max_tokens", None) else {}
+    """Resolve the chunk budget: the flag, else the settings.
+
+    The help above has always announced CHUNK_MAX_TOKENS, but nothing read
+    ``settings.chunk_max_tokens`` — the real default was the literal in
+    ``chunk.py``, so setting the variable in ``.env`` had no effect whatsoever.
+    Reading the settings here is what makes the announced behaviour true.
+    """
+    from ..config import get_settings
+
+    settings = get_settings()
+    override = getattr(args, "max_tokens", None)
+    return {
+        "max_tokens": override or settings.chunk_max_tokens,
+        "overlap": settings.chunk_overlap,
+    }
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
@@ -89,10 +103,16 @@ def cmd_contextualize(args: argparse.Namespace) -> int:
     from ..config import get_settings
     from ..generation.llm import build_backend
     from ..retrieval.vector_store import VectorStore
-    from .contextualize import MAX_DOC_CHARS, ContextCache, contextual_collection_name
+    from .contextualize import (
+        MAX_CONTEXT_WORDS,
+        ContextCache,
+        contextual_collection_name,
+        document_char_budget,
+    )
 
     settings = get_settings()
     backend = build_backend(settings)
+    budget = document_char_budget(backend)
     report = ingest_corpus(load_sources(args.sources), raw_dir=args.raw_dir, **_chunking(args))
     chunks = report.chunks[: args.limit] if args.limit else report.chunks
     print(report.summary())
@@ -105,7 +125,17 @@ def cmd_contextualize(args: argparse.Namespace) -> int:
     )
     print(ctx_report.summary())
     for title in ctx_report.truncated_docs:
-        print(f"  ! document truncated to {MAX_DOC_CHARS} chars (raise the backend window): {title}")
+        print(
+            f"  ! document truncated to {budget} chars — it does not fit the window of "
+            f"{backend.name} (raise it, or switch to LLM_BACKEND=mistral): {title}"
+        )
+    if ctx_report.over_word_limit:
+        longest = max(words for _, words in ctx_report.over_word_limit)
+        print(
+            f"  ! {len(ctx_report.over_word_limit)}/{ctx_report.total} contexts exceed the "
+            f"{MAX_CONTEXT_WORDS}-word ceiling of the prompt (longest: {longest} words). "
+            "Not truncated: the excess is reported, never silently absorbed."
+        )
     for chunk_id, reason in ctx_report.failed[:5]:
         print(f"  ! failed {chunk_id}: {reason}")
 

@@ -1,5 +1,25 @@
 # Revue du lot « Contextual Retrieval » — 2026-07-26
 
+> **Traitée le 2026-07-27.** Les dix-neuf constats ont été corrigés. Ce document
+> garde son texte d'origine — c'est un état des lieux daté — et signale ici les
+> deux points où le correctif appliqué s'écarte de celui qui était proposé :
+>
+> - **Constat 7 (plafond de 25 mots).** Les contextes ne sont **pas** tronqués.
+>   Couper une phrase nominale en son milieu l'abîmerait, et modifierait
+>   silencieusement des contextes déjà mesurés et publiés. Le dépassement est
+>   compté, remonté par le rapport de lot et affiché par la commande : l'écart
+>   entre l'instruction et ce que le modèle produit devient visible au lieu
+>   d'être absorbé.
+> - **Constat 1.** Déjà corrigé le 2026-07-27 au cours de l'allègement du README,
+>   avant l'ouverture de ce lot.
+>
+> S'y ajoute un constat postérieur à la revue : `corpus/contexts.jsonl` est exclu
+> de git — ce que la section « Ce qui tient » relève comme correct — alors que
+> les « Réserves de méthode » établissent qu'il est désormais le seul chemin de
+> reproduction des deux rapports. Les deux sont vrais ; ensemble, ils signifient
+> qu'un tiers ne peut pas rejouer les mesures. L'arbitrage est documenté dans
+> `docs/mesures.md` et laissé ouvert.
+
 Revue de cohérence du lot poussé entre `ea2c747` et `86a34a5` (14 commits,
 30 fichiers, +3 232 lignes). Aucun fichier du dépôt n'a été modifié au cours de
 cette revue.

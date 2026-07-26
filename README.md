@@ -166,7 +166,7 @@ Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équ
 Quatre études complètent cette référence :
 
 * **Modèles d'embeddings** — `e5-small` devance nettement CamemBERT et FlauBERT à k = 3 et k = 5 (+16 et +10 points sur le premier), pour une empreinte mémoire deux fois moindre. Aucune bascule n'est justifiée. Ce résultat **corrige une lecture antérieure** établie sur 16 questions.
-* **Contextual Retrieval** (§5.3.1 du PRD) — la contextualisation de l'index gagne nettement plus qu'elle ne perd : 8 questions gagnées sur les formulations conversationnelles contre 2 perdues sur les formulations définitionnelles, et la fusion RRF n'y perd rien. Subsiste une sensibilité de BM25 au budget de découpage, à comprendre avant de généraliser la méthode.
+* **Contextual Retrieval** (§5.3.1 du PRD) — la contextualisation de l'index améliore la recherche : au mieux 8 questions gagnées sur les formulations conversationnelles (sémantique, k=3), pour une pire perte de 2 questions qui reste sous le seuil de signification. Somme des écarts sur les douze cellules mesurées : +18 questions. Subsiste une sensibilité de BM25 au budget de découpage, à comprendre avant de généraliser la méthode.
 * **Sensibilité à la taille du corpus** — un corpus élargi de 18 à 28 documents ne coûte **aucune question** au sémantique ni à BM25. La RRF est la seule méthode à céder, ce qui oppose un contrepoids à son avance mesurée à k = 8.
 * **Latence et refus** — ~3,0 s par requête sur l'API Mistral ; **100 % des requêtes hors-corpus rejetées** sur les deux backends. L'inférence locale sur CPU reste lente par nature (repli documenté `num_ctx=4096`, `k ≤ 5`).
 

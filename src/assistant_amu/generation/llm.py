@@ -65,6 +65,10 @@ class OllamaBackend:
         client: httpx.Client | None = None,
     ):
         self.name = f"ollama/{model}"
+        # Published so callers can size their input to the window the backend
+        # ACTUALLY allocates: Ollama truncates to num_ctx without an error, so a
+        # guard expressed in characters cannot protect against it (piège n°3).
+        self.context_window = int(num_ctx)
         self._base_url = base_url.rstrip("/")
         self._model = model
         self._num_ctx = num_ctx
@@ -108,6 +112,10 @@ class MistralBackend:
 
     _URL = "https://api.mistral.ai/v1/chat/completions"
     _MODELS_URL = "https://api.mistral.ai/v1/models"
+    # The small/medium family serves a 128k window. Announced rather than probed:
+    # the API exposes no per-model window, and the value is only used to size
+    # inputs conservatively — never to promise a capacity.
+    CONTEXT_WINDOW = 128_000
 
     def __init__(
         self,
@@ -119,6 +127,7 @@ class MistralBackend:
         client: httpx.Client | None = None,
     ):
         self.name = f"mistral/{model}"
+        self.context_window = self.CONTEXT_WINDOW
         self._api_key = api_key
         self._model = model
         self._timeout_s = timeout_s

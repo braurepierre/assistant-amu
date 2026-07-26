@@ -67,7 +67,7 @@ viennent l'enrichir.
 > Il ne sert pas à répondre : il produit, à l'indexation, la phrase qui situe
 > chaque fragment dans son document. `PROMPT_VERSION` dans
 > `ingestion/contextualize.py` suit ces versions — le cache disque est indexé
-> dessus, si bien qu'une itération du prompte invalide les contextes obtenus
+> dessus, si bien qu'une itération du prompt invalide les contextes obtenus
 > avec la précédente au lieu de les mélanger.
 
 ### v2 — 2026-07-26 — phrase nominale imposée + interdiction des formules d'auto-description

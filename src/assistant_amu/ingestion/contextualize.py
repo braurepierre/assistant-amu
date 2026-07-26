@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Iterable
 
+from .. import backoff
 from ..config import PROJECT_ROOT
 from ..models import Chunk, Document
 
@@ -47,10 +48,30 @@ CACHE_PATH = PROJECT_ROOT / "corpus" / "contexts.jsonl"
 # an older version are ignored rather than silently mixed with new ones.
 PROMPT_VERSION = 2
 
-# Guard rather than a real limit: the largest corpus document is ~10k tokens, so
-# nothing is truncated in practice with an API backend. A local backend at
-# num_ctx=8192 would silently drop the document tail instead — hence the warning.
+# Fallback only, for a backend that does not publish its window. A guard fixed in
+# characters cannot do the job it was written for: at 60 000 characters (~14k
+# tokens) it could never fire on this corpus, whose largest document is 40 144
+# characters for 9 587 tokens — while a local backend at num_ctx=8192 would drop
+# that document's tail without a word. The budget is therefore derived from the
+# backend's real window (see :func:`document_char_budget`).
 MAX_DOC_CHARS = 60_000
+
+# French administrative prose runs ~3.5 characters per token with the Mistral and
+# Llama tokenizers. Deliberately low: underestimating the ratio shrinks the
+# budget, which errs towards warning too often rather than too late.
+CHARS_PER_TOKEN = 3.5
+
+# Head-room left inside the window for the system prompt, the chunk being
+# situated, the template and the generated sentence.
+RESERVED_TOKENS = 1_200
+
+# The prompt asks for at most 25 words (prompts/context_system.md). The model
+# does not reliably obey — 48 % of the 433 cached contexts exceed it, up to 45
+# words. Contexts are NOT truncated here: cutting a nominal sentence mid-way
+# would damage it, and would silently change contexts already measured and
+# published. The overrun is counted and reported instead, so the gap between the
+# instruction and what the model does is visible rather than absorbed.
+MAX_CONTEXT_WORDS = 25
 
 # The system prompt lives in prompts/ like the RAG and condensation ones, and its
 # iterations are logged in prompts/CHANGELOG.md (PRD §11.10).
@@ -68,11 +89,26 @@ Situe l'extrait suivant dans ce document :
 {chunk}
 </extrait>"""
 
-# Retried causes: a 316-call batch will meet the API rate limit sooner or later.
-# This is batch-level resilience, deliberately kept out of the LLM abstraction,
-# which stays "no elaborate retry" per PRD §7.4.
-RETRY_CAUSES = ("quota", "timeout", "connection")
-RETRY_DELAYS = (2.0, 5.0, 15.0)
+# Batch-level resilience now lives in assistant_amu.backoff, shared with the
+# rewriting experiment (the two copies had drifted to different delays, and only
+# this one was testable). Re-exported: callers and tests referred to these names.
+RETRY_CAUSES = backoff.RETRY_CAUSES
+RETRY_DELAYS = backoff.RETRY_DELAYS
+
+
+def document_char_budget(backend: "LLMBackend") -> int:
+    """Character budget for the document, derived from the backend's real window.
+
+    A backend that publishes no window falls back to :data:`MAX_DOC_CHARS`.
+    """
+    window = int(getattr(backend, "context_window", 0) or 0)
+    if window <= 0:
+        return MAX_DOC_CHARS
+    return int(max(window - RESERVED_TOKENS, 0) * CHARS_PER_TOKEN)
+
+
+def count_words(context: str) -> int:
+    return len(context.split())
 
 
 @dataclass
@@ -83,16 +119,24 @@ class ContextReport:
     cached: int = 0
     failed: list[tuple[str, str]] = field(default_factory=list)  # (chunk_id, reason)
     truncated_docs: list[str] = field(default_factory=list)
+    over_word_limit: list[tuple[str, int]] = field(default_factory=list)  # (chunk_id, words)
 
     @property
     def total(self) -> int:
         return self.generated + self.cached + len(self.failed)
 
     def summary(self) -> str:
-        return (
+        line = (
             f"contexts: {self.generated} generated | {self.cached} from cache | "
             f"{len(self.failed)} failed (chunk kept as-is)"
         )
+        if self.over_word_limit:
+            longest = max(words for _, words in self.over_word_limit)
+            line += (
+                f" | {len(self.over_word_limit)}/{self.total} over the "
+                f"{MAX_CONTEXT_WORDS}-word prompt ceiling (longest: {longest})"
+            )
+        return line
 
 
 def context_key(chunk: Chunk) -> str:
@@ -130,9 +174,13 @@ class ContextCache:
                 # Records without "key" predate content addressing: ignored rather
                 # than trusted, since their key said nothing about their text.
                 key = (record["key"], record["model"], int(record["prompt_version"]))
+                # Read INSIDE the try: a record carrying every key but "context"
+                # used to raise here and lose the entire cache, defeating the
+                # guarantee the comment below states.
+                context = record["context"]
             except (json.JSONDecodeError, KeyError, TypeError, ValueError):
-                continue  # a truncated last line must not lose the whole cache
-            self._entries[key] = record["context"]
+                continue  # one damaged line must not lose the whole cache
+            self._entries[key] = context
 
     def get(self, key: str, model: str) -> str | None:
         return self._entries.get((key, model, PROMPT_VERSION))
@@ -205,18 +253,10 @@ def generate_context(
     sleep: Callable[[float], None] = time.sleep,
 ) -> str:
     """Generate one situating sentence, retrying transient backend failures."""
-    from ..generation.llm import LLMBackendError  # local import: avoids a cycle
-
     user = build_user_prompt(document, chunk_text, title)
-    for attempt, delay in enumerate((*RETRY_DELAYS, None)):
-        try:
-            return clean_context(backend.generate(CONTEXT_SYSTEM, user))
-        except LLMBackendError as exc:
-            if delay is None or exc.cause not in RETRY_CAUSES:
-                raise
-            print(f"    ! {exc.cause} — retry {attempt + 1}/{len(RETRY_DELAYS)} in {delay:g}s")
-            sleep(delay)
-    return ""  # unreachable: the last iteration either returns or raises
+    return backoff.with_retry(
+        lambda: clean_context(backend.generate(CONTEXT_SYSTEM, user)), sleep=sleep
+    )
 
 
 def contextualize_chunks(
@@ -225,7 +265,7 @@ def contextualize_chunks(
     backend: "LLMBackend",
     *,
     cache: ContextCache | None = None,
-    max_doc_chars: int = MAX_DOC_CHARS,
+    max_doc_chars: int | None = None,
     progress: Callable[[str], None] = print,
     sleep: Callable[[float], None] = time.sleep,
 ) -> tuple[list[Chunk], ContextReport]:
@@ -234,48 +274,63 @@ def contextualize_chunks(
     A chunk whose generation fails is kept **unchanged** rather than dropped, and
     counted in the report: a partial outage degrades the index visibly instead of
     silently shipping a half-contextual collection.
+
+    ``max_doc_chars`` defaults to the budget the *backend's own window* allows, so
+    the truncation warning can actually fire on a local backend — which is what it
+    was written for.
     """
     from ..generation.llm import LLMBackendError
 
     cache = cache if cache is not None else ContextCache()
-    texts = _document_texts(documents, max_doc_chars)
+    budget = document_char_budget(backend) if max_doc_chars is None else max_doc_chars
+    texts = _document_texts(documents, budget)
     report = ContextReport(
         truncated_docs=sorted(title for title, was_cut, _ in texts.values() if was_cut)
     )
     model = getattr(backend, "name", "unknown")
 
-    out: list[Chunk] = []
-    chunks = list(chunks)
-    for index, chunk in enumerate(chunks, start=1):
+    def note_length(chunk_id: str, context: str) -> None:
+        words = count_words(context)
+        if words > MAX_CONTEXT_WORDS:
+            report.over_word_limit.append((chunk_id, words))
+
+    def situate(chunk: Chunk) -> Chunk:
+        """Contextualise one chunk, recording its outcome in the report."""
         key = context_key(chunk)
         context = cache.get(key, model)
         if context is not None:
             report.cached += 1
-            out.append(contextualized_chunk(chunk, context))
-            continue
+            note_length(chunk.chunk_id, context)
+            return contextualized_chunk(chunk, context)
 
         entry = texts.get(chunk.doc_id)
         if entry is None:  # chunk from a document not in the batch: nothing to situate it in
             report.failed.append((chunk.chunk_id, "document text unavailable"))
-            out.append(chunk)
-            continue
+            return chunk
 
         title = str(chunk.metadata.get("source_title", entry[0]))
         try:
             context = generate_context(backend, entry[2], chunk.text, title, sleep=sleep)
         except LLMBackendError as exc:
             report.failed.append((chunk.chunk_id, f"{exc.cause}: {exc}"))
-            out.append(chunk)
-            continue
+            return chunk
 
         if not context:
             report.failed.append((chunk.chunk_id, "empty context returned"))
-            out.append(chunk)
-            continue
+            return chunk
 
         cache.put(key, chunk.chunk_id, chunk.doc_id, model, context)
         report.generated += 1
-        out.append(contextualized_chunk(chunk, context))
+        note_length(chunk.chunk_id, context)
+        return contextualized_chunk(chunk, context)
+
+    out: list[Chunk] = []
+    chunks = list(chunks)
+    for index, chunk in enumerate(chunks, start=1):
+        out.append(situate(chunk))
+        # Reporting lives OUTSIDE the per-chunk branches. Placed inside the
+        # generation one, a fully cached batch printed nothing at all, and the
+        # closing line never fired when the last chunk came from the cache.
         if index % 20 == 0 or index == len(chunks):
             progress(f"    {index}/{len(chunks)} chunks — {report.summary()}")
 

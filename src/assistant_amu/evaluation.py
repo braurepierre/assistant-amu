@@ -11,7 +11,7 @@ Terminology follows RAGAS: recall@k is a proxy for *context recall*; the manual
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Protocol
 
@@ -95,6 +95,41 @@ class RrfRetriever:
         lexical_ids = [c.chunk_id for c in self._lexical.rank(question, self._fuse_depth)]
         fused = reciprocal_rank_fusion([semantic_ids, lexical_ids])
         return [self._lookup[cid] for cid in fused[:depth] if cid in self._lookup]
+
+
+# --- Strict counting over a contextualised index --------------------------
+#
+# These two live here, and not in the experiment script, because they carry the
+# validity of the Contextual Retrieval measurement: retrieval runs on the
+# contextualised text, but the hit condition must be evaluated on the ORIGINAL
+# one, or a generated context quoting an expected keyword manufactures a hit.
+# In the experiment script no test could reach them — a regression there would
+# have silently inverted the published conclusions.
+
+def with_raw_text(chunk: RetrievedChunk) -> RetrievedChunk:
+    """Restore a chunk's pre-contextualisation text, when one was preserved.
+
+    A chunk without ``metadata["text_raw"]`` — anything from a baseline, or a
+    chunk whose contextualisation failed and was kept as-is — is returned
+    unchanged, so a mixed collection degrades to the honest reading rather than
+    raising.
+    """
+    raw = chunk.metadata.get("text_raw")
+    return chunk if not raw else replace(chunk, text=str(raw))
+
+
+class RawTextRetriever:
+    """Delegate ranking, then restore each chunk's pre-contextualisation text.
+
+    Ranking quality is the contextual index's — that is the whole point of the
+    experiment; only what the hit condition reads is swapped back.
+    """
+
+    def __init__(self, inner: Retriever):
+        self._inner = inner
+
+    def rank(self, question: str, depth: int) -> list[RetrievedChunk]:
+        return [with_raw_text(c) for c in self._inner.rank(question, depth)]
 
 
 # --- Retrieval evaluation -------------------------------------------------

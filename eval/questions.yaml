@@ -1,9 +1,20 @@
 # eval/questions.yaml — annotated single-turn evaluation set (PRD §7.6).
 #
-# First draft written from the real corpus (2026-07-23), to refine together.
+# Written from the real corpus (2026-07-23, 20 questions), then extended to 60 —
+# of which 50 answerable and 4 deliberately out-of-corpus — on 2026-07-26. Every
+# annotation is checked by program: each `expected_source` must resolve to exactly
+# one indexed title, and each `expected_keywords` set must be satisfiable by at
+# least one chunk of that document.
+#
 # Mixes both retrieval regimes: exact acronyms/terms (CVEC, M3C, RSE, BCC) and
 # paraphrase. `expected_source` is matched as a case-insensitive substring of the
 # chunk's source title; `expected_keywords` must all appear in the matching chunk.
+#
+# Declared exception: q10's `expected_source` "M3C" is a substring of three
+# indexed titles — "ALLSH — Modalités de contrôle des connaissances et des
+# compétences (M3C)", "ALLSH — Cadrage M3C Licence et DEUST 2025-2026" and
+# "ALLSH — Cadrage M3C Master 2025-2026". Same kind of exception as h04 and h21
+# in hard_questions.yaml, kept because each of the three carries the answer.
 # Omit `expected_source` for pure-keyword (acronym) questions.
 
 questions:
