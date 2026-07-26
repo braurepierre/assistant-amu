@@ -284,12 +284,13 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <a href="#s4" data-sec="s4">04 · Évaluation</a>
     <a href="#s5" data-sec="s5">05 · Réécriture de requête</a>
     <a href="#s6" data-sec="s6">06 · Comparaison des encodeurs</a>
+    <a href="#s7" data-sec="s7">07 · Contextualisation des fragments</a>
     <div class="grp">Ingénierie</div>
-    <a href="#s7" data-sec="s7">07 · Backends et contraintes</a>
-    <a href="#s8" data-sec="s8">08 · Conversation multi-tour</a>
-    <a href="#s9" data-sec="s9">09 · Pile logicielle</a>
+    <a href="#s8" data-sec="s8">08 · Backends et contraintes</a>
+    <a href="#s9" data-sec="s9">09 · Conversation multi-tour</a>
+    <a href="#s10" data-sec="s10">10 · Pile logicielle</a>
     <div class="grp">Référence</div>
-    <a href="#s10" data-sec="s10">10 · Glossaire</a>
+    <a href="#s11" data-sec="s11">11 · Glossaire</a>
   </nav>
 </aside>
 <div id="sideOverlay"></div>
@@ -449,7 +450,36 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </section>
 
 <section id="s7">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Backends d'inférence et contraintes techniques neutralisées</h2></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Contextualisation des fragments <span class="tag">contextualize.py · mesurée</span></h2></div>
+  <p class="lead">Un fragment isolé est souvent muet. « L'article 12 précise que la demande doit être déposée avant le 31 mars » ne nomme ni le règlement dont il provient, ni son sujet : aucune question portant sur la césure ne peut le retrouver. La méthode consiste à préfixer chaque fragment d'une phrase, produite par le modèle de langage, qui le situe dans son document — <b>avant</b> l'encodage et avant l'indexation lexicale. Elle est construite dans une collection parallèle : le pipeline <span class="mono">/ask</span> n'est pas modifié.</p>
+  <div class="card">
+    <div class="reform-out">
+      <div class="box"><div class="lb">Fragment indexé tel quel</div><div class="tx">Les usagers doivent adopter un comportement respectueux des autres personnes ainsi que des locaux et matériels mis à leur disposition.</div></div>
+      <div class="ar">→</div>
+      <div class="box after"><div class="lb">Fragment précédé de son contexte</div><div class="tx"><b>Charte des étudiants et stagiaires d'AMU, partie « Engagement de l'usager signataire » : respect des personnes et lutte contre le harcèlement et le bizutage.</b> Les usagers doivent adopter un comportement respectueux…</div></div>
+    </div>
+    <p class="hint" style="margin-top:12px">Une phrase de <span data-stat="contextual.context_words">25</span> mots en moyenne, produite document par document et conservée dans un cache adressé par le contenu du fragment.</p>
+  </div>
+
+  <table class="cmp" style="margin-top:16px">
+    <tr><th>Jeu de questions</th><th>Méthode</th><th>Référence</th><th>Index contextuel</th></tr>
+    <tr><td>Dur — formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,38</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,75</b></td></tr>
+    <tr><td>Facile — formulations définitionnelles (k=5)</td><td>sémantique</td><td><b data-stat="contextual.recall.easy_semantic5_base">0,94</b></td><td data-stat="contextual.recall.easy_semantic5_ctx">0,81</td></tr>
+  </table>
+  <p class="hint">La contextualisation <b>échange des réussites contre d'autres</b> : elle répare précisément le mode d'échec qu'elle vise — les formulations conversationnelles — et dégrade les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises.</p>
+
+  <div class="card" style="margin-top:16px">
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions, sans lesquelles ces chiffres ne vaudraient rien</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Ce sont elles, plus que le résultat, qui font l'intérêt de l'expérience.</p>
+    <p class="hint" style="margin-top:0"><b>Le comptage ne doit pas se donner raison tout seul.</b> L'évaluation exige la présence de mots-clés <em>dans le fragment récupéré</em>, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe : compter sur le texte contextualisé validerait « la phrase de contexte dit <em>césure</em> » comme une réussite de recherche. Le texte d'origine est donc conservé puis restauré après classement — le contexte sert à <b>trouver</b> le fragment, jamais à <b>prouver</b> qu'on l'a trouvé.</p>
+    <p class="hint"><b>Le préfixe consomme le budget de tokens.</b> Le découpage vise 500 tokens par fragment contre une fenêtre d'encodeur de 512 : <span data-stat="contextual.over_window">23</span> fragments sortaient de cette fenêtre après contextualisation, contre aucun avant, et l'encodeur les tronquait sans le signaler. L'expérience a donc été rejouée sur un corpus redécoupé à 440 tokens, où plus rien ne déborde : <b>les conclusions sont inchangées</b>. L'arbitrage tient à la méthode, non à la marge de découpage.</p>
+  </div>
+
+  <p class="hint"><b>Décision : <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée, documentée, puis laissée hors du pipeline. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : huit et seize questions ne sauraient les infirmer. Ce qui est établi ici, c'est que la méthode ne s'applique pas telle quelle à ce corpus. La piste subsistante consiste à ne contextualiser que les fragments réellement décontextualisés, plutôt que la totalité de l'index.</p>
+</section>
+
+<section id="s8">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Backends d'inférence et contraintes techniques neutralisées</h2></div>
   <p class="lead">Le système est <button class="term" data-term="backend">indépendant du modèle de langage</button> : le même code s'adresse à un modèle <b>local</b> ou à une <b>API</b>, la commutation s'effectuant par variable d'environnement. Trois contraintes silencieuses — identifiées puis neutralisées — expliquent pourquoi le pipeline ne fonctionnait initialement qu'en partie, sans qu'aucune erreur ne soit remontée.</p>
   <table class="cmp">
     <tr><th>Backend</th><th>Modèle</th><th>Latence par requête</th><th>Refus hors corpus</th></tr>
@@ -464,8 +494,8 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   <p class="hint">Les défaillances de backend (délai dépassé, connexion, authentification, quota) sont normalisées en <span class="mono">LLMBackendError</span> et traduites par l'API en réponse <b>503</b> ; aucune trace d'exécution n'est exposée à l'utilisateur.</p>
 </section>
 
-<section id="s8">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Version 2 : conversation multi‑tour par condensation</h2></div>
+<section id="s9">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Version 2 : conversation multi‑tour par condensation</h2></div>
   <p class="lead">Une question de suivi (« Et comment la demander ? ») est inexploitable isolément : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> la phase de recherche. L'endpoint <span class="mono">/prepare</span> expose cette reformulation afin d'en afficher un aperçu sous la question.</p>
   <div class="card">
     <div class="dlg">
@@ -488,8 +518,8 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   </div>
 </section>
 
-<section id="s9">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Pile logicielle du projet</h2></div>
+<section id="s10">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Pile logicielle du projet</h2></div>
   <p class="lead">De l'interface API jusqu'au socle d'exécution, chaque couche s'appuie sur la précédente. Cette représentation constitue la carte du dépôt.</p>
   <div class="card">
     <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> et la page de démonstration servie sur <span class="mono">/</span></span></div>
@@ -509,8 +539,8 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
   <p class="hint">Ce que LangChain n'abstrait <b>pas</b>, et qu'il faut implémenter dans tous les cas : la chaîne renvoie une simple chaîne de caractères, là où <span class="mono">/ask</span> doit produire un résultat structuré — sources citées, refus vidant les sources, erreur de backend traduite en <span class="mono">503</span>. Les préfixes <button class="term" data-term="e5">E5</button> restent par ailleurs à la charge du développeur, l'encodeur générique du framework ne les appliquant pas.</p>
 </section>
 
-<section id="s10">
-  <div class="sec-head"><span class="sec-num">10</span><h2>Glossaire complet</h2></div>
+<section id="s11">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Glossaire complet</h2></div>
   <p class="lead">L'ensemble des termes employés dans cette page. Chaque fiche sépare la <b>définition</b> du concept de sa <b>mise en œuvre</b> dans le projet, rattachée au(x) fichier(s) correspondant(s) du dépôt. Les entrées marquées <span class="mono" style="color:var(--coral);font-weight:600">ƒ</span> ouvrent un approfondissement mathématique : formule et exemple chiffré.</p>
   <div class="chips" id="chips"></div>
 </section>
@@ -565,7 +595,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 /* STATS:START */
 var STATS = {
   "updated": "2026-07-26",
-  "commit": "362954c",
+  "commit": "dd7c82b",
   "corpus": {
     "docs": 18,
     "chunks": 316
@@ -573,7 +603,7 @@ var STATS = {
   "eval_questions": 16,
   "k_default": 5,
   "embedding_model": "intfloat/multilingual-e5-small",
-  "tests": 119,
+  "tests": 142,
   "recall_at_5": {
     "semantic": 0.94,
     "bm25": 0.81,
@@ -625,6 +655,16 @@ var STATS = {
   "rewrite_hard_recall5": {
     "raw": 0.62,
     "strip": 0.88
+  },
+  "contextual": {
+    "context_words": 25,
+    "over_window": 23,
+    "recall": {
+      "hard_semantic3_base": 0.38,
+      "hard_semantic3_ctx": 0.75,
+      "easy_semantic5_base": 0.94,
+      "easy_semantic5_ctx": 0.81
+    }
   },
   "conversation": {
     "scenarios": 3,
@@ -1121,7 +1161,7 @@ function dateFr(iso){
   return (j===1?'1er':j)+' '+MOIS[parseInt(m[2],10)-1]+' '+m[1];
 }
 /* Chemins STATS portant un score : toujours deux décimales (0,94 · 1,00). */
-var SCORE_PATH=/^(recall_at_5\.|recall_curve\.|embedders\.|rewrite_hard_recall5\.|langchain_parity\.overlap$)/;
+var SCORE_PATH=/^(recall_at_5\.|recall_curve\.|embedders\.|rewrite_hard_recall5\.|contextual\.recall\.|langchain_parity\.overlap$)/;
 function fmtStat(v,path){
   if(typeof v==='number'){
     if(path&&SCORE_PATH.test(path))return fr(v,2);

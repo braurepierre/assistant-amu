@@ -411,3 +411,104 @@ est désormais renseignée dans `concepts.facts.yaml`, la page et le README.
 
 **Au passage.** `tests: 90` dans `concepts.facts.yaml` était périmé : `pytest -q`
 en compte **119**. Corrigé et régénéré.
+
+## 2026-07-26 — Conteneurisation et intégration continue : deux surprises de packaging
+
+**Fait.** L'image Docker et la CI GitHub Actions du §5.3.6 sont posées. L'image
+sert l'API par uvicorn, embarque le modèle d'embeddings et laisse l'index
+vectoriel dans un volume — il se régénère depuis le corpus, il n'a rien à faire
+dans une image. La CI lance `pytest` puis **construit l'image réelle** et
+interroge `/health` sur le conteneur démarré. Aucun secret n'est nécessaire : les
+tests moquent le backend, et `/health` rend 200 même sans index ni backend
+joignable, puisque c'est précisément leur état qu'il rapporte.
+
+**Problème → solution : le lock épingle une variante CUDA de torch.** `uv.lock`
+résout pour toutes les plateformes ; côté Linux, cela signifie la variante CUDA de
+torch et **16 roues `nvidia-*`/`triton`, soit environ 2,5 Go** — pour un projet
+dont toutes les latences documentées sont mesurées sur CPU. Trois options se
+présentaient : accepter l'image obèse, modifier `pyproject.toml` pour déclarer un
+index PyTorch dédié (ce qui reverrouille tout le projet pour un besoin
+d'empaquetage), ou retirer ces roues de l'export et installer la roue CPU de la
+**même version** depuis l'index PyTorch. La troisième a été retenue : l'épinglage
+du lock est conservé, la version de torch est extraite de l'export lui-même (elle
+ne peut donc pas diverger), et le contrat de dépendances du §6.1 n'est pas touché.
+
+**Problème → solution : installer le paquet aurait cassé la résolution des
+chemins.** `config.py` déduit la racine du projet de son propre emplacement
+(`parents[2]`). Installé dans `site-packages`, ce calcul désigne le répertoire de
+Python, et `prompts/`, `demo.html` et `corpus/` deviennent introuvables. L'image
+conserve donc l'arborescence des sources et la rend importable par `PYTHONPATH`,
+exactement comme `pythonpath = ["src"]` le fait pour pytest en local.
+
+**Ce que ça vaut — et sa limite.** Docker n'est pas installé sur la machine de
+développement : l'image n'a **pas** été construite localement. C'est la CI qui en
+fait foi, et c'est aussi pourquoi elle construit l'artefact réel, préchargement du
+modèle compris, plutôt qu'une variante allégée qui aurait été plus rapide sans
+rien prouver.
+
+**Au passage.** `docs/build_concepts.py --check` ne peut pas servir de garde-fou
+en CI en l'état : la page enregistre le SHA du commit courant, si bien qu'un
+commit touchant la page la rend aussitôt « périmée » vis-à-vis de HEAD. La CI se
+limite donc aux tests et à l'image. Rendre ce contrôle exploitable demanderait
+d'exclure `commit` et `updated` de la comparaison.
+
+## 2026-07-26 — Contextual Retrieval (§5.3.1) : un arbitrage, pas un gain
+
+**Fait.** La candidate n°1 du PRD est mesurée. Chaque fragment est préfixé d'une
+phrase générée par le LLM qui le situe dans son document — « Charte des étudiants
+et stagiaires d'AMU, partie « II. ENGAGEMENT DE L'USAGER SIGNATAIRE » : respect
+des personnes et lutte contre le harcèlement » — avant l'embedding **et**
+l'indexation BM25, dans une collection parallèle. 316 fragments, 316 contextes,
+25 mots en moyenne, environ 1,7 M tokens d'entrée sur `mistral-small-latest`.
+
+**Résultat : la méthode échange des réussites contre d'autres.** Elle répare
+exactement le mode d'échec qu'elle vise — les formulations conversationnelles en
+recherche sémantique, recall@3 du jeu « dur » **0,38 → 0,75** — et dégrade les
+formulations définitionnelles, recall@5 du jeu « facile » **0,94 → 0,81**. Le
+préfixe déplace le vecteur du fragment vers le sujet de son *document* : cela
+sert les questions vagues et dessert les questions précises. Sur BM25 le bilan
+est franchement négatif (jeu « dur » à k=5 : 1,00 → 0,88).
+
+**Problème → solution : la mesure était d'abord confondue avec une troncature.**
+Le découpage vise 500 tokens par fragment, préfixe `passage: ` compris, contre
+une fenêtre d'encodeur de 512 : douze tokens de marge, où un contexte de 25 mots
+n'entre pas. Mesure faite : **23 fragments (7 %) sortaient de la fenêtre après
+contextualisation, contre 0 avant** — l'encodeur les tronquait en silence, le
+contexte lu et la fin du fragment perdue. L'expérience a donc été rejouée sur un
+corpus redécoupé à 440 tokens, où plus aucun fragment ne déborde (le plus long
+atteint 475). **Les conclusions ne bougent pas** : l'arbitrage tient à la méthode,
+pas à la marge.
+
+**Problème → solution : le comptage risquait de se donner raison tout seul.** Le
+jeu « facile » exige la présence de mots-clés *dans le fragment récupéré*, et un
+contexte généré nomme presque toujours le sujet du fragment qu'il préfixe.
+Compter sur le texte contextualisé aurait validé « la phrase de contexte dit
+*césure* » comme une réussite de recherche — un gain gratuit, invisible dans les
+tableaux. Le texte d'origine est donc conservé (`metadata["text_raw"]`) et
+restauré après classement : le contexte sert à **trouver** le fragment, jamais à
+**prouver** qu'on l'a trouvé. Le rapport chiffre l'artefact ainsi évité : jusqu'à
+une question de recall créditée pour rien.
+
+**Problème → solution : le cache rejouait des contextes écrits pour d'autres
+textes.** Le cache disque était d'abord indexé sur `chunk_id`. Or `chunk_id` vaut
+`hash(doc_id, index)` — il désigne une **position**, pas un contenu. En
+redécoupant à 440 tokens, la première exécution a donc annoncé « 316 contextes
+depuis le cache » sur 332 fragments dont le texte avait pourtant changé : des
+contextes écrits pour d'autres portions, servis sans un mot. Détecté à ce compteur
+anormalement élevé. La clé est désormais l'adresse du contenu,
+`hash(doc_id, texte)` ; les entrées de l'ancien format sont ignorées plutôt que
+crues. Le second passage à 440 tokens a alors régénéré 117 fragments et n'en a
+rejoué que 215 — ceux dont le texte est réellement identique d'un découpage à
+l'autre, ce qui est le comportement attendu.
+
+**Ce que ça vaut.** Trois précautions valent ici plus que le chiffre lui-même :
+contrôler la troncature, refuser un comptage qui se donne raison, et ne pas faire
+confiance à une clé de cache qui ne parle pas du contenu. Les chiffres d'Anthropic
+(−49 % d'échecs) portent sur des corpus de plusieurs milliers de fragments : huit
+et seize questions ne les infirment pas. Ce qui est établi, c'est que sur **ce**
+corpus la méthode ne s'applique pas telle quelle. La suite naturelle serait de ne
+contextualiser que les fragments réellement décontextualisés — ceux dont le texte
+ne nomme ni son document ni son sujet — plutôt que tout l'index.
+
+**Décision.** `/ask` reste sur la collection de production, comme la RRF et la
+réécriture avant lui : mesuré, documenté, non branché.

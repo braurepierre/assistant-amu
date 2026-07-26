@@ -16,7 +16,7 @@ corpus:            # `python -m assistant_amu.ingestion stats`
   chunks: 316
 
 eval_questions: 16 # taille du jeu answerable (eval/questions.yaml)
-tests: 119         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-26)
+tests: 142         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-26)
 
 recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5)
   semantic: 0.94
@@ -37,6 +37,15 @@ embedders:         # eval/reports/*_embedder_comparison.md (recall sémantique)
 rewrite_hard_recall5:   # eval/reports/*_query_rewrite.md (jeu « dur », k=5)
   raw: 0.62
   strip: 0.88
+
+contextual:        # eval/reports/*_contextual_retrieval*.md (§5.3.1, mesure seule)
+  context_words: 25       # longueur moyenne de la phrase de contexte générée
+  over_window: 23         # fragments hors fenêtre 512 après contextualisation (découpage 500)
+  recall:                 # sous-clé `recall.` : formatée en score par la page
+    hard_semantic3_base: 0.38
+    hard_semantic3_ctx: 0.75
+    easy_semantic5_base: 0.94
+    easy_semantic5_ctx: 0.81
 
 conversation:      # eval/reports/*_conversation_k5.md (F12, V2 multi-tour)
   scenarios: 3

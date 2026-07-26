@@ -101,9 +101,28 @@ uvicorn assistant_amu.api.main:app --reload         # Documentation OpenAPI acce
 python eval/evaluate.py --mode retrieval --method all --k 5
 python eval/evaluate.py --mode end-to-end --k 5
 python eval/evaluate.py --mode retrieval --embedding-model dangvantuan/sentence-camembert-base
+
+# 5. Expérimentation Contextual Retrieval (index parallèle, mesure seule)
+python -m assistant_amu.ingestion contextualize --dry-run -n 3   # Inspection des contextes générés
+python -m assistant_amu.ingestion contextualize                  # Indexation dans la collection <prod>_ctx
+python eval/contextual_retrieval_experiment.py                   # Comparaison baseline / contextuel
 ```
 
 *Pour basculer d'un backend à l'autre, modifier la variable `LLM_BACKEND` (`mistral` ou `ollama`) dans le fichier `.env`.*
+
+### Exécution par conteneur
+
+```bash
+docker compose up --build          # http://127.0.0.1:8000/ · /docs · /health
+```
+
+L'image embarque les dépendances et le modèle d'embeddings ; l'index vectoriel réside dans un volume, dont l'alimentation requiert un corpus téléchargé :
+
+```bash
+docker compose run --rm api python -m assistant_amu.ingestion index
+```
+
+Le backend LLM n'est pas conteneurisé, conformément au §6.1 du PRD : renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut si une instance Ollama est active sur la machine hôte — le conteneur l'atteint par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
 
 ---
 
@@ -142,6 +161,26 @@ Mesures de rappel sémantique effectuées sur les mêmes 16 questions et les mê
 
 Les modèles e5 et CamemBERT présentent des performances **équivalentes en moyenne (0,92)** : CamemBERT atteint une couverture complète au rang 8, tandis que e5 offre la plus grande régularité pour une empreinte mémoire nettement inférieure. FlauBERT se situe en retrait, en particulier sur les sigles et les définitions (échecs sur les requêtes RSE et CVEC). Les écarts observés (1 à 2 questions, soit une granularité de 0,06) ne justifient pas de modifier le modèle d'embeddings de production. Le modèle *cased* `Lajavaness/sentence-flaubert-base` ne s'initialise pas sous `sentence-transformers` 5.6.1 (tokenizer Moses dépourvu de `basic_tokenizer`), d'où le recours à la variante *uncased*. Script d'évaluation : `eval/embedder_comparison.py` ; rapport daté dans `eval/reports/`.
 
+### Contextual Retrieval — index contextuel comparé à la référence
+
+Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d'une phrase générée par le LLM le situant dans son document (méthode Anthropic, septembre 2024 ; §5.3.1 du PRD). L'index correspondant est constitué dans une collection parallèle : le pipeline `/ask` n'est pas modifié. Mesures effectuées sur les deux jeux de questions, le jeu « dur » réunissant les formulations conversationnelles.
+
+| Jeu de questions | Méthode | Référence | Index contextuel |
+| :--- | :--- | :---: | :---: |
+| **Dur** (8 questions, k=3) | sémantique | 0,38 | **0,75** |
+| **Dur** (8 questions, k=5) | BM25 | **1,00** | 0,88 |
+| **Facile** (16 questions, k=5) | sémantique | **0,94** | 0,81 |
+| **Facile** (16 questions, k=5) | RRF | 0,88 | 0,88 |
+
+La contextualisation **échange des réussites contre d'autres** : elle répare précisément le mode d'échec qu'elle vise — les formulations conversationnelles en recherche sémantique — et dégrade les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
+
+Deux précautions déterminent la validité de ces chiffres :
+
+1. **Comptage strict.** Le jeu « facile » exige la présence de mots-clés dans le fragment récupéré, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe. Le texte d'origine est donc conservé et restauré après classement : le contexte sert à *trouver* le fragment, jamais à *prouver* la réussite. Le rapport chiffre l'artefact ainsi évité (jusqu'à une question de rappel).
+2. **Troncature contrôlée.** Le découpage vise 500 tokens contre une fenêtre d'encodeur de 512 : le préfixe faisait sortir 23 fragments (7 %) de cette fenêtre, tronqués sans avertissement. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où aucun fragment ne déborde — **les conclusions sont inchangées**.
+
+Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; huit et seize questions ne sauraient les infirmer. Ce qui est établi ici, c'est que la méthode ne s'applique pas telle quelle à ce corpus. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
+
 ### Performances d'inférence et latence
 
 *Mesures effectuées le 2026-07-23 sur le corpus de référence :*
@@ -162,11 +201,12 @@ Le taux de rejet du backend local a été mesuré le 2026-07-26 sur les quatre r
 Les choix d'implémentation suivants découlent des spécifications initiales (§3 du PRD) et constituent des décisions de périmètre assumées, non des omissions :
 
 * **Inclus :** architecture RAG complète, gestion des refus, traçabilité des citations, API REST, harnais d'évaluation.
-* **Exclus du périmètre V1 :** authentification, conteneurisation (Docker/CI), traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
+* **Exclus du périmètre V1 :** authentification, traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
+* **Ajouté après la V1 :** conteneurisation et intégration continue (§5.3.6), ainsi que l'expérimentation *Contextual Retrieval* (§5.3.1) — cette dernière sous forme d'index parallèle mesuré, sans modification du pipeline `/ask`.
 
 **Perspectives d'évolution (V2+) :**
 
-1. Intégration du *Contextual Retrieval* (indexation enrichie par le contexte global du document) — candidate prioritaire pour une version 2.1.
+1. *Contextual Retrieval* **mesuré** (voir ci-dessus) : la contextualisation systématique de l'index constitue un arbitrage défavorable sur ce corpus. La piste subsistante consiste à ne contextualiser que les fragments effectivement décontextualisés — ceux dont le texte ne nomme ni son document ni son sujet — plutôt que la totalité de l'index.
 2. Activation de la recherche hybride (sémantique + BM25 via RRF) au niveau du pipeline de production, sous réserve de validation par les mesures.
 3. Module de ré-ordonnancement (*reranking*) par cross-encoder.
 4. Automatisation du calcul des métriques RAGAS.

@@ -32,8 +32,18 @@ Deux façons de le mettre à jour :
 
    ```bash
    python docs/build_concepts.py           # réécrit le bloc STATS
-   python docs/build_concepts.py --check   # échoue si la page est périmée (CI)
+   python docs/build_concepts.py --check   # échoue si la page est périmée
    ```
+
+   > `--check` n'est pas exploitable tel quel en intégration continue : la page
+   > enregistre le SHA du commit courant, si bien qu'un commit touchant la page la
+   > rend aussitôt « périmée » vis-à-vis de HEAD. L'utiliser comme garde-fou
+   > demanderait d'exclure `commit` et `updated` de la comparaison.
+
+   Une valeur numérique s'affiche en score français (`0,94`) si son chemin figure
+   dans `SCORE_PATH` (dans la page) ; les entiers restent bruts. D'où la
+   convention : les scores d'une nouvelle rubrique vont sous une sous-clé
+   `recall:`, les décomptes restent à côté.
 
    Le script relit **`config.py`** pour `k`, le modèle d'embedding et les noms de
    modèles backend (jamais dupliqués : le code fait foi), prend la **date du jour**
