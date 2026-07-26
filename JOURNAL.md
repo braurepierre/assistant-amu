@@ -512,3 +512,52 @@ ne nomme ni son document ni son sujet — plutôt que tout l'index.
 
 **Décision.** `/ask` reste sur la collection de production, comme la RRF et la
 réécriture avant lui : mesuré, documenté, non branché.
+
+## 2026-07-26 — Le jeu « dur » passe de 8 à 25 questions, et une conclusion s'inverse
+
+**Fait.** `eval/hard_questions.yaml` compte désormais **25 formulations** au lieu de
+8. Chaque annotation a été vérifiée par programme avant d'être écrite : la
+sous-chaîne attendue résout vers exactement un des 18 titres indexés (sauf h04 et
+h21, qui acceptent délibérément les trois documents M3C d'ALLSH), et le document
+visé porte effectivement le sujet. Les questions n'ont **pas** été retouchées au vu
+des résultats — ajuster le banc à sa réponse le viderait de son sens.
+
+**Problème → solution : le jeu mesurait l'heuristique dans son propre miroir.** Les
+8 questions d'origine s'ouvraient toutes par une tournure que `strip` sait retirer
+(« Parle-moi de… », « Je voudrais des infos sur… »). Un jeu élargi avec les mêmes
+tournures aurait confirmé `strip` par construction. Le jeu comporte donc deux
+régimes explicites : les ouvertures que l'heuristique traite (h01-h14) et des
+formulations qu'elle **ne touche pas** — cadrage personnel (« Je suis en licence
+et… »), question indirecte (« ça marche comment ? »), préambule narratif
+(h15-h25). Le champ `regime` documente l'appartenance ; le harnais l'ignore.
+
+**Ce que ça change, chiffres à l'appui.** La réécriture `strip` recule, comme
+prévu : recall@3 du jeu dur **0,75 → 0,72** alors que la baseline monte de 0,38 à
+0,48 — son gain passe de +0,37 à +0,24. Surtout, **`llm` passe devant** (0,80 à
+k=3) : elle traite les tournures que l'expression régulière ne sait pas retirer.
+Elle reste écartée, mais pour une raison désormais chiffrée et non plus supposée —
+elle casse trois questions définitionnelles qui fonctionnaient (q01, q02, q03),
+n'est pas déterministe et coûte un appel par requête. `strip` demeure la meilleure
+stratégie **parmi celles qui ne coûtent aucune question**.
+
+**Une conclusion s'inverse.** Sur 8 questions, la contextualisation (§5.3.1)
+paraissait échanger 3 réussites contre 2 — un arbitrage équilibré, donc décevant.
+Sur 25, l'écart devient lisible : **+9 questions gagnées contre 2 perdues**
+(recall@3 du jeu dur 0,48 → 0,84), et le contrôle à 440 tokens confirme le sens
+(+6 contre 3). La méthode gagne nettement plus qu'elle ne perd. Ce n'est pas la
+mesure qui a changé, c'est sa résolution : à 8 questions, un cran valait 0,125 et
+l'écart se confondait avec le bruit.
+
+**Ce que ça vaut.** Un jeu d'évaluation trop petit ne se contente pas d'être
+imprécis — **il peut désigner la mauvaise conclusion**, et le faire avec l'aplomb
+d'un tableau chiffré. Les deux verdicts codés en dur dans les générateurs de
+rapport ont d'ailleurs dû être réécrits, car ils avaient été rédigés pour l'ancien
+résultat et le contredisaient une fois les nouveaux chiffres calculés : celui de la
+réécriture affirmait encore « `llm` écartée » dans le paragraphe même où le calcul
+la désignait gagnante. Les conclusions se déduisent maintenant des écarts, y
+compris leur rapport de grandeur.
+
+**Reste à faire.** Le jeu principal (16 questions définitionnelles) n'a pas bougé :
+sa granularité reste de 0,062, et c'est lui qui porte l'arbitrage e5/CamemBERT —
+lequel se joue sur **une** question à k=8. La question de l'encodeur restera donc
+indécidable tant que ce jeu-là n'aura pas été élargi à son tour.

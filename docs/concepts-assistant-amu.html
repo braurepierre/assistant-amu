@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     </div>
     <p class="hint" id="stripNote" style="margin-top:12px"></p>
   </div>
-  <p class="hint">Résultat mesuré sur un jeu de 8 formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,62</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence. La variante <span class="mono">llm</span> (réécriture confiée à Mistral) obtient un gain comparable mais paraphrase la question, requiert un appel supplémentaire et dégrade 2 questions simples : elle est écartée. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
+  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,68</span> → <span data-stat="rewrite_hard_recall5.strip">0,84</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence. La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,80 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — mais elle paraphrase la question et casse 3 questions définitionnelles qui fonctionnaient, en plus d'être non déterministe et de coûter un appel par requête. <span class="mono">strip</span> reste donc la stratégie retenue : la meilleure parmi celles qui ne coûtent aucune question. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
 </section>
 
 <section id="s6">
@@ -463,10 +463,10 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
   <table class="cmp" style="margin-top:16px">
     <tr><th>Jeu de questions</th><th>Méthode</th><th>Référence</th><th>Index contextuel</th></tr>
-    <tr><td>Dur — formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,38</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,75</b></td></tr>
-    <tr><td>Facile — formulations définitionnelles (k=5)</td><td>sémantique</td><td><b data-stat="contextual.recall.easy_semantic5_base">0,94</b></td><td data-stat="contextual.recall.easy_semantic5_ctx">0,81</td></tr>
+    <tr><td>Dur — <span data-stat="hard_questions">25</span> formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,48</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,84</b></td></tr>
+    <tr><td>Facile — <span data-stat="eval_questions">16</span> formulations définitionnelles (k=5)</td><td>sémantique</td><td><b data-stat="contextual.recall.easy_semantic5_base">0,94</b></td><td data-stat="contextual.recall.easy_semantic5_ctx">0,81</td></tr>
   </table>
-  <p class="hint">La contextualisation <b>échange des réussites contre d'autres</b> : elle répare précisément le mode d'échec qu'elle vise — les formulations conversationnelles — et dégrade les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises.</p>
+  <p class="hint">La contextualisation <b>gagne nettement plus qu'elle ne perd</b> : <b>9 questions</b> gagnées sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre <b>2 perdues</b> sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises. Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à <span data-stat="hard_questions">25</span> questions : sur 8, un cran valait 0,125, et l'écart se confondait avec le bruit.</p>
 
   <div class="card" style="margin-top:16px">
     <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions, sans lesquelles ces chiffres ne vaudraient rien</p>
@@ -475,7 +475,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <p class="hint"><b>Le préfixe consomme le budget de tokens.</b> Le découpage vise 500 tokens par fragment contre une fenêtre d'encodeur de 512 : <span data-stat="contextual.over_window">23</span> fragments sortaient de cette fenêtre après contextualisation, contre aucun avant, et l'encodeur les tronquait sans le signaler. L'expérience a donc été rejouée sur un corpus redécoupé à 440 tokens, où plus rien ne déborde : <b>les conclusions sont inchangées</b>. L'arbitrage tient à la méthode, non à la marge de découpage.</p>
   </div>
 
-  <p class="hint"><b>Décision : <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée, documentée, puis laissée hors du pipeline. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : huit et seize questions ne sauraient les infirmer. Ce qui est établi ici, c'est que la méthode ne s'applique pas telle quelle à ce corpus. La piste subsistante consiste à ne contextualiser que les fragments réellement décontextualisés, plutôt que la totalité de l'index.</p>
+  <p class="hint"><b>Décision : à ce stade, <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée et documentée avant d'être branchée. Reste à trancher, au vu du rapport entre questions gagnées et perdues, laquelle des deux populations le service doit servir en priorité — et si une contextualisation <em>sélective</em>, limitée aux fragments réellement décontextualisés, ne prendrait pas les deux. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : 25 et 16 questions ne sauraient les confirmer ni les infirmer.</p>
 </section>
 
 <section id="s8">
@@ -595,12 +595,13 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 /* STATS:START */
 var STATS = {
   "updated": "2026-07-26",
-  "commit": "dd7c82b",
+  "commit": "3baa13b",
   "corpus": {
     "docs": 18,
     "chunks": 316
   },
   "eval_questions": 16,
+  "hard_questions": 25,
   "k_default": 5,
   "embedding_model": "intfloat/multilingual-e5-small",
   "tests": 142,
@@ -653,15 +654,15 @@ var STATS = {
     }
   },
   "rewrite_hard_recall5": {
-    "raw": 0.62,
-    "strip": 0.88
+    "raw": 0.68,
+    "strip": 0.84
   },
   "contextual": {
     "context_words": 25,
     "over_window": 23,
     "recall": {
-      "hard_semantic3_base": 0.38,
-      "hard_semantic3_ctx": 0.75,
+      "hard_semantic3_base": 0.48,
+      "hard_semantic3_ctx": 0.84,
       "easy_semantic5_base": 0.94,
       "easy_semantic5_ctx": 0.81
     }

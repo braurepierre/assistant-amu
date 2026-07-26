@@ -90,6 +90,7 @@ def build_stats(today: str) -> dict:
         "commit": _git_short_sha(),
         "corpus": facts["corpus"],
         "eval_questions": facts["eval_questions"],
+        "hard_questions": facts["hard_questions"],
         "k_default": settings.top_k,
         "embedding_model": settings.embedding_model,
         "tests": facts["tests"],

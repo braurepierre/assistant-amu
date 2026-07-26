@@ -167,19 +167,21 @@ Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d
 
 | Jeu de questions | Méthode | Référence | Index contextuel |
 | :--- | :--- | :---: | :---: |
-| **Dur** (8 questions, k=3) | sémantique | 0,38 | **0,75** |
-| **Dur** (8 questions, k=5) | BM25 | **1,00** | 0,88 |
+| **Dur** (25 questions, k=3) | sémantique | 0,48 | **0,84** |
+| **Dur** (25 questions, k=5) | BM25 | **0,84** | 0,76 |
 | **Facile** (16 questions, k=5) | sémantique | **0,94** | 0,81 |
 | **Facile** (16 questions, k=5) | RRF | 0,88 | 0,88 |
 
-La contextualisation **échange des réussites contre d'autres** : elle répare précisément le mode d'échec qu'elle vise — les formulations conversationnelles en recherche sémantique — et dégrade les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
+La contextualisation **gagne nettement plus qu'elle ne perd** : **9 questions gagnées** sur les formulations conversationnelles — le mode d'échec qu'elle vise — contre **2 perdues** sur les formulations définitionnelles. Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui sert les requêtes vagues et dessert les requêtes précises.
+
+Ce rapport n'est devenu lisible qu'après avoir porté le jeu difficile de 8 à 25 questions : sur 8 questions, un cran valait 0,125 et l'écart se confondait avec le bruit de mesure. La même expérience, conduite sur le jeu réduit, concluait à un échange équilibré — un jeu d'évaluation trop petit ne se contente pas d'être imprécis, il peut désigner la mauvaise conclusion.
 
 Deux précautions déterminent la validité de ces chiffres :
 
 1. **Comptage strict.** Le jeu « facile » exige la présence de mots-clés dans le fragment récupéré, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe. Le texte d'origine est donc conservé et restauré après classement : le contexte sert à *trouver* le fragment, jamais à *prouver* la réussite. Le rapport chiffre l'artefact ainsi évité (jusqu'à une question de rappel).
 2. **Troncature contrôlée.** Le découpage vise 500 tokens contre une fenêtre d'encodeur de 512 : le préfixe faisait sortir 23 fragments (7 %) de cette fenêtre, tronqués sans avertissement. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où aucun fragment ne déborde — **les conclusions sont inchangées**.
 
-Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; huit et seize questions ne sauraient les infirmer. Ce qui est établi ici, c'est que la méthode ne s'applique pas telle quelle à ce corpus. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
+Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments ; 25 et 16 questions ne sauraient les confirmer ni les infirmer. Ce qui est établi ici, c'est le sens de l'arbitrage sur ce corpus. Reste à trancher laquelle des deux populations de requêtes `/ask` doit servir en priorité, et si une contextualisation *sélective* — limitée aux fragments réellement décontextualisés — ne prendrait pas les deux. Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
 
 ### Performances d'inférence et latence
 
