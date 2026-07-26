@@ -445,17 +445,29 @@ def _conclusion(hard_recall, easy_recall, easy_naive, n_hard, n_easy, window) ->
         easy_naive[k][f"ctx_{m}"] - easy_recall[k][f"ctx_{m}"] for m in METHODS for k in KS
     )
     # "Significant" = strictly more than one question, the granularity of each set.
-    gains = hb_q >= 2 or eb_q >= 2
-    losses = hw_q <= -2 or ew_q <= -2
-    verdict = (
-        "la contextualisation **échange** des réussites contre d'autres"
-        if gains and losses
-        else "la contextualisation **améliore** la recherche"
-        if gains
-        else "la contextualisation **dégrade** la recherche"
-        if losses
-        else "la contextualisation **ne se distingue pas** de la baseline"
-    )
+    best_gain = max(hb_q, eb_q)
+    worst_loss = -min(hw_q, ew_q)
+    gains, losses = best_gain >= 2, worst_loss >= 2
+    if gains and losses:
+        # Both move: the verdict is the *ratio*, not the mere coexistence.
+        verdict = (
+            f"la contextualisation **gagne nettement plus qu'elle ne perd** "
+            f"({best_gain} questions contre {worst_loss})"
+            if best_gain >= 2 * worst_loss
+            else f"la contextualisation **perd plus qu'elle ne gagne** "
+            f"({worst_loss} questions contre {best_gain})"
+            if worst_loss >= 2 * best_gain
+            else f"la contextualisation **échange** des réussites contre d'autres "
+            f"({best_gain} gagnées, {worst_loss} perdues)"
+        )
+    else:
+        verdict = (
+            "la contextualisation **améliore** la recherche"
+            if gains
+            else "la contextualisation **dégrade** la recherche"
+            if losses
+            else "la contextualisation **ne se distingue pas** de la baseline"
+        )
     return [
         "## Conclusion",
         "",
@@ -499,12 +511,15 @@ def _conclusion(hard_recall, easy_recall, easy_naive, n_hard, n_easy, window) ->
             "à instruire est nommée ci-dessus."
             if window["ctx"]["over"]
             else
-            "**Décision.** `/ask` reste sur la collection de production. L'arbitrage "
-            "est ici mesuré sans confusion possible avec la troncature : sur ce corpus, "
-            "la contextualisation déplace le vecteur d'un fragment vers le sujet de son "
-            "document — ce qui sert les formulations vagues et dessert les questions "
-            "précises. Une suite utile consisterait à ne contextualiser que les "
-            "fragments effectivement décontextualisés, plutôt que tout l'index."
+            "**Décision.** `/ask` reste, à ce stade, sur la collection de production : "
+            "la contextualisation demeure mesurée et non branchée, comme la RRF et la "
+            "réécriture. L'arbitrage est ici établi sans confusion possible avec la "
+            "troncature — le préfixe déplace le vecteur du fragment vers le sujet de son "
+            "document, ce qui sert les formulations vagues et dessert les questions "
+            "précises. Reste à trancher, au vu du rapport ci-dessus entre questions "
+            "gagnées et perdues, laquelle des deux populations `/ask` doit servir en "
+            "priorité — et si une contextualisation *sélective*, limitée aux fragments "
+            "réellement décontextualisés, ne prendrait pas les deux."
         ),
         "",
     ]

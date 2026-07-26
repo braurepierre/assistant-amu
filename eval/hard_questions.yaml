@@ -1,57 +1,186 @@
 # eval/hard_questions.yaml — "hard" conversational/imperative formulations.
 #
-# Companion to questions.yaml for the query-rewriting experiment (measured only,
-# same spirit as RRF — PRD §5.1.8 / §5.3.5). Every question targets a topic that
-# IS in the corpus but is phrased as a conversational/imperative opener
-# (« Parle-moi de… », « Dis-moi… », « Explique-moi… », « Je voudrais des infos
-# sur… »…) rather than as a definitional question. Observed failure mode: these
+# Companion to questions.yaml for the query-rewriting and Contextual Retrieval
+# experiments (measured only — PRD §5.1.8 / §5.3.5 / §5.3.1). Every question
+# targets a topic that IS in the corpus but is phrased the way someone actually
+# speaks, rather than as a definitional question. Observed failure mode: these
 # formulations push the query vector into noise and drop the definitional source.
 #
 # Annotation is DOCUMENT-LEVEL: `expected_source` is a case-insensitive substring
 # of the chunk's source title, and `expected_keywords` is left EMPTY on purpose —
-# so a hit means "the right document was retrieved", nothing stricter. Each
-# `expected_source` below was checked against the 18 indexed titles to resolve to
-# the intended document (h01 targets the central RSE definitional page, not the
-# Droit régimes-spéciaux page; h04 accepts any of the three ALLSH M3C documents).
+# so a hit means "the right document was retrieved", nothing stricter. Every
+# `expected_source` below was checked to resolve to exactly one of the 18 indexed
+# titles (h04 and h21 deliberately accept any of the three ALLSH M3C documents),
+# and each target document was checked to actually carry the topic.
+#
+# TWO REGIMES, ON PURPOSE (2026-07-26). h01-h08 all open with a formula that the
+# `strip` heuristic knows how to remove; a set built only of those would measure
+# the heuristic against its own mirror. h09-h14 continue that regime, h15-h25 use
+# phrasings `strip` does NOT touch — personal framing ("Je suis en licence et…"),
+# indirect questions ("ça marche comment ?"), narrative preambles. The measured
+# gain of `strip` is expected to DROP on this set: that is the point of enlarging
+# it. The `regime` key below is documentation, not read by the harness.
+#
+# TO REVIEW (four-hands, PRD "axes d'approfondissement" §2) — the questions are
+# faithful to the corpus, but two judgements are not mine to make alone:
+#   * would an AMU student actually phrase it this way?
+#   * h16/h23 target the *Droit* régimes-spéciaux page while h01 targets the
+#     central RSE page. A student asking about a special status in Droit could
+#     legitimately be served either. Same latent ambiguity as the F12 diagnosis.
+#   * h25 assumes the exam-results posting delay belongs to the ALLSH Charte des
+#     examens rather than to an M3C document.
 
 questions:
+  # --- Regime A: openers the `strip` heuristic removes -----------------------
   - id: h01
     question: "Parle-moi des régimes spéciaux."
     answerable: true
+    regime: opener
     expected_source: "Régime spécial d'études"   # central "Régime spécial d'études (RSE)"
     expected_keywords: []
   - id: h02
     question: "Explique-moi la césure."
     answerable: true
+    regime: opener
     expected_source: "césure"
     expected_keywords: []
   - id: h03
     question: "Dis-moi comment marche la compensation des notes."
     answerable: true
+    regime: opener
     expected_source: "Compensation"
     expected_keywords: []
   - id: h04
     question: "Je voudrais des infos sur le contrôle des connaissances."
     answerable: true
+    regime: opener
     expected_source: "M3C"                        # any of the 3 ALLSH M3C documents
     expected_keywords: []
   - id: h05
     question: "Raconte-moi les aménagements pour le handicap."
     answerable: true
+    regime: opener
     expected_source: "handicap"
     expected_keywords: []
   - id: h06
     question: "Donne-moi des informations sur le logement étudiant."
     answerable: true
+    regime: opener
     expected_source: "loger"                      # "Se loger — vie des campus AMU"
     expected_keywords: []
   - id: h07
     question: "Peux-tu me parler de l'inscription administrative en ligne ?"
     answerable: true
+    regime: opener
     expected_source: "IA web"
     expected_keywords: []
   - id: h08
     question: "J'aimerais en savoir plus sur la charte des examens."
     answerable: true
+    regime: opener
+    expected_source: "Charte des examens"
+    expected_keywords: []
+  - id: h09
+    question: "Donne-moi les horaires du service de scolarité de l'IUT."
+    answerable: true
+    regime: opener
+    expected_source: "IUT"
+    expected_keywords: []
+  - id: h10
+    question: "Parle-moi des services proposés aux étudiants de la faculté de droit."
+    answerable: true
+    regime: opener
+    expected_source: "vie étudiante"              # "Droit — Guide de la vie étudiante 2025"
+    expected_keywords: []
+  - id: h11
+    question: "Explique-moi les règles à respecter dans les locaux de l'université."
+    answerable: true
+    regime: opener
+    expected_source: "Règlement intérieur"
+    expected_keywords: []
+  - id: h12
+    question: "Je voudrais des infos sur les dates de rentrée à la faculté des sciences."
+    answerable: true
+    regime: opener
+    expected_source: "Calendriers universitaires"
+    expected_keywords: []
+  - id: h13
+    question: "Peux-tu me parler de la charte que l'on signe au moment de l'inscription ?"
+    answerable: true
+    regime: opener
+    expected_source: "Charte des étudiants"
+    expected_keywords: []
+  - id: h14
+    question: "Dis-moi combien coûtent les droits d'inscription."
+    answerable: true
+    regime: opener
+    expected_source: "Droits d'inscription"
+    expected_keywords: []
+
+  # --- Regime B: conversational phrasings `strip` does NOT touch -------------
+  - id: h15
+    question: "Je n'arrive pas à décoder les abréviations employées à l'ALLSH."
+    answerable: true
+    regime: indirect
+    expected_source: "Sigles"
+    expected_keywords: []
+  - id: h16
+    question: "Je suis sportif de haut niveau et inscrit en droit, à quoi ai-je droit ?"
+    answerable: true
+    regime: personal
+    expected_source: "Régimes spéciaux"           # "Droit — Régimes spéciaux d'études"
+    expected_keywords: []
+  - id: h17
+    question: "Je suis en licence et j'envisage une pause d'un an avant de reprendre. Comment ça se passe ?"
+    answerable: true
+    regime: personal
+    expected_source: "césure"
+    expected_keywords: []
+  - id: h18
+    question: "Où est-ce qu'on peut manger le midi quand on étudie en droit ?"
+    answerable: true
+    regime: indirect
+    expected_source: "vie étudiante"
+    expected_keywords: []
+  - id: h19
+    question: "Je n'ai toujours rien trouvé pour me loger à la rentrée, il existe des aides ?"
+    answerable: true
+    regime: personal
+    expected_source: "loger"
+    expected_keywords: []
+  - id: h20
+    question: "On m'a dit que tout se faisait sur internet désormais pour se réinscrire, ça marche comment ?"
+    answerable: true
+    regime: narrative
+    expected_source: "IA web"
+    expected_keywords: []
+  - id: h21
+    question: "En master, les sessions d'examen sont organisées de quelle façon ?"
+    answerable: true
+    regime: indirect
+    expected_source: "M3C"
+    expected_keywords: []
+  - id: h22
+    question: "Si je rate une matière, est-ce que les autres notes peuvent la rattraper ?"
+    answerable: true
+    regime: indirect
+    expected_source: "Compensation"
+    expected_keywords: []
+  - id: h23
+    question: "En droit, quelles démarches faut-il engager pour obtenir un statut aménagé ?"
+    answerable: true
+    regime: indirect
+    expected_source: "Régimes spéciaux"
+    expected_keywords: []
+  - id: h24
+    question: "Est-ce qu'on a le droit d'afficher des messages associatifs dans les bâtiments ?"
+    answerable: true
+    regime: indirect
+    expected_source: "Règlement intérieur"
+    expected_keywords: []
+  - id: h25
+    question: "Au bout de combien de temps les résultats sont-ils affichés après les épreuves ?"
+    answerable: true
+    regime: indirect
     expected_source: "Charte des examens"
     expected_keywords: []

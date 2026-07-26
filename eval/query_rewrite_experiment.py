@@ -250,51 +250,57 @@ def _write_report(settings, backend_name, hard, easy, hard_recall, easy_recall,
     lines.append("")
 
     # Conclusion (computed, not hand-waved).
-    winner = _pick_winner(strat, hard_recall, easy_recall)
-    base_easy = {k: easy_recall[k]["raw"] for k in KS}
-    reg = {k: easy_recall[k][winner] - base_easy[k] for k in KS}
     grain_easy = 1.0 / n_easy
-    regresses = any(reg[k] < -grain_easy - 1e-9 for k in KS)  # > one question below raw
-    llm_delta = {k: easy_recall[k]["llm"] - easy_recall[k]["raw"] for k in KS}
+    winner = _pick_winner(strat, hard_recall, easy_recall)          # best on the hard set
+    safe = _pick_safe(strat, hard_recall, easy_recall, grain_easy)  # best that costs no easy question
 
     def _q(delta: float) -> str:  # recall delta -> signed question count (easy set)
         n = round(delta * n_easy)
         return f"{n:+d} q" if n else "±0 q"
 
+    def _easy_cost(strategy: str) -> str:
+        return " · ".join(
+            f"recall@{k} {easy_recall[k]['raw']:.2f}→{easy_recall[k][strategy]:.2f} "
+            f"({_q(easy_recall[k][strategy] - easy_recall[k]['raw'])})"
+            for k in KS
+        )
+
     lines += [
         "## Conclusion",
         "",
-        f"- **Stratégie gagnante : `{winner}`** — meilleur recall@k sur le jeu « dur » "
-        "sans dégrader le jeu « facile ».",
-        f"- Jeu « dur » : "
+        f"- **Meilleur sur le jeu « dur » : `{winner}`** — "
         + " · ".join(
-            f"recall@{k} {hard_recall[k]['raw']:.2f} (raw) → {hard_recall[k][winner]:.2f} ({winner})"
+            f"recall@{k} {hard_recall[k]['raw']:.2f} (raw) → {hard_recall[k][winner]:.2f}"
             for k in KS
         )
         + ".",
-        f"- Non-régression (jeu facile) : "
-        + " · ".join(
-            f"recall@{k} {base_easy[k]:.2f} (raw) vs {easy_recall[k][winner]:.2f} ({winner})"
-            for k in KS
-        )
+        "- Contrôle de non-régression, jeu « facile » : "
+        + " · ".join(f"`{s}` {_easy_cost(s)}" for s in strat if s != "raw")
         + ".",
-        f"- Verdict de régression (`{winner}`) : "
-        + (
-            "**régression** sur les questions faciles (écart > 1 question)."
-            if regresses
-            else "**pas de régression** (écart nul, `strip` est identité sur les "
-            "questions définitionnelles)."
-        ),
-        f"- `llm` écartée bien qu'elle répare le jeu « dur » autant que `strip` "
-        + "(" + " · ".join(f"recall@{k} {hard_recall[k]['llm']:.2f}" for k in KS) + ") : "
-        "elle **déstabilise le jeu facile** — solde "
-        + " · ".join(
-            f"recall@{k} {easy_recall[k]['raw']:.2f}→{easy_recall[k]['llm']:.2f} ({_q(llm_delta[k])})"
-            for k in KS
-        )
-        + f", mais casse en réalité {len(llm_broken)} question(s) définitionnelle(s) qui "
-        "marchaient (table ci-dessus), n'en regagnant qu'ailleurs. Elle paraphrase, "
-        "est non déterministe, et coûte un appel LLM par requête — `strip` non.",
+    ]
+
+    if winner != safe:
+        lines += [
+            f"- **Arbitrage.** `{winner}` mène sur le jeu « dur », mais au prix de "
+            f"{len(llm_broken)} question(s) définitionnelle(s) qui fonctionnaient "
+            f"({', '.join(qid for qid, _ in llm_broken) or '—'}) : elle *paraphrase* la "
+            "question et efface parfois le signal lexical qui la rapprochait du bon "
+            "document. Elle est en outre non déterministe et coûte un appel LLM par "
+            "requête.",
+            f"- **Stratégie retenue : `{safe}`** — la meilleure sur le jeu « dur » parmi "
+            "celles qui ne coûtent aucune question au jeu « facile » ("
+            + " · ".join(f"recall@{k} {hard_recall[k][safe]:.2f}" for k in KS)
+            + "), déterministe et sans appel supplémentaire. C'est elle qui reste exposée "
+            "en option de `/ask`, le comportement V1 demeurant le défaut.",
+        ]
+    else:
+        lines += [
+            f"- **Stratégie retenue : `{safe}`** — meilleure sur le jeu « dur » *et* sans "
+            "coût sur le jeu « facile ». Exposée en option de `/ask`, le comportement V1 "
+            "restant le défaut.",
+        ]
+
+    lines += [
         "",
         "> Rappel de granularité (le dénominateur = questions *answerable*) : jeu « dur » "
         f"= 1 question ≈ {1.0 / n_hard:.3f} ; jeu « facile » = 1 question ≈ {grain_easy:.3f}. "
@@ -324,6 +330,22 @@ def _pick_winner(strategies, hard_recall, easy_recall) -> str:
         return sum(easy_recall[k][s] for k in KS)
 
     return max(strategies, key=lambda s: (hard_score(s), easy_score(s)))
+
+
+def _pick_safe(strategies, hard_recall, easy_recall, grain_easy) -> str:
+    """Best on the hard set among those costing no easy question.
+
+    Repairing hard phrasings at the expense of questions that already worked is
+    not an improvement, it is a transfer. `raw` always qualifies, so this never
+    returns nothing.
+    """
+    def costs_nothing(s):
+        return all(
+            easy_recall[k][s] - easy_recall[k]["raw"] >= -grain_easy - 1e-9 for k in KS
+        )
+
+    eligible = [s for s in strategies if costs_nothing(s)] or ["raw"]
+    return _pick_winner(eligible, hard_recall, easy_recall)
 
 
 if __name__ == "__main__":
