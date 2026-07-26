@@ -768,3 +768,74 @@ d'Aix-Marseille »), au prix de la comparabilité avec les rapports datés du
 23 juillet. C'est l'arbitrage qui reste ouvert, et il ne se tranche pas sans
 décider ce qui compte le plus : la continuité des mesures ou la couverture du
 dernier mode d'échec non testé.
+
+## 2026-07-26 — Comparaison avec AnythingLLM : le résultat existe, son instruction reste à faire
+
+**Fait.** Une expérience annexe, hors périmètre du PRD, confronte le pipeline
+maison à AnythingLLM v1.15.0 en déploiement Docker par défaut : corpus
+strictement identique (les 19 sources de `corpus/sources.yaml`), backend LLM tenu
+constant des deux côtés (`mistral-small-latest`), configurations par défaut
+conservées de part et d'autre (k=5 ici, topN=4 là), mode de chat `query`
+mono-tour. Le travail a été conduit dans un worktree séparé, les verdicts de
+fidélité étant posés par huit agents indépendants, une paire de questions
+chacun. Il était **entièrement non commité** : six fichiers non suivis, sur une
+branche à zéro commit et quatre commits de retard sur `main`. Il est désormais
+sécurisé en un commit (`bdb9860`, branche `worktree-compare-anythingllm`) —
+script de pilotage, rapport, verdicts du jury, réponses brutes des deux
+systèmes. Ces derniers JSON sont versionnés sans précédent dans le dépôt, où
+seuls les rapports `.md` l'étaient, parce qu'ils sont la seule base probante des
+verdicts.
+
+**Ce que le rapport avance.** Refus hors-corpus : 4/4 contre 0/4. Questions
+répondables : 14/16 correctes et ancrées contre 0/16, avec 13/16 réponses non
+ancrées ou partiellement ancrées et 3/16 substantiellement fausses côté
+AnythingLLM, contre 2/16 refus par excès de prudence côté assistant-amu. La
+cause avancée n'est pas une infériorité générale du produit mais deux défauts de
+configuration par défaut : `queryRefusalResponse` laissé à `null`, et l'échec du
+scraper sur le gabarit Drupal central d'AMU — cinq des neuf pages web extraites à
+un seul mot. Le cadrage *out-of-the-box* est annoncé d'emblée, le LLM est tenu
+constant, et le rapport énonce ce qu'il ne montre pas. Sur la méthode déclarée,
+c'est propre.
+
+**Quatre réserves relevées à la relecture, aucune tranchée.**
+
+- **Le jeu de questions est celui de 20 entrées**, antérieur au passage à 50 du
+  même jour, et le corpus mesuré n'a pas les dix distracteurs. La colonne
+  assistant-amu (14/16, 4/4) n'est donc pas recoupable avec les chiffres de tête
+  actuels. Le rapport est daté et sa configuration épinglée, ce qui borne le
+  malentendu sans le lever.
+- **La preuve centrale n'est pas persistée.** Le tableau des mots extraits porte
+  tout l'argument de la cause structurelle, et `cmd_ingest` imprime `wordCount`
+  sur la sortie standard sans jamais l'écrire. Il n'existe que dans le
+  défilement d'un terminal. Une ligne de sérialisation le rendrait rejouable.
+- **Le jury n'est pas aveugle au sens attendu.** « À l'aveugle de ma propre
+  lecture » est exact et ne dit pas que les juges ignoraient quel système
+  répondait : les notes de verdict nomment les deux. Devant un écart de 14/16 à
+  0/16, c'est un biais à nommer. Chaque question n'a par ailleurs été jugée
+  qu'une fois — aucun accord inter-juges n'est mesurable.
+- **L'expérience n'est pas rejouable par un tiers.** Aucune mention
+  d'AnythingLLM dans `README.md`, `docs/` ni ce journal avant la présente
+  entrée ; les trois variables requises (`ANYTHINGLLM_BASE_URL`, `_API_KEY`,
+  `_WORKSPACE_SLUG`) ne figurent pas dans `.env.example` ; et la configuration
+  initiale du produit — choix du fournisseur, création du workspace — n'a pas
+  d'API et reste manuelle, après activation de WSL2.
+
+**Décision.** Le travail reste sur sa branche, non fusionné dans `main`, et n'est
+répercuté ni dans le README ni dans les documents de concepts. Même régime que
+les autres expériences du dépôt — mesuré, documenté, non branché — avec une
+raison de plus ici : c'est une comparaison contre un produit tiers sous une
+configuration par défaut dont le rapport dit lui-même qu'un réglage d'une ligne
+aurait probablement corrigé le 0/4 sur les refus.
+
+**Reste à faire — étude de fond.** Rien de ce qui précède ne vérifie les verdicts
+eux-mêmes : la relecture a porté sur la méthode, pas sur la substance. L'étude à
+mener est la confrontation ligne à ligne des seize verdicts aux réponses brutes
+désormais versionnées, pour établir que chaque case du tableau est étayée par ce
+que les deux systèmes ont réellement produit — en particulier les trois verdicts
+« substantiellement fausses » (q06, le SMIC annuel avancé pour le SMIC mensuel ;
+q11, un mécanisme de compensation inventé ; q01, le déni d'une information
+présente au corpus), qui sont les plus chargés et les plus faciles à
+surinterpréter. Restent ensuite deux arbitrages qui ne se tranchent pas sans
+décider ce qu'on attend du résultat : rejouer sur les 50 questions et le corpus à
+28 documents (coût : un cycle complet des deux côtés, avec appels à l'API Mistral
+de part et d'autre), et refaire juger à l'aveugle de l'identité des systèmes.
