@@ -85,6 +85,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundles", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument(
+        "--shift",
+        type=int,
+        default=0,
+        help="rotate the question list before pairing, so no judge of this pass sees "
+        "the same pair as in another — pairing is a shared context that would "
+        "correlate two verdicts meant to be independent",
+    )
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
@@ -94,6 +102,9 @@ def main(argv: list[str] | None = None) -> int:
             pass
 
     bundles = json.load(open(args.bundles, encoding="utf-8"))
+    if args.shift:
+        n = args.shift % len(bundles)
+        bundles = bundles[n:] + bundles[:n]
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 

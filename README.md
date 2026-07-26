@@ -336,9 +336,11 @@ Les deux côtés consomment des appels à l'API Mistral.
 | `eval/anythingllm_compare.py` | Pilotage : import du corpus et interrogation du workspace |
 | `eval/serialize_retrieved_sources.py` | Récupère les passages lus par assistant-amu, sans appel de modèle |
 | `eval/blind_rejudge_bundle.py`, `…_prompts.py` | Construit les dossiers de jugement anonymisés et la clé |
+| `eval/blind_rejudge_agreement.py` | Accord inter-juges sur les trois passes |
 | `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` | Rapport complet, tableau question par question |
 | `eval/reports/2026-07-27_anythingllm_verdicts_verification.md` | Confrontation des verdicts aux réponses brutes |
 | `eval/reports/2026-07-27_blind_rejudge.md` | Rejugement à l'aveugle et ancrage instrumenté |
+| `eval/reports/2026-07-27_inter_judge_agreement.md` | Accord inter-juges sur trois passes |
 | `eval/reports/anythingllm_judge_verdicts.json` | Verdicts du jury d'origine |
 | `eval/reports/blind_rejudge/` | Dossiers anonymisés, clé, verdicts du jury aveugle |
 | `eval/reports/anythingllm_raw_answers.json` | Réponses brutes d'AnythingLLM, passages inclus |
@@ -387,14 +389,33 @@ sur q11 — où le bon document avait bien été remonté, mais pas le fragment 
 la règle. Les deux constats s'appuyaient sur les titres des documents sans ouvrir
 le texte des passages.
 
+### Ce que l'accord inter-juges a établi
+
+Les seize questions ont été jugées trois fois, chaque passe changeant une
+condition plutôt que rejouant le même prompt — ce qui aurait mesuré le
+déterminisme du modèle et non la solidité du jugement
+(`2026-07-27_inter_judge_agreement.md`). **Accord sur 29 des 32 couples, soit
+91 %.** Le biais de position est nul ou presque : 31 verdicts sur 32 sont
+identiques lorsque les étiquettes A et B sont échangées. Les trois désaccords ne
+franchissent qu'une catégorie, portent tous sur AnythingLLM, et **aucun chiffre
+publié ne bouge**.
+
+À lire avec sa réserve : le 16/16 d'assistant-amu est un accord bon marché,
+quatorze de ses verdicts tombant dans la même catégorie. Le chiffre informatif
+est le 13/16 d'AnythingLLM, réparti sur quatre catégories.
+
 ### Fil ouvert
 
-Chaque question reste jugée une seule fois, dans les deux séries : aucun accord
-inter-juges n'est mesurable. L'anonymisation retire les titres de source des
-passages, ce qui prive assistant-amu d'une information que son prompt lui fournit
-en production — sans effet sur les questions de contenu, mais le
-`answer_was_available` du verdict q16 n'est pas fiable. Et la performance
-d'AnythingLLM correctement configuré reste l'angle mort principal.
+Les trois passes emploient le **même modèle et le même barème** : ce qui est
+mesuré est la stabilité d'un verdict quand la présentation change, non la
+convergence de points de vue indépendants. Un juge humain, ou un modèle d'une
+autre famille, dirait seul si le barème lui-même oriente les verdicts.
+
+L'anonymisation retire par ailleurs les titres de source des passages, ce qui
+prive assistant-amu d'une information que son prompt lui fournit en production —
+sans effet sur les questions de contenu, mais le `answer_was_available` du
+verdict q16 n'est pas fiable. Et la performance d'AnythingLLM correctement
+configuré reste l'angle mort principal.
 
 ---
 

@@ -52,6 +52,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", default=str(REPORTS / "blind_rejudge"))
     parser.add_argument("--reports-dir", default=str(REPORTS))
+    parser.add_argument(
+        "--variant",
+        choices=("base", "swap"),
+        default="base",
+        help="'swap' exchanges the A and B labels, holding everything else fixed — "
+        "a rater panel that only reran the identical prompt would measure the "
+        "model's determinism, not whether the verdict survives a change of position",
+    )
+    parser.add_argument("--suffix", default="", help="appended to the output filenames")
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):
@@ -85,6 +94,8 @@ def main(argv: list[str] | None = None) -> int:
 
         pair = [amu, other]
         rng.shuffle(pair)
+        if args.variant == "swap":
+            pair.reverse()
         labels = ["A", "B"]
 
         bundles.append(
@@ -101,16 +112,14 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "bundles.json").write_text(
-        json.dumps(bundles, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    (out_dir / "key.json").write_text(
-        json.dumps(key, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    bundles_path = out_dir / f"bundles{args.suffix}.json"
+    key_path = out_dir / f"key{args.suffix}.json"
+    bundles_path.write_text(json.dumps(bundles, ensure_ascii=False, indent=2), encoding="utf-8")
+    key_path.write_text(json.dumps(key, ensure_ascii=False, indent=2), encoding="utf-8")
 
     flipped = sum(1 for k in key if k["A"] == "anythingllm")
-    print(f"[ok] {len(bundles)} dossiers -> {out_dir/'bundles.json'}")
-    print(f"     clé (à ne pas donner aux juges) -> {out_dir/'key.json'}")
+    print(f"[ok] {len(bundles)} dossiers ({args.variant}) -> {bundles_path}")
+    print(f"     clé (à ne pas donner aux juges) -> {key_path}")
     print(f"     AnythingLLM en position A sur {flipped}/{len(key)} questions (graine {SEED})")
     return 0
 
