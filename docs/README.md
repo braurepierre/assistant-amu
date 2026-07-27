@@ -5,7 +5,6 @@
 | `concepts-assistant-amu.html` | Page pédagogique autonome (voir ci-dessous). |
 | `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
 | `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
-| `revue-2026-07-26_contextual_retrieval.md` | Revue de cohérence du lot §5.3.1 — constats classés par gravité. |
 
 ## La page pédagogique
 
@@ -19,7 +18,7 @@ compose les formules des blocs « En savoir plus ». Hors ligne, la page reste
 entièrement lisible : les formules retombent sur leur source TeX en monospace
 (repli géré dans `renderMath`).
 
-> Support pédagogique / de présentation — **hors périmètre produit** (PRD §5).
+> Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
 
 ## Tenir la page à jour

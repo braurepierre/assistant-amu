@@ -11,7 +11,7 @@ daté est automatiquement généré dans `eval/reports/`, incluant une section
 identifie le fragment attendu.
 
 **Une convention gouverne l'ensemble de ces mesures : mesurer n'est pas
-brancher** (§40 du PRD). La fusion RRF, la réécriture de requête, le *Contextual
+brancher.** La fusion RRF, la réécriture de requête, le *Contextual
 Retrieval* et le lot de distracteurs sont mesurés, documentés et **non intégrés**
 au pipeline `/ask`, qui demeure purement sémantique en V1.
 
@@ -108,7 +108,7 @@ Script d'évaluation : `eval/embedder_comparison.py` ; rapport :
 
 Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d'une
 phrase générée par le LLM le situant dans son document (méthode Anthropic,
-septembre 2024 ; §5.3.1 du PRD). L'index correspondant est constitué dans une
+septembre 2024). L'index correspondant est constitué dans une
 collection parallèle : le pipeline `/ask` n'est pas modifié. Mesures effectuées
 sur les deux jeux de questions, le jeu « dur » réunissant les formulations
 conversationnelles.
@@ -230,8 +230,9 @@ le sujet — **vraie défaillance** ; pour `h20` (réinscription en ligne), du r
 identifiants — **déplacement partiellement légitime**. Dans les deux cas, le
 rang du document attendu **dans le classement sémantique ne bouge pas** : ce qui
 change est la composition du top-8 qui alimente la fusion. La sensibilité
-mesurée est donc une propriété de la RRF, non de l'encodeur — le risque « e5
-dilue les sigles » (§9 du PRD) n'est ni confirmé ni infirmé par ce test.
+mesurée est donc une propriété de la RRF, non de l'encodeur — le risque
+identifié au départ, « e5 dilue les sigles », n'est ni confirmé ni infirmé par
+ce test.
 
 Ce que la mesure ne couvre pas : le lot est voisin par le vocabulaire mais
 **disjoint par le contenu**, ce qui teste la dilution et non l'ambiguïté entre
@@ -268,8 +269,8 @@ modèle a requis 306 s, ce qui confirme le coût du chargement à froid document
 pour ce backend.
 
 *Note sur l'exécution locale :* l'inférence du modèle local en environnement CPU
-présente des latences élevées. Ce comportement est conforme aux arbitrages du
-PRD (*développement sur API, démonstration en local*) ainsi qu'au repli
+présente des latences élevées. Ce comportement est conforme à l'arbitrage retenu
+au départ — *développement sur API, démonstration en local* — ainsi qu'au repli
 documenté `num_ctx=4096`, `k ≤ 5`. Les dépassements de délai sont interceptés et
 remontent une exception `LLMBackendError(timeout)`, traduite par un code HTTP
 `503` (F5).
@@ -282,8 +283,8 @@ Rapport détaillé : `eval/reports/2026-07-23_end-to-end_k5.md`.
 
 Le rapport `eval/reports/2026-07-23_conversation_k5.md` fait état d'un rappel de
 **3/6** sur les tours de conversation annotés comme répondables. L'analyse
-diagnostique (détaillée dans `JOURNAL.md`) attribue ce résultat à une
-**limitation avérée de la recherche**, et non à un défaut d'annotation. Sur la
+diagnostique attribue ce résultat à une **limitation avérée de la recherche**,
+et non à un défaut d'annotation. Sur la
 requête relative à la césure, les cinq fragments retournés proviennent tous du
 document « IUT — Services de la scolarité », soit le traitement de la césure par
 une composante unique, tandis que la page institutionnelle « La césure à AMU »,

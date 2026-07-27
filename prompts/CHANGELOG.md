@@ -1,9 +1,9 @@
 # Changelog des prompts
 
 Chaque modification d'un prompt (`prompts/*.md`) est consignée ici : date,
-version, résumé du changement, **raison** et **cas de test** qui l'a motivé
-(PRD §11.10). Le format v0 est le point de départ ; les itérations de la Phase 3
-viennent l'enrichir.
+version, résumé du changement, **raison** et **cas de test** qui l'a motivé. Le
+format v0 est le point de départ ; les itérations de la Phase 3 viennent
+l'enrichir.
 
 ## rag_system.md
 
@@ -44,7 +44,7 @@ viennent l'enrichir.
   refus, 0 source citée (F6).
 
 ### v0 — 2026-07-22 — version initiale
-- Contenu repris tel quel du PRD §7.4 (prompt RAG v0).
+- Contenu repris tel quel de la spécification initiale (prompt RAG v0).
 - Structure : règles en message système ; les sources balisées en XML et la
   question sont assemblées côté `rag.py` dans le message utilisateur, question
   en fin de prompt.
@@ -56,10 +56,10 @@ viennent l'enrichir.
 ## condense_system.md
 
 ### v0 — 2026-07-22 — version initiale (V2)
-- Contenu repris tel quel du PRD §7.7 (prompt de condensation v0).
-- Fichier posé dès le squelette (structure §6.3), **branché en Phase 7** :
-  `RagPipeline._condense` l'utilise comme message système quand `history` est
-  fourni. Non modifié depuis v0 ; toute itération future viendra ici (§11.10).
+- Contenu repris tel quel de la spécification initiale (prompt de condensation v0).
+- Fichier posé dès le squelette, **branché en Phase 7** : `RagPipeline._condense`
+  l'utilise comme message système quand `history` est fourni. Non modifié depuis
+  v0 ; toute itération future viendra ici.
 
 ## context_system.md
 

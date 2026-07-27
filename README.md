@@ -4,7 +4,7 @@
 
 Le système est **indépendant du modèle de langage utilisé** (commutation par variable d'environnement entre un backend local sous Ollama et l'API Mistral) et intègre un **harnais d'évaluation reproductible** comparant les performances de la recherche sémantique, de l'approche lexicale BM25 et de leur fusion par classement réciproque (*Reciprocal Rank Fusion* — RRF).
 
-> **Note de conception :** ce projet a été développé conformément aux spécifications d'un document d'exigences produit versionné ([`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md)), en Python pur — le pipeline d'abord, le framework ensuite (voir la branche d'expérimentation LangChain). L'objectif explicite est de garantir la transparence complète de chaque composant.
+> **Note de conception :** le périmètre a été spécifié avant d'être implémenté, et le pipeline est écrit en Python pur — le framework vient ensuite (voir la branche d'expérimentation LangChain). L'objectif explicite est de garantir la transparence complète de chaque composant.
 
 ## Documentation du projet
 
@@ -13,8 +13,6 @@ Le système est **indépendant du modèle de langage utilisé** (commutation par
 | [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture) et un glossaire relié aux fichiers du code. Page autonome : aucun serveur ni étape de compilation, il suffit de l'ouvrir dans un navigateur. |
 | [`docs/mesures.md`](docs/mesures.md) | **Mesures et évaluation** — résultats détaillés, tables par question, commentaire des mécanismes. |
 | [`DEMO.md`](DEMO.md) | Parcours de démonstration de bout en bout, requêtes prêtes à l'emploi. |
-| [`PRD-AssistantAMU-V1_3.md`](PRD-AssistantAMU-V1_3.md) | Document d'exigences produit — périmètre, non-objectifs, arbitrages. |
-| [`JOURNAL.md`](JOURNAL.md) | Journal de conception : décisions, mesures et fils ouverts, par ordre chronologique. |
 
 ---
 
@@ -134,7 +132,7 @@ L'image embarque les dépendances et le modèle d'embeddings ; l'index vectoriel
 docker compose run --rm api python -m assistant_amu.ingestion index
 ```
 
-Le backend LLM n'est pas conteneurisé, conformément au §6.1 du PRD : renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut si une instance Ollama est active sur la machine hôte — le conteneur l'atteint par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
+Le backend LLM n'est pas conteneurisé : il est soit externe (API Mistral), soit déjà installé sur la machine hôte — embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à une image dont l'objet est le service RAG. Renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut si une instance est active sur l'hôte — le conteneur l'atteint par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
 
 ---
 
@@ -166,11 +164,11 @@ Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équ
 Quatre études complètent cette référence :
 
 * **Modèles d'embeddings** — `e5-small` devance nettement CamemBERT et FlauBERT à k = 3 et k = 5 (+16 et +10 points sur le premier), pour une empreinte mémoire deux fois moindre. Aucune bascule n'est justifiée. Ce résultat **corrige une lecture antérieure** établie sur 16 questions.
-* **Contextual Retrieval** (§5.3.1 du PRD) — la contextualisation de l'index améliore la recherche : au mieux 8 questions gagnées sur les formulations conversationnelles (sémantique, k=3), pour une pire perte de 2 questions qui reste sous le seuil de signification. Somme des écarts sur les douze cellules mesurées : +18 questions. Subsiste une sensibilité de BM25 au budget de découpage, à comprendre avant de généraliser la méthode.
+* **Contextual Retrieval** — la contextualisation de l'index améliore la recherche : au mieux 8 questions gagnées sur les formulations conversationnelles (sémantique, k=3), pour une pire perte de 2 questions qui reste sous le seuil de signification. Somme des écarts sur les douze cellules mesurées : +18 questions. Subsiste une sensibilité de BM25 au budget de découpage, à comprendre avant de généraliser la méthode.
 * **Sensibilité à la taille du corpus** — un corpus élargi de 18 à 28 documents ne coûte **aucune question** au sémantique ni à BM25. La RRF est la seule méthode à céder, ce qui oppose un contrepoids à son avance mesurée à k = 8.
 * **Latence et refus** — ~3,0 s par requête sur l'API Mistral ; **100 % des requêtes hors-corpus rejetées** sur les deux backends. L'inférence locale sur CPU reste lente par nature (repli documenté `num_ctx=4096`, `k ≤ 5`).
 
-**Une convention gouverne l'ensemble de ces travaux : mesurer n'est pas brancher** (§40 du PRD). La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés, documentés et **non intégrés** au pipeline `/ask`, qui demeure purement sémantique en V1.
+**Une convention gouverne l'ensemble de ces travaux : mesurer n'est pas brancher.** La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés, documentés et **non intégrés** au pipeline `/ask`, qui demeure purement sémantique en V1.
 
 > Chiffres complets, tables par question, désaccords commentés et diagnostics : **[`docs/mesures.md`](docs/mesures.md)**. Rapports bruts datés : `eval/reports/`.
 
@@ -178,7 +176,7 @@ Quatre études complètent cette référence :
 
 ## Périmètre fonctionnel et limitations
 
-Les choix d'implémentation suivants découlent des spécifications initiales (§3 du PRD) et constituent des décisions de périmètre assumées, non des omissions :
+Les choix d'implémentation suivants découlent du périmètre arrêté au départ et constituent des décisions assumées, non des omissions :
 
 * **Inclus :** architecture RAG complète, gestion des refus, traçabilité des citations, API REST, harnais d'évaluation.
 * **Exclus du périmètre V1 :** authentification, traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
@@ -206,7 +204,7 @@ Les choix d'implémentation suivants découlent des spécifications initiales (�
 
 > **Statut actuel :** l'ensemble des fonctionnalités des phases 0 à 7 est développé, couvert par les tests unitaires et **validé sur le corpus réel** (18 documents, 316 fragments) avec les deux backends. Les résultats de référence en recherche, les latences `/ask`, la comparaison des modèles d'embeddings et l'équivalence du port LangChain ont tous fait l'objet de mesures rapportées.
 >
-> **Évaluation conversationnelle V2 (F12).** Le rapport fait état d'un rappel de **3/6** sur les tours de conversation annotés comme répondables, attribué à une **limitation avérée de la recherche** et non à un défaut d'annotation. Le diagnostic — éviction de la page institutionnelle par une page de composante, 11,7 % de l'index constitué de fragments de moins de 50 caractères — est détaillé dans [`docs/mesures.md`](docs/mesures.md) et dans `JOURNAL.md`.
+> **Évaluation conversationnelle V2 (F12).** Le rapport fait état d'un rappel de **3/6** sur les tours de conversation annotés comme répondables, attribué à une **limitation avérée de la recherche** et non à un défaut d'annotation. Le diagnostic — éviction de la page institutionnelle par une page de composante, 11,7 % de l'index constitué de fragments de moins de 50 caractères — est détaillé dans [`docs/mesures.md`](docs/mesures.md).
 >
 > L'architecture V2 maintient une rétrocompatibilité descendante complète : en l'absence d'historique de conversation (`history`), le point d'entrée `/ask` reproduit exactement le comportement de la V1.
 
@@ -224,7 +222,7 @@ Détail et analyse des limites de l'abstraction : **README de la branche `langch
 
 ### Comparaison avec AnythingLLM — branche `worktree-compare-anythingllm`
 
-Confrontation du pipeline maison à **AnythingLLM v1.15.0** en déploiement Docker par défaut, à corpus strictement identique et backend LLM tenu constant des deux côtés. Expérience annexe, **hors périmètre du PRD** : elle mesure un produit tiers *out-of-the-box*, non une infériorité intrinsèque de celui-ci — le rapport impute l'essentiel de l'écart à deux réglages par défaut.
+Confrontation du pipeline maison à **AnythingLLM v1.15.0** en déploiement Docker par défaut, à corpus strictement identique et backend LLM tenu constant des deux côtés. Expérience annexe, **hors du périmètre spécifié** : elle mesure un produit tiers *out-of-the-box*, non une infériorité intrinsèque de celui-ci — le rapport impute l'essentiel de l'écart à deux réglages par défaut.
 
 Deux réserves bornent sa portée, énoncées par le rapport lui-même : la mesure porte sur le **jeu de 20 questions et le corpus antérieurs** aux chiffres de référence ci-dessus, et le jury n'était pas aveugle à l'identité des systèmes.
 
