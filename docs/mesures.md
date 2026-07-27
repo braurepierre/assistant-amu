@@ -229,15 +229,17 @@ Script : `eval/distractor_experiment.py` ; rapport :
 | Backend LLM | Latence moyenne (`/ask`) | Taux de rejet contextuel (hors-corpus) |
 | :--- | :--- | :--- |
 | **Mistral API** (`mistral-small-latest`) | ~3,0 s / requête | **100 % (4/4)** des requêtes hors-corpus rejetées |
-| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | **100 % (4/4)** des requêtes hors-corpus rejetées |
+| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s modèle déjà chargé, avec repli `num_ctx=4096` / `k=3` | **100 % (4/4)** des requêtes hors-corpus rejetées |
 
 Le rejet du backend local est mesuré sur les quatre requêtes hors-corpus de
 `eval/questions.yaml` (q17 à q20), en configuration de repli `num_ctx=4096` /
-`k=3`, modèle chaud ; les quatre réponses reproduisent le refus canonique, sans
-source, verdict établi par `is_refusal()` sur comparaison normalisée. La
-latence propre à ces refus (31 à 135 s, moyenne 103 s) n'est pas comparable à
-celle d'une réponse complète — un refus ne génère qu'une douzaine de tokens —
-et le préchauffage du modèle a requis 306 s. Le repli documenté pour
+`k=3`, le modèle étant déjà chargé en mémoire ; les quatre réponses
+reproduisent le refus canonique, sans source, verdict établi par `is_refusal()`
+sur comparaison normalisée. La latence propre à ces refus (31 à 135 s, moyenne
+103 s) n'est pas comparable à celle d'une réponse complète — un refus ne génère
+qu'une douzaine de tokens. Le chargement initial du modèle en mémoire, exclu de
+ces mesures, a requis 306 s à lui seul : Ollama décharge le modèle après un
+temps d'inactivité, et le premier appel suivant paie ce rechargement. Le repli documenté pour
 l'inférence CPU est `num_ctx=4096`, `k ≤ 5` ; les dépassements de délai
 remontent `LLMBackendError(timeout)`, traduite en HTTP `503`.
 
