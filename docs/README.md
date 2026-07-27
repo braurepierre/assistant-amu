@@ -48,7 +48,7 @@ Cette page ne porte **aucun chiffre de mesure** : elle n'a donc pas de bloc
 changement de structure — un module déplacé, une dépendance ajoutée, une
 responsabilité transférée d'une classe à une autre.
 
-## Tenir la page à jour
+## Mise à jour de la page pédagogique
 
 Les faits qui bougent (corpus, recall, latences, k, tests…) sont centralisés à
 **un seul endroit** : le bloc `STATS` en tête du `<script>`, entre les marqueurs
@@ -91,7 +91,7 @@ D'où viennent les chiffres de `concepts.facts.yaml` : des **rapports datés** d
 `python -m assistant_amu.ingestion stats` (corpus). Les valeurs sont recopiées
 depuis la mesure, jamais estimées.
 
-## Ajouter une rubrique (par exemple « e5 vs CamemBERT ») en quatre étapes
+## Ajout d'une rubrique à la page pédagogique
 
 Le contenu conceptuel est rédigé à la main : il ne se génère pas. Pour rester
 cohérent avec le reste de la page :

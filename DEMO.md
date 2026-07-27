@@ -21,7 +21,7 @@ L'indexation télécharge le modèle d'embeddings au premier appel. Contrôle de
 l'état une fois l'API lancée : `GET /health` doit renvoyer `documents: 18` et
 `chunks: 316`.
 
-## Lancer l'API en local
+## Lancement de l'API en local
 
 ```powershell
 $env:LLM_BACKEND = "mistral"
@@ -130,7 +130,7 @@ Question hors du corpus : le système refuse au lieu d'inventer.
 
 ---
 
-## Basculer sur le backend local Ollama (souveraineté)
+## Bascule sur le backend local Ollama (souveraineté)
 
 Lancer d'abord l'application **Ollama**, puis :
 
