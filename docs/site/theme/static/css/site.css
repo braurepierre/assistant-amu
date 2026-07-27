@@ -241,6 +241,72 @@ code, pre, kbd, samp {
   overflow-wrap: anywhere;
 }
 
+/* --- Recorded demonstration ---------------------------------------------- */
+
+/* Exchanges are a flat sequence of blocks, not nested boxes: the rule above the
+   question is what separates one exchange from the next. */
+.content .replay-question {
+  margin: 2.4rem 0 0.9rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.content .replay-history {
+  margin: 2.4rem 0 -0.4rem;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--rule);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+  font-size: 0.87rem;
+}
+.content .replay-history p { margin: 0.25rem 0; }
+.content .replay-history + .replay-question { border-top: 0; padding-top: 0.9rem; }
+
+.replay-role {
+  display: inline-block;
+  min-width: 5.2rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.content .replay-query {
+  margin: -0.4rem 0 0.9rem;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.replay-answer > :first-child { margin-top: 0; }
+.replay-answer > :last-child { margin-bottom: 0; }
+
+.content .replay-detail {
+  margin: 0.9rem 0 0;
+  font-size: 0.87rem;
+  color: var(--text-soft);
+}
+
+.content .replay-detail summary {
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+.replay-fragments {
+  margin: 0.5rem 0 0;
+  padding-left: 1.4rem;
+}
+.replay-fragments li { margin: 0.2rem 0; }
+
+.replay-score {
+  display: inline-block;
+  min-width: 3.2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--accent);
+}
+
+.replay-where { color: var(--text-soft); }
+.replay-where::before { content: "— "; }
+
 /* --- Colophon ------------------------------------------------------------ */
 
 .colophon {

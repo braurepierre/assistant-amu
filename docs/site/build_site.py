@@ -20,6 +20,8 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import html
+import json
 import re
 import shutil
 import subprocess
@@ -39,13 +41,23 @@ STATIC_DIR = CONTENT_DIR / "static"
 REPO_URL = "https://github.com/braurepierre/assistant-amu"
 BLOB_URL = f"{REPO_URL}/blob/main"
 
-# Prose pages: (source file, slug, title, nav label). The title overrides the H1
-# of the source file, which is stripped — the theme prints the title itself.
+# Prose pages: (source file, slug, title, nav label, nav order). The title
+# overrides the H1 of the source file, which is stripped — the theme prints the
+# title itself. Orders are two digits so a plain string sort keeps them ordered.
 PROSE_PAGES = [
-    (ROOT / "README.md", "index", "AssistantAMU", "Présentation"),
-    (ROOT / "DEMO.md", "demonstration", "Guide de démonstration", "Démonstration"),
-    (DOCS_DIR / "mesures.md", "mesures", "Mesures et évaluation", "Mesures"),
+    (ROOT / "README.md", "index", "AssistantAMU", "Présentation", "10"),
+    (ROOT / "DEMO.md", "demonstration", "Guide de démonstration", "Guide de démonstration", "20"),
+    (DOCS_DIR / "mesures.md", "mesures", "Mesures et évaluation", "Mesures", "40"),
 ]
+
+# Recorded demonstration: the prose of the page and the scenarios to play live in
+# demo-scenarios.json, the exchanges actually obtained in demo-capture.json. The
+# two are joined by scenario id, so rewording the page costs no new capture.
+DEMO_SCENARIOS = SITE_DIR / "demo-scenarios.json"
+DEMO_CAPTURE = SITE_DIR / "demo-capture.json"
+DEMO_SLUG = "demonstration-enregistree"
+DEMO_TITLE = "Démonstration enregistrée"
+DEMO_ORDER = "30"
 
 # Read by the reader at the top of every API page. It states how the reference
 # is produced and why its body is in English, the code of this project being
@@ -113,7 +125,7 @@ def front_matter(**fields: str) -> str:
 
 
 def stage_prose() -> None:
-    for order, (source, slug, title, nav_label) in enumerate(PROSE_PAGES, start=1):
+    for source, slug, title, nav_label, order in PROSE_PAGES:
         body = source.read_text(encoding="utf-8")
         body = _FIRST_H1.sub("", body, count=1)
         page = front_matter(
@@ -121,10 +133,124 @@ def stage_prose() -> None:
             slug=slug,
             nav_label=nav_label,
             nav_group="prose",
-            nav_order=f"{order * 10:02d}",
+            nav_order=order,
         )
         page += "\n" + rewrite_links(body)
         (PAGES_DIR / f"{slug}.md").write_text(page, encoding="utf-8")
+
+
+def french_number(value: float, decimals: int) -> str:
+    """Scores and latencies are read in French: a comma, not a point."""
+    return f"{value:.{decimals}f}".replace(".", ",")
+
+
+def _fragments_html(exchange: dict) -> str:
+    """The retrieved fragments, listed whether or not the answer cited them."""
+    cited = len(exchange["sources"])
+    total = len(exchange["retrieval"])
+    citation = f"cités [S1] à [S{cited}]" if cited else "aucune source citée"
+    summary = f"{total} fragments retrouvés, {citation} · {french_number(exchange['latency_s'], 1)} s"
+
+    items = []
+    for fragment in exchange["retrieval"]:
+        location = fragment["section"] or (f"page {fragment['page']}" if fragment["page"] else "")
+        suffix = f' <span class="replay-where">{html.escape(str(location))}</span>' if location else ""
+        items.append(
+            f'<li><span class="replay-score">{french_number(fragment["score"], 3)}</span> '
+            f'{html.escape(fragment["title"])}{suffix}</li>'
+        )
+    return (
+        '<details class="replay-detail">\n'
+        f"<summary>{html.escape(summary)}</summary>\n"
+        f'<ol class="replay-fragments">{"".join(items)}</ol>\n'
+        "</details>"
+    )
+
+
+_LIST_ITEM = re.compile(r"^\s*(?:[-*+]\s|\d+[.)]\s)")
+# The API speaks the OpenAI role vocabulary; the page is read in French.
+ROLE_LABELS = {"user": "utilisateur", "assistant": "assistant"}
+
+
+def _blank_line_before_lists(text: str) -> str:
+    """Open a model's enumeration on its own line.
+
+    An answer routinely starts its list on the line right after the sentence that
+    introduces it. Markdown reads that as the continuation of the paragraph and
+    the enumeration disappears into a run-on sentence; a blank line restores it.
+    """
+    output: list[str] = []
+    for line in text.split("\n"):
+        previous = output[-1] if output else ""
+        if _LIST_ITEM.match(line) and previous.strip() and not _LIST_ITEM.match(previous):
+            output.append("")
+        output.append(line)
+    return "\n".join(output)
+
+
+def _exchange_markdown(exchange: dict) -> str:
+    """One recorded exchange, as top-level blocks.
+
+    Each block stands on its own rather than nesting inside a wrapper: Markdown
+    only descends into a raw HTML block carrying ``markdown="1"`` when that block
+    is at the top level, and the answer needs that treatment for its lists.
+    """
+    blocks = []
+    if exchange["history"]:
+        turns = "".join(
+            f'<p><span class="replay-role">'
+            f'{html.escape(ROLE_LABELS.get(message["role"], message["role"]))}</span> '
+            f'{html.escape(message["content"])}</p>'
+            for message in exchange["history"]
+        )
+        blocks.append(f'<div class="replay-history">{turns}</div>')
+
+    blocks.append(f'<p class="replay-question">{html.escape(exchange["question"])}</p>')
+    if exchange["retrieval_query"] != exchange["question"]:
+        blocks.append(
+            '<p class="replay-query">🔎 requête réellement recherchée : '
+            f'{html.escape(exchange["retrieval_query"])}</p>'
+        )
+    answer = _blank_line_before_lists(exchange["answer"])
+    blocks.append(f'<div class="replay-answer" markdown="1">\n\n{answer}\n\n</div>')
+    blocks.append(_fragments_html(exchange))
+    return "\n\n".join(blocks)
+
+
+def stage_demo_page() -> None:
+    scenarios = json.loads(DEMO_SCENARIOS.read_text(encoding="utf-8"))
+    capture = json.loads(DEMO_CAPTURE.read_text(encoding="utf-8"))
+    recorded = {scenario["id"]: scenario["exchanges"] for scenario in capture["scenarios"]}
+    conditions = capture["conditions"]
+    models = ", ".join(f"`{model}`" for model in conditions["models"])
+
+    body = [
+        scenarios["lead"],
+        "",
+        f"Conditions de l'enregistrement : {conditions['documents']} documents et "
+        f"{conditions['chunks']} fragments indexés, backend {models}, dépôt au commit "
+        f"`{conditions['commit']}`. Les latences sont mesurées côté client, une question "
+        "de mise en route ayant été posée d'abord pour ne pas leur imputer le chargement "
+        "du modèle d'embedding.",
+        "",
+    ]
+    for scenario in scenarios["scenarios"]:
+        exchanges = recorded.get(scenario["id"])
+        if not exchanges:
+            raise SystemExit(f"scenario {scenario['id']!r} absent from the capture — rerun capture_demo.py")
+        body += [f"## {scenario['title']}", "", scenario["lead"], ""]
+        body += [_exchange_markdown(exchange) for exchange in exchanges]
+        body.append("")
+
+    page = front_matter(
+        title=DEMO_TITLE,
+        slug=DEMO_SLUG,
+        nav_label=DEMO_TITLE,
+        nav_group="prose",
+        nav_order=DEMO_ORDER,
+    )
+    page += "\n" + "\n".join(body)
+    (PAGES_DIR / f"{DEMO_SLUG}.md").write_text(page, encoding="utf-8")
 
 
 def stage_api_reference() -> None:
@@ -140,7 +266,7 @@ def stage_api_reference() -> None:
             slug=slug,
             nav_label=nav_label,
             nav_group="api",
-            nav_order=f"{40 + order:02d}",
+            nav_order=f"{50 + order}",
         )
         page += f"\n{API_LEAD}\n\n{body}"
         (PAGES_DIR / f"{slug}.md").write_text(page, encoding="utf-8")
@@ -158,6 +284,7 @@ def stage() -> None:
     PAGES_DIR.mkdir(parents=True)
     STATIC_DIR.mkdir(parents=True)
     stage_prose()
+    stage_demo_page()
     stage_api_reference()
     stage_standalone_pages()
 

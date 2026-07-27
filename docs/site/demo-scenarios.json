@@ -1,0 +1,68 @@
+{
+  "lead": "Échanges réellement obtenus contre l'API du projet, enregistrés puis restitués ici tels quels : la question posée, la réponse produite, les extraits cités et leurs scores. La page ne dialogue pas avec le système — Read the Docs ne sert que des fichiers, et l'assistant a besoin de son index et d'un modèle de langage. Les scénarios sont ceux du guide de démonstration ; pour les rejouer soi-même, ce guide donne les commandes.",
+  "scenarios": [
+    {
+      "id": "simple",
+      "title": "Questions simples (tour unique)",
+      "lead": "Une paraphrase d'abord, puis des sigles et des termes exacts. La paraphrase n'obtient pas de réponse : la recherche remonte bien la page consacrée à la césure, mais aucun fragment retrouvé n'énonce la règle, et le garde-fou refuse plutôt que de compléter. Les fragments sont donnés sous chaque échange, refus compris — c'est ce qui sépare un refus faute de recherche d'un refus faute de matière.",
+      "exchanges": [
+        {
+          "question": "Puis-je interrompre mes études un an puis les reprendre ?",
+          "k": 5
+        },
+        {
+          "question": "Qu'est-ce que le régime spécial d'études (RSE) ?",
+          "k": 5
+        },
+        {
+          "question": "Qu'est-ce que la CVEC ?",
+          "k": 5
+        },
+        {
+          "question": "Comment fonctionne la compensation des notes en licence ?",
+          "k": 5
+        },
+        {
+          "question": "Comment obtenir un duplicata de mon diplôme à l'IUT ?",
+          "k": 5
+        }
+      ]
+    },
+    {
+      "id": "multitour",
+      "title": "Conversation multi-tour",
+      "lead": "Le premier tour se pose seul : aucune requête n'a besoin d'être reformulée. Le second est elliptique et n'a de sens qu'avec ce qui précède ; la condensation le réécrit avant la recherche, et la requête réellement cherchée est affichée.",
+      "exchanges": [
+        {
+          "question": "Quelles sont les modalités de la césure ?",
+          "k": 5
+        },
+        {
+          "question": "Et à quelles dates faut-il déposer sa candidature ?",
+          "k": 5,
+          "history": [
+            {
+              "role": "user",
+              "content": "Quelles sont les modalités de la césure ?"
+            },
+            {
+              "role": "assistant",
+              "content": "La césure permet de suspendre ses études un ou deux semestres pour réaliser un projet, avec maintien du statut étudiant."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refus",
+      "title": "Refus sur une question hors corpus",
+      "lead": "L'information demandée est absente du corpus. Le système refuse plutôt que de répondre depuis ce que le modèle sait par ailleurs, et ne cite aucune source.",
+      "exchanges": [
+        {
+          "question": "Quelle est la capitale de l'Australie ?",
+          "k": 5
+        }
+      ]
+    }
+  ]
+}
