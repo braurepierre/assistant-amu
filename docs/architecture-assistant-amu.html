@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssistantAMU — carte du code : modules, appels, responsabilités</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
+<!-- Mermaid : rendu des diagrammes. Hors ligne, chaque diagramme retombe sur sa
+     source en monospace (repli géré dans initDiagrams) — la page reste lisible. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+:root{
+  --ink:#0F1F4D; --ink-soft:#33406B; --paper:#F4F6FB; --card:#FFFFFF;
+  --line:#E1E5F0; --blue:#143b8f; --blue-2:#2c6ecb; --blue-bg:#E9EEFA;
+  --yellow:#f6e400; --yellow-bg:#FCF7CE; --yellow-ink:#5A5200;
+  --teal:#12836F; --teal-bg:#E2F4EF; --coral:#C8451F; --coral-bg:#FBE9E3;
+  --muted:#6B7290; --radius:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;font-size:16px;line-height:1.65}
+h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.25;margin:0}
+.mono{font-family:"IBM Plex Mono",monospace}
+a{color:var(--blue-2)}
+
+/* --- Topbar --- */
+#topbar{position:sticky;top:0;z-index:30;background:var(--blue);color:#fff;display:flex;align-items:center;gap:12px;padding:9px 20px;box-shadow:0 2px 8px rgba(15,31,77,.15)}
+#topbar .brand{font-family:"Sora",sans-serif;font-weight:600;font-size:14px;display:flex;align-items:center;gap:9px}
+#topbar .repo{margin-left:auto;font-size:12px;color:#B9C6EE}
+.menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font-size:16px;line-height:1;padding:5px 11px;border-radius:7px;cursor:pointer}
+.menu-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.logo{background:#fff;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.4px;padding:3px 7px;border-radius:5px}
+
+/* --- Doc layout --- */
+.layout{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start}
+.sidebar{position:sticky;top:50px;align-self:flex-start;width:262px;min-width:262px;max-height:calc(100vh - 50px);overflow-y:auto;padding:26px 12px 48px 22px;border-right:1px solid var(--line)}
+.sidebar nav{display:flex;flex-direction:column;gap:1px}
+.sidebar .grp{font-family:"Sora",sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 6px 10px}
+.sidebar .grp:first-child{margin-top:0}
+.sidebar a{font-size:13.5px;text-decoration:none;color:var(--ink-soft);padding:6px 11px;border-radius:7px;border-left:2px solid transparent;transition:background .12s,color .12s}
+.sidebar a:hover{background:var(--blue-bg);color:var(--blue)}
+.sidebar a.active{background:var(--blue-bg);color:var(--blue);font-weight:600;border-left-color:var(--blue)}
+#sideOverlay{display:none}
+
+header.hero{background:linear-gradient(160deg,#0F1F4D 0%,#143b8f 100%);color:#EDEFF8;padding:56px 24px 60px;border-bottom:5px solid var(--yellow)}
+.hero .in{max-width:880px;margin:0 auto}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#9DAAD8;margin:0 0 14px}
+.hero h1{font-size:clamp(26px,4.5vw,40px);font-weight:700;color:#fff;max-width:680px}
+.hero p.sub{color:#C7CEE8;max-width:640px;margin:16px 0 0;font-size:16px}
+
+main{flex:1;min-width:0;max-width:840px;margin:0;padding:12px 34px 72px}
+section{margin-top:56px;scroll-margin-top:72px}
+@media (max-width:940px){
+  .menu-btn{display:inline-block}
+  #topbar .repo{display:none}
+  .layout{display:block}
+  main{max-width:none;padding:12px 20px 60px}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;height:100vh;max-height:none;width:290px;background:var(--card);z-index:60;transform:translateX(-105%);transition:transform .25s ease;box-shadow:6px 0 24px rgba(15,31,77,.18);padding-top:22px}
+  .sidebar.open{transform:none}
+  #sideOverlay{position:fixed;inset:0;background:rgba(15,31,77,.42);z-index:55}
+  #sideOverlay.show{display:block}
+}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--blue);border:1px solid var(--blue);border-radius:99px;padding:2px 10px;white-space:nowrap}
+section h2{font-size:22px;font-weight:600}
+section h3{font-size:16px;font-weight:600;margin:26px 0 8px}
+.lead{color:var(--ink-soft);margin:6px 0 20px;max-width:680px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--yellow-bg);color:var(--yellow-ink);border:1px solid #E8DE8A;vertical-align:middle;margin-left:8px}
+
+table.cmp{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+table.cmp th,table.cmp td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.cmp th{font-family:"Sora",sans-serif;font-size:13px;color:var(--muted);font-weight:600}
+table.cmp td:first-child{font-weight:600;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+code{font-family:"IBM Plex Mono",monospace;font-size:13px;background:var(--blue-bg);padding:1px 5px;border-radius:4px;color:#22307A}
+
+.diagram{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-top:14px;overflow-x:auto}
+.diagram svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.diagram pre.fallback{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.6;color:var(--ink-soft);margin:0;white-space:pre}
+/* Mermaid n'honore pas clusterBkg pour les sous-graphes : sans cette règle, les
+   cadres de groupe ressortent en jaune, hors de la palette de la page. */
+.diagram .cluster rect{fill:#F7F9FD !important;stroke:#D6DDEE !important}
+.diagram .cluster-label text,.diagram .cluster text{fill:var(--ink-soft) !important}
+.caption{font-size:13px;color:var(--muted);margin:9px 0 0;text-align:center}
+
+.note{border-left:3px solid var(--blue-2);background:var(--blue-bg);border-radius:0 8px 8px 0;padding:12px 16px;margin-top:16px;font-size:14.5px;color:#22307A}
+.note.warn{border-left-color:var(--coral);background:var(--coral-bg);color:#7C2A11}
+.note b{font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:14px}
+.pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px}
+.pill.wired{background:var(--teal-bg);color:#0B5A4C}
+.pill.measured{background:var(--yellow-bg);color:var(--yellow-ink)}
+
+footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;text-align:center;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
+  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — carte du code</span>
+  <span class="repo mono">assistant-amu · src/assistant_amu</span>
+</div>
+
+<header class="hero">
+  <div class="in">
+    <p class="eyebrow">Représentation schématique du code · modules, appels, responsabilités</p>
+    <h1>Qui fait quoi, et qui appelle qui</h1>
+    <p class="sub">Cette page décrit la <b>structure du code</b>, non les concepts du RAG — ceux-ci sont traités par la page pédagogique. Elle répond à trois questions : de quels modules le projet est fait, dans quel ordre ils s'appellent lorsqu'une requête arrive, et de quoi chaque classe est responsable. Les diagrammes sont générés depuis leur source textuelle : hors ligne, celle-ci s'affiche à leur place.</p>
+  </div>
+</header>
+
+<div class="layout">
+<aside id="sidebar" class="sidebar">
+  <nav aria-label="Sommaire">
+    <div class="grp">Vue générale</div>
+    <a href="#s0" data-sec="s0">00 · Quatre couches</a>
+    <a href="#s1" data-sec="s1">01 · Carte des modules</a>
+    <div class="grp">Chaînes d'appel</div>
+    <a href="#s2" data-sec="s2">02 · Ingestion</a>
+    <a href="#s3" data-sec="s3">03 · Requête /ask</a>
+    <a href="#s4" data-sec="s4">04 · Conversation multi-tour</a>
+    <div class="grp">Référence</div>
+    <a href="#s5" data-sec="s5">05 · Rôle de chaque classe</a>
+    <a href="#s6" data-sec="s6">06 · Erreurs et refus</a>
+    <a href="#s7" data-sec="s7">07 · Ce qui vit à côté</a>
+  </nav>
+</aside>
+<div id="sideOverlay"></div>
+
+<main>
+
+<section id="s0">
+  <div class="sec-head"><span class="sec-num">00</span><h2>Quatre couches, une seule direction de dépendance</h2></div>
+  <p class="lead">Le paquet <code>src/assistant_amu</code> se lit en quatre couches. Chacune ne connaît que celles situées en dessous d'elle : aucune couche basse n'importe une couche haute, ce qui permet d'employer l'ingestion ou la recherche sans monter l'API.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  subgraph L4["Interface"]
+    API["api/main.py<br/>/ask · /prepare · /ingest · /health"]
+  end
+  subgraph L3["Génération"]
+    RAG["generation/rag.py<br/>RagPipeline"]
+    LLM["generation/llm.py<br/>OllamaBackend · MistralBackend"]
+    RW["generation/rewrite.py<br/>strip · llm"]
+  end
+  subgraph L2["Recherche"]
+    VS["retrieval/vector_store.py<br/>VectorStore"]
+    EMB["retrieval/embedder.py<br/>Embedder"]
+    BM["retrieval/bm25_store.py<br/>Bm25Index"]
+  end
+  subgraph L1["Ingestion"]
+    ING["ingestion/<br/>download · extract · clean · chunk"]
+  end
+  subgraph L0["Socle"]
+    MOD["models.py<br/>Document · Chunk · RetrievedChunk"]
+    CFG["config.py<br/>Settings"]
+  end
+  API --> RAG
+  API --> VS
+  API --> ING
+  RAG --> VS
+  RAG --> LLM
+  RAG --> RW
+  VS --> EMB
+  ING --> MOD
+  VS --> MOD
+  RAG --> MOD
+  LLM --> CFG
+  VS --> CFG
+  API --> CFG
+    </pre>
+  </div>
+  <p class="caption">Les flèches se lisent « importe ». Aucune ne remonte.</p>
+
+  <div class="note"><b>Deux modules n'importent rien du projet.</b> <code>retrieval/embedder.py</code> et <code>generation/rewrite.py</code> reçoivent ce dont ils ont besoin en paramètre — un nom de modèle pour l'un, un backend pour l'autre. C'est ce qui permet de les tester sans base vectorielle ni appel réseau, et de rejouer une expérience d'évaluation sur un encodeur différent sans toucher au reste.</div>
+</section>
+
+<section id="s1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Carte des modules</h2></div>
+  <p class="lead">Le détail des dépendances internes, module par module. Les modules d'expérimentation de <code>eval/</code> ne sont pas repris ici : ils consomment ces mêmes briques sans jamais être appelés par elles.</p>
+
+  <div class="tablewrap">
+  <table class="cmp">
+    <tr><th>Module</th><th>Importe du projet</th><th>Dépendance externe principale</th></tr>
+    <tr><td>api/main.py</td><td>config, generation.llm, generation.rag, ingestion, models, retrieval.vector_store</td><td>fastapi, pydantic</td></tr>
+    <tr><td>generation/rag.py</td><td>config, models, retrieval.vector_store, generation.llm, generation.rewrite</td><td>—</td></tr>
+    <tr><td>generation/llm.py</td><td>config</td><td>httpx</td></tr>
+    <tr><td>generation/rewrite.py</td><td>—</td><td>—</td></tr>
+    <tr><td>retrieval/vector_store.py</td><td>config, models, retrieval.embedder</td><td>chromadb</td></tr>
+    <tr><td>retrieval/embedder.py</td><td>—</td><td>sentence-transformers</td></tr>
+    <tr><td>retrieval/bm25_store.py</td><td>models</td><td>rank_bm25</td></tr>
+    <tr><td>ingestion/pipeline.py</td><td>config, models, ingestion.{chunk, clean, download, extract}</td><td>—</td></tr>
+    <tr><td>ingestion/extract.py</td><td>models, ingestion</td><td>pdfplumber, beautifulsoup4, docling</td></tr>
+    <tr><td>ingestion/contextualize.py</td><td>backoff, config, models</td><td>—</td></tr>
+    <tr><td>evaluation.py</td><td>models, generation.rag <span class="mono">(is_refusal)</span></td><td>—</td></tr>
+    <tr><td>models.py, config.py</td><td>—</td><td>pyyaml, python-dotenv</td></tr>
+  </table>
+  </div>
+
+  <div class="note"><b>Une seule remontée apparente.</b> <code>evaluation.py</code> importe <code>is_refusal</code> depuis la couche génération. C'est délibéré : le harnais doit reconnaître un refus <em>exactement</em> comme le fait la production, sinon il mesurerait un critère qui lui est propre.</div>
+</section>
+
+<section id="s2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Chaîne d'ingestion <span class="tag">hors ligne</span></h2></div>
+  <p class="lead">Du fichier <code>corpus/sources.yaml</code> à la collection ChromaDB. Cette chaîne s'exécute à la demande, jamais pendant une requête utilisateur.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  Y["corpus/sources.yaml"] --> D["download.download_all<br/>robots.txt, délai 1 s"]
+  D --> RAW[("corpus/raw/")]
+  RAW --> E["extract.extract<br/>pdfplumber → docling<br/>beautifulsoup4"]
+  E --> C["clean.clean_document<br/>boilerplate, sommaires"]
+  C --> K["chunk.chunk_document<br/>≤ 500 tokens, chevauchement 50"]
+  K --> A["VectorStore.add_chunks"]
+  A --> EM["Embedder.embed_passages<br/>préfixe « passage: »"]
+  EM --> DB[("ChromaDB<br/>cosinus")]
+  E -. document scanné .-> X["exclu et signalé"]
+    </pre>
+  </div>
+  <p class="caption">Orchestration : <code>ingestion/pipeline.py</code> · commande : <code>python -m assistant_amu.ingestion index</code></p>
+
+  <div class="note"><b>L'exclusion est un résultat, pas une erreur.</b> Un PDF scanné lève <code>ScannedDocumentError</code>, que <code>ingest_corpus</code> capture pour l'inscrire au rapport. Une source illisible n'interrompt jamais le lot.</div>
+</section>
+
+<section id="s3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Chaîne d'appel d'une requête <code>/ask</code></h2></div>
+  <p class="lead">Le trajet complet d'une question, de la requête HTTP à la réponse sourcée. Les deux sorties anticipées — aucun passage récupéré, refus du modèle — sont ce qui garantit qu'une réponse sans source ne cite jamais de source.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant A as api/main.ask
+  participant P as RagPipeline
+  participant S as VectorStore
+  participant E as Embedder
+  participant B as LLMBackend
+  C->>A: POST /ask {question, k, history?}
+  A->>P: answer(question, k, history)
+  P->>P: prepare() → condensation, réécriture
+  P->>S: query(retrieval_query, k)
+  S->>E: embed_queries(« query: » + question)
+  E-->>S: vecteur
+  S-->>P: liste de RetrievedChunk
+  alt aucun passage
+    P-->>A: RagResult(refus, sources vides)
+  else passages trouvés
+    P->>P: build_user_message(question, sources)
+    P->>B: generate(prompt système, message)
+    B-->>P: réponse
+    alt réponse = refus canonique
+      P-->>A: RagResult(refus, sources vides)
+    else réponse ancrée
+      P-->>A: RagResult(réponse, sources)
+    end
+  end
+  A-->>C: AskResponse {answer, sources[], model, …}
+    </pre>
+  </div>
+  <p class="caption">Le refus vide la liste des sources dans les deux cas : citer un passage qu'on n'a pas utilisé induirait en erreur.</p>
+
+  <div class="note"><b>Un appel de modèle économisé.</b> Lorsque la recherche ne remonte rien, le pipeline refuse sans appeler le backend. C'est la branche « aucun passage » du diagramme : elle coûte zéro token.</div>
+</section>
+
+<section id="s4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Conversation multi-tour : où la question est réécrite</h2></div>
+  <p class="lead">Deux transformations peuvent s'appliquer à la question avant la recherche. Elles sont résolues au même endroit, <code>RagPipeline.prepare</code>, pour que l'aperçu affiché à l'utilisateur et la requête réellement cherchée ne puissent pas diverger.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  Q["question de l'utilisateur"] --> H{"history<br/>fourni ?"}
+  H -- non --> BQ["question inchangée"]
+  H -- oui --> CD["_condense<br/>appel backend · condense_system.md"]
+  CD --> BQ
+  BQ --> RW{"rewrite ?"}
+  RW -- "raw (défaut)" --> RQ["requête de recherche"]
+  RW -- strip --> ST["strip_query<br/>retrait de l'ouverture · aucun appel"]
+  RW -- llm --> LR["rewrite_query<br/>appel backend"]
+  ST --> RQ
+  LR --> RQ
+  RQ --> S["VectorStore.query"]
+    </pre>
+  </div>
+  <p class="caption">Sans historique et en mode <code>raw</code>, les deux branches sont l'identité : le comportement mono-tour est reproduit à l'exact.</p>
+
+  <div class="note"><b>La rétrocompatibilité est une propriété du chemin, pas une promesse.</b> Aucune des deux transformations ne s'applique par défaut ; une requête sans <code>history</code> et sans <code>rewrite</code> traverse <code>prepare</code> sans qu'aucun appel de modèle supplémentaire soit émis.</div>
+</section>
+
+<section id="s5">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Rôle de chaque classe</h2></div>
+  <p class="lead">Ce dont chaque classe répond, et ce qu'elle laisse délibérément à une autre. La seconde colonne est souvent la plus instructive : elle explique pourquoi une responsabilité n'a pas été placée là où on l'attendrait.</p>
+
+  <div class="tablewrap">
+  <table class="cmp">
+    <tr><th>Classe</th><th>Responsable de</th><th>Ne fait pas</th><th>Fichier</th></tr>
+    <tr><td>RagPipeline</td><td>Assembler le prompt, décider du refus, retourner un <code>RagResult</code></td><td>La recherche elle-même, ni le choix du backend — les deux lui sont injectés</td><td class="mono">generation/rag.py</td></tr>
+    <tr><td>VectorStore</td><td>Collection ChromaDB en cosinus, ajout dédupliqué, recherche k-NN</td><td>Les préfixes d'encodeur : ils appartiennent à <code>Embedder</code></td><td class="mono">retrieval/vector_store.py</td></tr>
+    <tr><td>Embedder</td><td>Vectoriser, en appliquant le préfixe propre à la famille de modèles</td><td>Tout stockage ; il ne connaît pas ChromaDB</td><td class="mono">retrieval/embedder.py</td></tr>
+    <tr><td>LLMBackend</td><td>Contrat commun aux deux backends : <code>generate</code> et <code>health</code></td><td>Toute logique produit — le refus est évalué par le pipeline</td><td class="mono">generation/llm.py</td></tr>
+    <tr><td>OllamaBackend</td><td>Inférence locale, avec <code>num_ctx</code> transmis explicitement</td><td>Le repli sur l'API : le choix se fait par configuration</td><td class="mono">generation/llm.py</td></tr>
+    <tr><td>MistralBackend</td><td>Inférence par l'API, traduction des erreurs HTTP en causes normalisées</td><td>La reprise sur erreur d'une requête <code>/ask</code>, qui doit échouer vite</td><td class="mono">generation/llm.py</td></tr>
+    <tr><td>Bm25Index</td><td>Index lexical en mémoire, construit sur les mêmes fragments</td><td>Rien en production : il n'existe que pour l'évaluation</td><td class="mono">retrieval/bm25_store.py</td></tr>
+    <tr><td>SemanticRetriever<br/>RrfRetriever</td><td>Exposer un classement sous une interface unique, pour comparer les méthodes</td><td>Alimenter <code>/ask</code> : la fusion est mesurée, non branchée</td><td class="mono">vector_store.py · evaluation.py</td></tr>
+    <tr><td>ContextCache</td><td>Mémoriser les contextes générés, indexés par version de prompt</td><td>Servir la production : la contextualisation reste une expérience</td><td class="mono">ingestion/contextualize.py</td></tr>
+    <tr><td>Settings</td><td>Lire l'environnement une fois, valider, échouer tôt si une clé manque</td><td>Se recharger en cours d'exécution</td><td class="mono">config.py</td></tr>
+  </table>
+  </div>
+
+  <h3>Les objets qui circulent</h3>
+  <div class="tablewrap">
+  <table class="cmp">
+    <tr><th>Objet</th><th>Produit par</th><th>Consommé par</th><th>Porte</th></tr>
+    <tr><td>SourceDoc</td><td>load_sources</td><td>download, extract</td><td>URL, titre, type, catégorie</td></tr>
+    <tr><td>Document</td><td>extract → clean</td><td>chunk</td><td>Blocs de texte, identifiant de contenu</td></tr>
+    <tr><td>Chunk</td><td>chunk_document</td><td>VectorStore, Bm25Index</td><td>Texte, métadonnées de source, page</td></tr>
+    <tr><td>RetrievedChunk</td><td>VectorStore.query</td><td>RagPipeline, harnais</td><td>Texte, score de similarité, métadonnées</td></tr>
+    <tr><td>RagResult</td><td>RagPipeline.answer</td><td>api/main, CLI</td><td>Réponse, sources, modèle, question condensée</td></tr>
+  </table>
+  </div>
+</section>
+
+<section id="s6">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Erreurs et refus : deux mécanismes distincts</h2></div>
+  <p class="lead">Un refus et une panne se ressemblent pour l'utilisateur : dans les deux cas, il n'obtient pas de réponse. Le code les traite pourtant par deux chemins séparés, et c'est volontaire — l'un est un résultat attendu, l'autre un incident.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  subgraph R["Refus — résultat attendu"]
+    direction LR
+    R1["is_refusal(réponse)"] --> R2["sources vidées"] --> R3["HTTP 200"]
+  end
+  subgraph F["Panne — incident"]
+    direction LR
+    F1["httpx lève"] --> F2["_map_http_error<br/>cause normalisée"] --> F3["LLMBackendError"] --> F4["HTTP 503"]
+  end
+    </pre>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <b>Le refus se compare, il ne se devine pas</b>
+      <p class="hint">La phrase de refus du prompt système est comparée après normalisation — minuscules, ponctuation retirée, espaces réduits — et non caractère par caractère. Un modèle qui ajoute un point final produit toujours un refus reconnu.</p>
+    </div>
+    <div class="card">
+      <b>Une requête échoue vite</b>
+      <p class="hint">Aucune reprise n'est tentée pendant <code>/ask</code> : une panne remonte immédiatement en <code>503</code>. La reprise avec attente progressive existe, dans <code>backoff.py</code>, mais elle sert aux traitements par lots, où réessayer a du sens.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s7">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Ce qui vit à côté du pipeline</h2></div>
+  <p class="lead">Trois travaux sont mesurés et documentés sans être intégrés à <code>/ask</code>. Sur le plan du code, cela se voit : ils consomment les briques de recherche sans qu'aucune ligne du pipeline ne les appelle.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  VS["VectorStore"] --> ASK["RagPipeline.answer<br/>chemin de production"]
+  VS --> EV["eval/ · evaluation.py<br/>chemin de mesure"]
+  EV --> RRF["RrfRetriever<br/>fusion sémantique + BM25"]
+  EV --> CMP["embedder_comparison<br/>e5 · CamemBERT · FlauBERT"]
+  EV --> CTX["contextual_retrieval<br/>collection parallèle « _ctx »"]
+  EV --> QRW["query_rewrite<br/>strip · llm"]
+  ASK -. jamais .-> RRF
+    </pre>
+  </div>
+
+  <div class="tablewrap">
+  <table class="cmp">
+    <tr><th>Travail</th><th>État</th><th>Où il vit</th></tr>
+    <tr><td>Recherche sémantique</td><td><span class="pill wired">branchée</span></td><td>retrieval/vector_store.py</td></tr>
+    <tr><td>Condensation multi-tour</td><td><span class="pill wired">branchée</span></td><td>generation/rag.py</td></tr>
+    <tr><td>Fusion RRF</td><td><span class="pill measured">mesurée</span></td><td>evaluation.py</td></tr>
+    <tr><td>Réécriture de requête</td><td><span class="pill measured">mesurée</span></td><td>generation/rewrite.py, exposée en option</td></tr>
+    <tr><td>Contextualisation des fragments</td><td><span class="pill measured">mesurée</span></td><td>ingestion/contextualize.py, collection parallèle</td></tr>
+  </table>
+  </div>
+
+  <div class="note warn"><b>Une nuance sur la réécriture.</b> Elle est le seul de ces travaux dont le code se trouve dans le paquet de production, parce que <code>/ask</code> l'expose en option. Le défaut reste <code>raw</code>, c'est-à-dire l'identité : le comportement par défaut du pipeline n'en est pas affecté.</div>
+
+  <p class="hint">Les chiffres de ces mesures, leurs limites et leurs conditions figurent dans <code>docs/mesures.md</code>. Cette page ne dit que <em>où</em> le code se trouve.</p>
+</section>
+
+</main>
+</div>
+
+<footer>
+  AssistantAMU — carte du code. Structure relevée dans <span class="mono">src/assistant_amu</span>.
+  Les concepts du RAG sont traités par <a href="concepts-assistant-amu.html">la page pédagogique</a>.
+</footer>
+
+<script>
+// Sommaire repliable en écran étroit.
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sideOverlay');
+function closeSide(){ sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+menuBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('show'); });
+overlay.addEventListener('click', closeSide);
+sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeSide));
+
+// Surlignage de la section courante.
+const links = [...document.querySelectorAll('.sidebar a[data-sec]')];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    links.forEach(a => a.classList.toggle('active', a.dataset.sec === entry.target.id));
+  });
+}, { rootMargin: '-72px 0px -70% 0px' });
+document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+// Rendu des diagrammes. Sans Mermaid — hors ligne, CDN bloqué — la source
+// textuelle reste affichée telle quelle plutôt que de laisser un cadre vide.
+function initDiagrams(){
+  const blocks = [...document.querySelectorAll('pre.mermaid')];
+  if (typeof mermaid === 'undefined') {
+    blocks.forEach(b => { b.classList.remove('mermaid'); b.classList.add('fallback'); });
+    return;
+  }
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    securityLevel: 'strict',
+    fontFamily: '"Public Sans", system-ui, sans-serif',
+    themeVariables: {
+      primaryColor: '#E9EEFA', primaryTextColor: '#0F1F4D', primaryBorderColor: '#2c6ecb',
+      lineColor: '#6B7290', secondaryColor: '#E2F4EF', tertiaryColor: '#F4F6FB',
+      clusterBkg: '#F7F9FD', clusterBorder: '#D6DDEE', titleColor: '#33406B', fontSize: '13px'
+    }
+  });
+  mermaid.run({ nodes: blocks }).catch(() => {
+    blocks.forEach(b => { b.classList.remove('mermaid'); b.classList.add('fallback'); });
+  });
+}
+window.addEventListener('load', initDiagrams);
+</script>
+</body>
+</html>

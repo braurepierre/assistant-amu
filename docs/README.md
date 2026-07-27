@@ -4,6 +4,7 @@
 | --- | --- |
 | `concepts-assistant-amu.html` | Page pédagogique autonome (voir ci-dessous). |
 | `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
+| `architecture-assistant-amu.html` | Carte du code : modules, chaînes d'appel, rôle de chaque classe (voir ci-dessous). |
 | `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
 
 ## La page pédagogique
@@ -20,6 +21,23 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 
 > Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
+
+## La carte du code
+
+`architecture-assistant-amu.html` répond à une autre question que la page
+pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
+organisé. Elle décrit les quatre couches et leur sens de dépendance, la chaîne
+d'ingestion, le trajet d'une requête `/ask`, le rôle de chaque classe et ce
+qu'elle laisse délibérément à une autre.
+
+Les diagrammes sont écrits en **Mermaid**, chargé depuis un CDN. Hors ligne, la
+source textuelle de chaque diagramme s'affiche à sa place plutôt qu'un cadre
+vide (repli géré dans `initDiagrams`).
+
+Cette page ne porte **aucun chiffre de mesure** : elle n'a donc pas de bloc
+`STATS` et ne dépend pas de `build_concepts.py`. Ce qui la périme, c'est un
+changement de structure — un module déplacé, une dépendance ajoutée, une
+responsabilité transférée d'une classe à une autre.
 
 ## Tenir la page à jour
 
