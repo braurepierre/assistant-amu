@@ -6,7 +6,8 @@
 
 {% block content %}
 <article class="page">
-  <h1>{{ page.title }}</h1>
+  {# An embedded page carries its own banner, title included. #}
+  {% if not page.hide_title %}<h1>{{ page.title }}</h1>{% endif %}
   {{ page.content }}
 </article>
 {% endblock %}

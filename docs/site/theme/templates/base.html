@@ -1,3 +1,23 @@
+{% macro branch(url, label, key, is_current) %}
+  {% set sections = NAV_SECTIONS.get(key, []) %}
+  <li class="nav-item{% if sections %} has-sub{% endif %}{% if is_current %} open{% endif %}">
+    <div class="nav-row">
+      <a href="{{ url }}"{% if is_current %} class="current" aria-current="page"{% endif %}>{{ label }}</a>
+      {% if sections %}
+      <button type="button" class="sub-toggle" aria-expanded="{{ 'true' if is_current else 'false' }}"
+              aria-label="Déplier les sections de {{ label }}"><span aria-hidden="true">▸</span></button>
+      {% endif %}
+    </div>
+    {% if sections %}
+    <ul class="sub-list">
+      {% for section in sections %}
+      <li><a href="{{ url }}#{{ section.id }}">{{ section.label }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </li>
+{% endmacro %}
+
 <!DOCTYPE html>
 <html lang="{{ DEFAULT_LANG }}">
 <head>
@@ -11,42 +31,56 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ SITEURL }}/theme/css/site.css">
+  <script src="{{ SITEURL }}/theme/js/site.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
 
+  {# Ordered reading sequence, shared by the sidebar and the previous/next pair
+     at the foot of each page. #}
+  {% set prose = pages | selectattr('nav_group', 'equalto', 'prose') | sort(attribute='nav_order') | list %}
+  {% set api = pages | selectattr('nav_group', 'equalto', 'api') | sort(attribute='nav_order') | list %}
+  {% set ordered = prose + api %}
+
+  {# Same bar as the standalone pages: the amU mark, the site name, and the
+     subtitle pushed to the right as their repository line is. #}
   <header class="masthead">
-    <a class="masthead-title" href="{{ SITEURL }}/index.html">{{ SITENAME }}</a>
+    <button type="button" class="icon-btn" id="navToggle"
+            aria-label="Afficher ou masquer le sommaire du site"
+            aria-controls="sommaire" aria-expanded="true">
+      <span aria-hidden="true">☰</span>
+    </button>
+    <a class="masthead-title" href="{{ SITEURL }}/index.html">
+      <span class="logo">am<b>U</b></span> {{ SITENAME }}
+    </a>
     <p class="masthead-subtitle">{{ SITESUBTITLE }}</p>
   </header>
 
-  <div class="layout">
-    <nav class="sidebar" aria-label="Sommaire du site">
-      {% set prose = pages | selectattr('nav_group', 'equalto', 'prose') | sort(attribute='nav_order') | list %}
-      {% set api = pages | selectattr('nav_group', 'equalto', 'api') | sort(attribute='nav_order') | list %}
+  <div class="scrim" id="scrim" hidden></div>
 
+  <div class="layout">
+    <nav class="sidebar" id="sommaire" aria-label="Sommaire du site">
       <ul class="nav-list">
         {% for entry in prose %}
-        <li><a href="{{ SITEURL }}/{{ entry.url }}"{% if entry == page %} class="current" aria-current="page"{% endif %}>{{ entry.nav_label }}</a></li>
+        {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
         {% endfor %}
       </ul>
 
+      {# The API reference is five pages of its own: the group folds as a whole,
+         so the rest of the tree stays in view. Open when the reader is in it. #}
       {% if api %}
-      <p class="nav-title">{{ NAV_GROUP_TITLES['api'] }}</p>
-      <ul class="nav-list">
-        {% for entry in api %}
-        <li><a href="{{ SITEURL }}/{{ entry.url }}"{% if entry == page %} class="current" aria-current="page"{% endif %}>{{ entry.nav_label }}</a></li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-
-      {% if NAV_EXTRA_LINKS %}
-      <p class="nav-title">{{ NAV_EXTRA_TITLE }}</p>
-      <ul class="nav-list">
-        {% for href, label in NAV_EXTRA_LINKS %}
-        <li><a href="{{ SITEURL }}/{{ href }}">{{ label }}</a></li>
-        {% endfor %}
-      </ul>
+      {% set in_api = page is defined and page.nav_group == 'api' %}
+      <div class="nav-group{% if not in_api %} closed{% endif %}" id="groupe-api">
+        <button type="button" class="nav-title group-toggle"
+                aria-expanded="{{ 'true' if in_api else 'false' }}" aria-controls="liste-api">
+          <span class="group-caret" aria-hidden="true">▸</span>{{ NAV_GROUP_TITLES['api'] }}
+        </button>
+        <ul class="nav-list" id="liste-api">
+          {% for entry in api %}
+          {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
+          {% endfor %}
+        </ul>
+      </div>
       {% endif %}
 
       <p class="nav-title">Dépôt</p>
@@ -55,9 +89,43 @@
       </ul>
     </nav>
 
-    <main id="contenu" class="content">
+    <main id="contenu" class="content{% if page is defined and page.embedded %} embedded{% endif %}">
       {% block content %}{% endblock %}
+
+      {# Previous/next over the same sequence as the sidebar. Rendered at build
+         time: the reader without JavaScript keeps the whole reading path. #}
+      {% if page is defined %}
+        {% set ns = namespace(index=-1) %}
+        {% for entry in ordered %}{% if entry == page %}{% set ns.index = loop.index0 %}{% endif %}{% endfor %}
+        {% if ns.index >= 0 %}
+        <nav class="pager" aria-label="Page précédente et suivante">
+          {% if ns.index > 0 %}
+          {% set previous = ordered[ns.index - 1] %}
+          <a class="pager-link pager-prev" href="{{ SITEURL }}/{{ previous.url }}" rel="prev">
+            <span class="pager-role">Précédent</span>
+            <span class="pager-title">{{ previous.nav_label }}</span>
+          </a>
+          {% endif %}
+          {% if ns.index + 1 < ordered | length %}
+          {% set following = ordered[ns.index + 1] %}
+          <a class="pager-link pager-next" href="{{ SITEURL }}/{{ following.url }}" rel="next">
+            <span class="pager-role">Suivant</span>
+            <span class="pager-title">{{ following.nav_label }}</span>
+          </a>
+          {% endif %}
+        </nav>
+        {% endif %}
+      {% endif %}
     </main>
+
+    {# Filled by site.js from the headings of the page, and left out entirely
+       when the page has too few of them to be worth a summary. #}
+    <aside class="toc" id="toc" aria-label="Sommaire de la page" hidden>
+      <button type="button" class="toc-head" id="tocToggle" aria-expanded="true" aria-controls="tocList">
+        <span class="toc-caret" aria-hidden="true">▾</span> Sur cette page
+      </button>
+      <ul class="toc-list" id="tocList"></ul>
+    </aside>
   </div>
 
   <footer class="colophon">

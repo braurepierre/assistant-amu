@@ -7,9 +7,18 @@ Paths are absolute, derived from this file, so the build does not depend on the
 working directory Read the Docs happens to use.
 """
 
+import json
 from pathlib import Path
 
 SITE_DIR = Path(__file__).resolve().parent
+
+# Sections of every page, collected by build_site.py while staging. The sidebar
+# draws the whole tree, so rendering one page needs the headings of all of them
+# — which Pelican does not expose. Missing file: the sidebar simply stays flat.
+try:
+    NAV_SECTIONS = json.loads((SITE_DIR / "nav_sections.json").read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    NAV_SECTIONS = {}
 
 # --- Sources and output -----------------------------------------------------
 
@@ -19,13 +28,12 @@ PAGE_PATHS = ["pages"]
 # No blog in this site. The directory stays empty; naming it keeps Pelican from
 # reading the whole content tree as articles.
 ARTICLE_PATHS = ["articles"]
+# Nothing is copied verbatim any more: the two formerly standalone pages are
+# ordinary pages of the site, their body embedded by build_site.py and saved
+# under their original file name, so the links written in README.md keep
+# resolving. The directory is named all the same, so that adding an image later
+# does not require touching this file.
 STATIC_PATHS = ["static"]
-# The standalone pages are served at the site root, under their own file name,
-# so the links written in README.md resolve once rewritten by build_site.py.
-EXTRA_PATH_METADATA = {
-    "static/concepts-assistant-amu.html": {"path": "concepts-assistant-amu.html"},
-    "static/architecture-assistant-amu.html": {"path": "architecture-assistant-amu.html"},
-}
 
 # --- Addresses --------------------------------------------------------------
 
@@ -55,14 +63,8 @@ REPO_URL = "https://github.com/braurepierre/assistant-amu"
 
 # --- Navigation -------------------------------------------------------------
 
-# Prose and API pages carry their own nav_group/nav_order metadata. These two
-# entries are the standalone HTML pages, which Pelican only copies.
+# Every page carries its own nav_group/nav_order metadata.
 NAV_GROUP_TITLES = {"api": "Référence d'API"}
-NAV_EXTRA_TITLE = "Pages autonomes"
-NAV_EXTRA_LINKS = [
-    ("concepts-assistant-amu.html", "Page pédagogique"),
-    ("architecture-assistant-amu.html", "Carte du code"),
-]
 
 # --- Markdown ---------------------------------------------------------------
 
@@ -73,7 +75,9 @@ MARKDOWN = {
         "markdown.extensions.extra": {},
         "markdown.extensions.sane_lists": {},
         "markdown.extensions.codehilite": {"css_class": "highlight", "guess_lang": False},
-        "markdown.extensions.toc": {"permalink": False},
+        # The anchor is rendered at build time rather than by the script: a
+        # heading stays linkable on a page whose JavaScript never ran.
+        "markdown.extensions.toc": {"permalink": "#", "permalink_title": "Lien vers cette section"},
     },
     "output_format": "html5",
 }

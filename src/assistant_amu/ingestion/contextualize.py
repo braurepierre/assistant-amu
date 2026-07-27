@@ -8,8 +8,9 @@ sentence situating it in its document, **before** embedding and BM25 indexing �
 published effect: -49 % retrieval failures (contextual embeddings + contextual
 BM25), -67 % with reranking on top.
 
-PRD §5.3.1 designates it as the V2.1 candidate n°1. Like the RRF fusion and the
-query rewriting before it, this is built to be **measured first**: contextualised
+The specification designates it as the first candidate for a later version. Like
+the RRF fusion and the query rewriting before it, this is built to be
+**measured first**: contextualised
 chunks go into a *parallel* collection (``--collection``), the production one is
 never touched, and ``eval/contextual_retrieval_experiment.py`` compares the two.
 

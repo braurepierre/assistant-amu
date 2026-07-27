@@ -18,7 +18,7 @@ bruts et les branches d'expérimentation sont dans le dépôt.
 | [Mesures et évaluation](mesures.html) | Tous les chiffres du projet : rappel par méthode de recherche, comparaison des encodeurs, contextualisation de l'index, latences, refus. Tables par question et limites de chaque étude. |
 | [Référence d'API](api-noyau.html) | Signatures et docstrings des cinq ensembles du paquet, extraites du source par analyse statique. |
 | [Page pédagogique](concepts-assistant-amu.html) | Le fonctionnement d'un système RAG brique par brique, avec des démonstrations manipulables et un glossaire relié aux fichiers du code. |
-| [Carte du code](architecture-assistant-amu.html) | L'organisation du dépôt et les deux chaînes de traitement, en schémas à deux niveaux. |
+| [Organisation du code et chaînes de traitement](architecture-assistant-amu.html) | L'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas à deux niveaux. |
 
 ## Convention de mesure
 

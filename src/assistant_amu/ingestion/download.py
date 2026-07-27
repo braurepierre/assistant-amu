@@ -1,7 +1,7 @@
 """Download corpus documents listed in ``corpus/sources.yaml`` into ``corpus/raw/``.
 
-PRD §7.1 / Phase 1 (F1). Identifiable User-Agent, robots.txt respected, >= 1 s
-delay between requests, per-URL failures logged without aborting the batch.
+Identifiable User-Agent, robots.txt respected, >= 1 s delay between requests,
+per-URL failures logged without aborting the batch.
 
 Run with: ``python -m assistant_amu.ingestion.download``.
 """

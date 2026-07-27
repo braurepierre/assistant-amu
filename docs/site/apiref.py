@@ -29,6 +29,32 @@ _ROLE = re.compile(r":[a-zA-Z:+-]+:`([^`]+)`")
 # already reads as a Markdown code block, only the doubled colon must go.
 _LITERAL_BLOCK = re.compile(r"(\S)::$", re.MULTILINE)
 
+# The docstrings trace each module back to the section of the PRD that specified
+# it. That reference is right in the source — the PRD governs the scope — but it
+# is not published with the code, so on the site it would send the reader to a
+# document they do not have. The published reference therefore states the fact
+# and drops the citation.
+_SPEC_REFERENCE = re.compile(
+    # A whole sentence sending the reader to the specification, which the site
+    # does not publish: "See the PRD (§6.1, §7.2) for the rationale ...".
+    # The full stop must end a sentence, not sit inside "§6.1".
+    r"\s*\bSee\b.*?\bPRD\b.*?\.(?=\s|$)"
+    # A parenthesis that is nothing but a citation goes whole:
+    # (PRD §7.3) · (§7.6) · (PRD F5) · (PRD Phase 3) · (PRD F2/F3/F4)
+    r"|\s*\((?:PRD\b|§)[^)]*\)"
+    # A citation trailing inside a longer parenthesis takes the punctuation that
+    # introduced it, so "(measured only — §5.1.8)" does not become "(… —)".
+    r"|\s*[,;—-]?\s*(?:PRD\s*)?§[\d.]+"
+)
+# A space left before a full stop or a comma. Deliberately not before ":" or
+# ";", which French typography wants kept.
+_LOOSE_SPACE = re.compile(r" +([.,])|  +")
+
+
+def drop_spec_references(text: str) -> str:
+    """Remove the PRD citations, which the site does not publish."""
+    return _LOOSE_SPACE.sub(lambda m: m.group(1) or " ", _SPEC_REFERENCE.sub("", text))
+
 
 def _is_indented(line: str) -> bool:
     return bool(line.strip()) and line[:1].isspace()
@@ -76,8 +102,7 @@ def rst_to_markdown(text: str) -> str:
     thing in both syntaxes and are left alone.
     """
     text = _ROLE.sub(lambda m: f"`{m.group(1).lstrip('~').rsplit('.', 1)[-1]}`", text)
-    return _reflow_indented_blocks(_LITERAL_BLOCK.sub(r"\1:", text))
-
+    return drop_spec_references(_reflow_indented_blocks(_LITERAL_BLOCK.sub(r"\1:", text)))
 
 def _format_annotation(node: ast.expr | None) -> str:
     return "" if node is None else ast.unparse(node)

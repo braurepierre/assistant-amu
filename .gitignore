@@ -29,6 +29,9 @@ dist/
 # les documents Markdown du dépôt et le code de `src/`.
 docs/site/content/
 docs/site/output/
+# Carte des sections de chaque page, relevée à la mise en scène et relue par
+# pelicanconf.py pour dessiner le sommaire en arbre.
+docs/site/nav_sections.json
 
 # Virtual environments
 .venv/

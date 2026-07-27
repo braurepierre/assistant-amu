@@ -20,7 +20,7 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 > Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
 
-## Carte du code
+## Organisation du code et chaînes de traitement
 
 `architecture-assistant-amu.html` répond à une autre question que la page
 pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
@@ -50,8 +50,8 @@ responsabilité transférée d'une classe à une autre.
 
 `site/` construit un site à partir des documents qui existent déjà dans le
 dépôt : `README.md`, `DEMO.md`, `mesures.md`, une référence d'API extraite de
-`src/`, et les deux pages autonomes recopiées telles quelles. Rien n'y est
-rédigé en double — ces fichiers restent la source, le site les compose.
+`src/`, et le contenu des deux pages autonomes. Rien n'y est rédigé en double —
+ces fichiers restent la source, le site les compose.
 
 Construction locale :
 
@@ -67,6 +67,50 @@ adresse sur le site ou vers le dépôt quand la cible n'est pas publiée — pui
 lance Pelican. Les deux répertoires produits, `content/` et `output/`, ne sont
 pas versionnés : ils sont reconstruits à chaque appel.
 
+**Intégration des pages autonomes.** Elles ne sont plus des pages à part : leur
+**contenu** devient le corps d'une page du site, avec le bandeau, le sommaire en
+arbre, le sommaire de page et la navigation précédent/suivant comme toutes les
+autres. Le lecteur ne quitte plus le site pour les lire, et la vue ne change pas.
+
+Le travail est fait par `docs/site/embed.py`, à la mise en scène :
+
+| Étape | Traitement |
+| :--- | :--- |
+| Feuille de style | Confinée sous la classe `.embed`, règle par règle. `:root`, `html` et `body` deviennent le conteneur ; les blocs `@media` sont parcourus ; `@keyframes` est laissé intact |
+| Bandeau et sommaire propres à la page | Masqués : le site les fournit. Les éléments restent dans le document, car leur script les interroge |
+| Ressources externes | Polices, KaTeX, Cytoscape : conservées et déplacées avec le contenu |
+| Corps | Bannière, sections, tiroir du glossaire et script deviennent le corps d'une page Pelican |
+
+**Le confinement est mécanique, non une liste de sélecteurs choisis à la main** :
+toute règle est préfixée, donc une règle ajoutée plus tard à ces pages ne peut pas
+s'échapper par accident sur l'habillage du site.
+
+**Les fichiers sources ne sont jamais modifiés.** Ouverts directement depuis
+`docs/`, ils restent les pages autonomes qu'ils doivent être — un fichier, aucun
+serveur. C'est la raison d'être de leur format, et rien n'en dépend côté site.
+
+**Ce qu'il faut vérifier après une modification de ces pages** : que la bannière,
+le tiroir du glossaire, les formules KaTeX et les schémas Cytoscape fonctionnent
+toujours dans la page publiée. Un sélecteur d'élément nu ajouté à leur feuille de
+style est confiné sans risque ; en revanche, un script qui interrogerait un
+élément du bandeau du site échouerait, ces deux mondes restant distincts.
+
+**Sommaire du site en arbre.** Toutes les pages, et pas seulement les deux
+autonomes, sont des rubriques dépliables sur leurs titres de second niveau. Les
+sections sont relevées à la mise en scène par `collect_sections`, qui applique la
+**fonction `slugify` de l'extension `toc`** — celle-là même que Markdown emploie
+pour poser les `id`. Les ancres écrites dans le sommaire ne peuvent donc pas
+dériver de celles rendues dans la page ; en cas de doute, comparer le contenu de
+`docs/site/nav_sections.json` aux `id` des pages construites.
+
+Ce fichier est écrit par `build_site.py` à la fin de la mise en scène et relu par
+`pelicanconf.py` : dessiner l'arbre demande les titres de **toutes** les pages,
+que Pelican n'expose pas lorsqu'il en rend une. S'il manque, le sommaire reste
+plat au lieu d'échouer.
+
+La rubrique de la page courante est ouverte ; les autres suivent le dernier choix
+du lecteur, conservé sous la clé `amu.rubrics`.
+
 **Page d'accueil.** `docs/site/home.md` est le seul document rédigé pour le site
 seul. Une vitrine GitHub et un accueil de documentation n'ont pas le même
 objet — commandes d'installation d'un côté, orientation et navigation de
@@ -75,6 +119,45 @@ sacrifier une. Le `README.md` est donc publié comme page « Présentation », e
 l'accueil se limite à orienter. Conséquence à retenir en écrivant : **aucun
 chiffre de mesure ne figure sur l'accueil**, pour ne pas créer une copie de plus
 à tenir à jour.
+
+**Fonctions du navigateur.** `docs/site/theme/static/js/site.js` porte quatre
+comportements, sans dépendance ni étape de construction :
+
+| Fonction | Détail |
+| :--- | :--- |
+| Sommaire du site rétractable | Bouton du bandeau ; préférence conservée sous la clé `amu.nav`. Sous 56 rem, le sommaire devient un tiroir refermé par défaut, par le voile ou par la touche Échap |
+| Groupe « Référence d'API » rétractable | Cinq pages qui se replient d'un bloc, pour que le reste de l'arbre reste visible. Ouvert d'office lorsque le lecteur est sur l'une d'elles, sinon selon son dernier choix (clé `amu.group.groupe-api`) |
+| Sommaire de la page | Construit à partir des `h2`/`h3`, rétractable (clé `amu.toc`), avec suivi de la position de lecture. Omis en dessous de trois titres, masqué sous 78 rem. **Un titre qui n'est qu'une signature de fonction en est écarté** : sur une page d'API, les lister toutes reproduirait la page au lieu de la résumer — modules et classes en portent la structure, les fonctions se lisent à l'intérieur |
+| Copie des blocs de code | Bouton révélé au survol de chaque bloc. Hors contexte sécurisé, repli sur `execCommand` |
+| Ancres de titre | Rendues à la construction par l'extension `toc` de Markdown, pas par le script |
+
+Ce qui subsiste sans JavaScript : le sommaire du site déployé, les ancres de
+titre, la navigation précédent/suivant — rendue par le gabarit à partir de
+`nav_order` — et la totalité du texte. Seuls disparaissent le sommaire de page,
+qui n'apparaît alors pas plutôt que d'apparaître vide, et les boutons de copie.
+
+La recherche n'est **pas** implémentée, et c'est délibéré : le site compte onze
+pages toutes visibles simultanément dans le sommaire. Les sites de référence en
+ont une parce qu'ils comptent des centaines de pages.
+
+**Référence d'API.** Ses cinq rubriques portent **les noms que la page « Organisation du code et
+chaînes de traitement » donne aux cinq ensembles** du dépôt — socle commun, ingestion du corpus,
+recherche des passages, génération de la réponse, interface HTTP. Un lecteur qui
+a vu la carte doit retrouver les mêmes intitulés ici ; renommer d'un côté oblige
+à renommer de l'autre. Chaque page s'ouvre sur ce que fait son ensemble, en
+français, avant de passer la main aux docstrings, qui restent en anglais comme le
+reste du code.
+
+**Les citations du PRD sont retirées au rendu.** Les docstrings rattachent chaque
+module à la section de la spécification qui l'a prescrit. Ce renvoi est juste
+dans le source — le PRD fait autorité sur le périmètre — mais le PRD n'est pas
+publié avec le code : sur le site, il enverrait le lecteur vers un document qu'il
+n'a pas. `drop_spec_references` dans `apiref.py` les supprime donc à la
+construction, sans toucher au source. Trois formes sont traitées : la parenthèse
+qui n'est qu'une citation, la citation en fin de parenthèse plus longue avec la
+ponctuation qui l'introduit, et la phrase entière qui renvoie à la
+spécification. Après modification des docstrings, vérifier qu'aucun « § » ni
+« PRD » ne subsiste dans `docs/site/output/`.
 
 **Référence d'API.** Elle est extraite du source par analyse statique
 (`apiref.py`, module `ast`) : rien n'est importé ni exécuté, donc aucune
@@ -87,25 +170,37 @@ Pelican n'étant ni Sphinx ni MkDocs, la construction passe par
 `build.commands`, qui remplace les étapes prédéfinies de Read the Docs et écrit
 le résultat dans `$READTHEDOCS_OUTPUT/html`.
 
-## Unité graphique du site et des pages autonomes
+## Thème AMU
 
-Le site et les deux pages autonomes partagent une même palette (encre `#0F1F4D`,
-fond `#F4F6FB`, accent `#143b8f`), un même rayon d'arrondi et une même
-typographie — *Sora* pour les titres, *Public Sans* pour le texte, *IBM Plex
-Mono* pour le code. Les valeurs de référence sont celles déclarées dans le
-`:root` des pages autonomes ; `docs/site/theme/static/css/site.css` les reprend.
-Modifier l'une des deux surfaces suppose donc de reporter le changement sur
-l'autre.
+Le site et les deux pages autonomes partagent un seul thème. Les valeurs de
+référence sont celles déclarées dans le `:root` des pages autonomes ;
+`docs/site/theme/static/css/site.css` les reprend **sous les mêmes noms**, de
+sorte que la correspondance se vérifie terme à terme. Modifier l'une des deux
+surfaces suppose de reporter le changement sur l'autre.
 
-Les polices sont chargées depuis le même CDN par les deux surfaces, avec repli
-sur la pile système : hors ligne, la mise en page et les couleurs tiennent, seule
-la fonte change.
+| Élément | Valeur |
+| :--- | :--- |
+| Encre, encre atténuée | `--ink` `#0F1F4D`, `--ink-soft` `#33406B` |
+| Fond de page, carte | `--paper` `#F4F6FB`, `--card` `#FFFFFF` |
+| Bleu, bleu de lien, bleu de fond | `--blue` `#143b8f`, `--blue-2` `#2c6ecb`, `--blue-bg` `#E9EEFA` |
+| Jaune AMU | `--yellow` `#f6e400` |
+| Filets, texte atténué, arrondi | `--line` `#E1E5F0`, `--muted` `#6B7290`, `--radius` `12px` |
+| Titres, texte, code | *Sora*, *Public Sans*, *IBM Plex Mono* |
 
-**Écart résiduel assumé.** Le site suit le thème sombre du système, les pages
-autonomes non — leur mise en forme est en clair dans quelques milliers de lignes
-de HTML, et leur ajouter un thème sombre exposerait les schémas Cytoscape, les
-graphiques et KaTeX à des régressions sans rapport avec l'objet de ces pages. En
-thème sombre, passer du site à une page autonome change donc de fond.
+Le bandeau reprend celui des pages autonomes : fond bleu, marque `amU` en pastille
+blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet — c'est la
+signature de l'identité, elle perd sa valeur si elle est répandue.
+
+Les polices sont chargées depuis le même CDN par les deux surfaces, ce qui leur
+fait partager une entrée de cache, avec repli sur la pile système : hors ligne,
+la mise en page et les couleurs tiennent, seule la fonte change.
+
+**Le site est en thème clair uniquement**, comme les pages autonomes. La bascule
+sombre a été retirée : elle donnait une documentation dont la prose suivait le
+thème du système et dont les schémas ne le suivaient pas. Rétablir un thème
+sombre supposerait de le porter d'abord sur les deux pages autonomes, ce qui
+exposerait les schémas Cytoscape, les graphiques et KaTeX à des régressions sans
+rapport avec l'objet de ces pages.
 
 ## Mise à jour de la page pédagogique
 
