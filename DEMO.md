@@ -33,7 +33,7 @@ $env:LLM_BACKEND = "mistral"
 - **A. Interface conversationnelle (recommandée)** → **http://127.0.0.1:8000/**
   Interface aux couleurs AMU. Saisir la question dans le champ prévu : l'assistant
   répond en citant ses sources `[S1]`, et affiche en multi-tour la mention
-  « ↳ compris comme : … » (condensation V2). Les questions des exemples ci-dessous
+  « ↳ compris comme : … » (condensation de la requête). Les questions des exemples ci-dessous
   se saisissent directement.
 - **B. API / Swagger** → **http://127.0.0.1:8000/docs**
   `POST /ask` → **Try it out** → coller l'un des corps JSON ci-dessous → **Execute**.
@@ -72,7 +72,7 @@ Sigles et termes exacts :
 
 ---
 
-## 2. Conversation multi-tour (V2 — condensation de requête)
+## 2. Conversation multi-tour (condensation de requête)
 
 > **Dans l'interface conversationnelle**, le multi-tour est **automatique** :
 > saisir le tour 1 puis le tour 2 suffit — l'historique est géré par l'interface,
@@ -104,7 +104,7 @@ accompagnée de l'historique :
 > **césure** à Aix-Marseille Université ? »* — puis la réponse restitue les dates
 > de dépôt, citées `[S1]`.
 >
-> **Le contraste entre le tour 1 (`null`) et le tour 2 (condensé) donne à voir la V2.**
+> **Le contraste entre le tour 1 (`null`) et le tour 2 (condensé) donne à voir la condensation.**
 
 ---
 

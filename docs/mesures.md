@@ -13,21 +13,53 @@ identifie le fragment attendu.
 **Une convention gouverne l'ensemble de ces mesures : mesurer n'est pas
 brancher.** La fusion RRF, la réécriture de requête, le *Contextual
 Retrieval* et le lot de distracteurs sont mesurés, documentés et **non intégrés**
-au pipeline `/ask`, qui demeure purement sémantique en V1.
+au pipeline `/ask`, qui demeure purement sémantique.
 
 ---
 
-## Résultats de référence (2026-07-26)
+## Synthèse des résultats
 
-*Corpus de test : 18 documents, 316 fragments, 50 questions d'évaluation
-(portées de 16 à 50 le 2026-07-26), k=5.*
+Le détail, les tables par question et les limites de chaque étude suivent ce
+résumé.
+
+* **La recherche sémantique seule suffit à la profondeur retenue.** 0,86 de
+  rappel à k = 5, à égalité avec la fusion RRF. C'est ce qui laisse `/ask`
+  purement sémantique sans que ce soit un renoncement.
+* **La fusion RRF ne gagne qu'en profondeur, et c'est la seule méthode que
+  l'échelle dégrade.** Elle devance le sémantique de 3 questions à k = 8, mais
+  elle est aussi la seule à reculer quand le corpus passe de 18 à 28 documents.
+  Deux mesures qui s'opposent : la brancher demanderait de trancher entre elles.
+* **Le choix de l'encodeur est tranché.** `e5-small` devance CamemBERT et
+  FlauBERT de 16 et 10 points à k = 3 et k = 5, pour une empreinte mémoire deux
+  fois moindre.
+* **Contextualiser les fragments aide sur les formulations conversationnelles**
+  — au mieux 8 questions gagnées — sans que le solde suffise à l'intégrer.
+* **Retirer l'ouverture conversationnelle d'une question suffit à mieux la
+  chercher.** Sur des formulations parlées, le rappel passe de 0,48 à 0,72 à
+  k = 3 par simple retrait heuristique, sans appel de modèle.
+* **Le refus tient.** 100 % des questions hors-corpus sont refusées, sur les deux
+  backends, y compris le backend local dans sa configuration de repli.
+* **La limite connue est la recherche, pas la génération.** Sur le multi-tour, la
+  page institutionnelle se fait évincer par une page de composante, et 11,7 % de
+  l'index est constitué de fragments de moins de 50 caractères qui captent les
+  requêtes courtes.
+* **Une leçon de méthode traverse ces résultats.** Le jeu de 16 questions a
+  produit deux conclusions que le jeu de 50 a inversées — l'avantage de
+  CamemBERT, et l'égalité de la RRF à k = 8. Un écart d'une question n'était pas
+  mesurable à cette taille.
+
+---
+
+## Résultats de référence
+
+*Corpus de test : 18 documents, 316 fragments, 50 questions d'évaluation, k=5.*
 
 * **Rappel sémantique @5 :** 0,86
 * **Rappel BM25 @5 :** 0,84
 * **Rappel RRF @5 :** 0,86
 
-La baseline du 23 juillet (0,94 / 0,81 / 0,88 sur 16 questions) est supplantée
-par celle-ci, mesurée sur un jeu 3 fois plus grand : elle en reste l'historique,
+La mesure antérieure sur 16 questions (0,94 / 0,81 / 0,88) est supplantée
+par celle-ci, établie sur un jeu trois fois plus grand : elle en reste l'historique,
 pas la référence. Le repli du rappel sémantique (0,94 → 0,86) n'est pas une
 régression du système — c'est le corpus d'évaluation qui couvre désormais des
 documents et des tournures qu'il ne testait pas encore (règlement intérieur,
@@ -45,9 +77,9 @@ droits d'inscription, sigles, procédures propres à une composante…).
 (0,92 contre 0,86) — un écart supérieur à la granularité du jeu (1/50 = 0,02),
 donc significatif. Sur l'ancien jeu de 16 questions, RRF plafonnait à égalité
 avec le sémantique (0,88 chacun) : l'écart existait peut-être déjà, mais un jeu
-trop petit ne pouvait pas le voir. `/ask` reste sémantique pur en V1 (k par
+trop petit ne pouvait pas le voir. `/ask` reste sémantique pur (k par
 défaut = 5, où RRF et sémantique sont encore à égalité) ; ce résultat renforce,
-sans la trancher, la piste d'une bascule vers RRF documentée en §5.3 si k venait
+sans la trancher, la piste d'une bascule vers RRF si k venait
 à être relevé en production. **Cet argument est à lire avec son contrepoids**,
 mesuré depuis (voir « Sensibilité à la taille du corpus ») : la RRF est aussi la
 seule méthode qu'un corpus élargi dégrade, et pour une raison structurelle —
@@ -84,10 +116,10 @@ fragments. Cette comparaison relève d'une démarche d'évaluation : le pipeline
 | `hugorosen/flaubert_base_uncased-xnli-sts` (768 dimensions) | 0,68 | 0,76 | 0,86 |
 | _BM25 (référence lexicale)_ | 0,78 | 0,84 | 0,88 |
 
-**Ce résultat corrige une lecture antérieure.** Sur le jeu de 16 questions du
-23 juillet, CamemBERT atteignait 1,00 à k = 8 contre 0,94 pour e5 — un seul
+**Ce résultat corrige une lecture antérieure.** Sur le jeu de 16 questions,
+CamemBERT atteignait 1,00 à k = 8 contre 0,94 pour e5 — un seul
 écart de question, à la limite de la granularité de mesure (1/16 ≈ 0,06), déjà
-interprété avec prudence à l'époque. Sur 50 questions (granularité
+interprété avec prudence alors. Sur 50 questions (granularité
 1/50 = 0,02), l'écart s'inverse et se creuse : **e5 domine nettement à k = 3 et
 k = 5** (+16 et +10 points), et les trois modèles se rejoignent seulement à
 k = 8 (0,86 chacun) — CamemBERT n'y prend plus l'avantage, il rattrape son
@@ -106,12 +138,16 @@ Script d'évaluation : `eval/embedder_comparison.py` ; rapport :
 
 ## Contextual Retrieval — index contextuel comparé à la référence
 
+### 1. Protocole
+
 Chaque fragment a été préfixé, avant l'embedding **et** l'indexation BM25, d'une
 phrase générée par le LLM le situant dans son document (méthode Anthropic,
 septembre 2024). L'index correspondant est constitué dans une
 collection parallèle : le pipeline `/ask` n'est pas modifié. Mesures effectuées
 sur les deux jeux de questions, le jeu « dur » réunissant les formulations
 conversationnelles.
+
+### 2. Résultats
 
 | Jeu de questions | Méthode | Référence | Index contextuel |
 | :--- | :--- | :---: | :---: |
@@ -126,6 +162,8 @@ sémantique à k=3 — le mode d'échec qu'elle vise ; sa pire perte, **2 questi
 sur les formulations définitionnelles en sémantique à k=5, reste sous le seuil
 de signification de 3 questions fixé avant la mesure.
 
+### 3. Portée des deux extrema
+
 **Ces deux chiffres sont des extrema tirés de configurations différentes, non un
 solde.** Les opposer comme un bilan reviendrait à ignorer la dispersion : un jeu
 gagnant huit questions dans une cellule et en perdant trois dans onze autres
@@ -134,12 +172,16 @@ cellules mesurées (2 jeux × 3 méthodes × 2 valeurs de k), la somme des écar
 vaut **+18 questions**, avec huit cellules gagnantes, trois perdantes et une
 inchangée.
 
+### 4. Mécanisme avancé
+
 Le préfixe rapproche le vecteur du fragment du sujet de son *document*, ce qui
 sert les requêtes vagues et dessert les requêtes précises quand elles s'appuient
 sur la recherche sémantique seule. **La fusion RRF, elle, ne perd rien** sur le
 jeu élargi : elle gagne sur les deux jeux (+2 questions sur le dur à k=3, **+4
 questions sur le facile à k=5**), la composante BM25 compensant ce que le
 sémantique cède.
+
+### 5. Validité des résultats
 
 Deux précautions déterminent la validité de ces chiffres :
 
@@ -149,6 +191,7 @@ Deux précautions déterminent la validité de ces chiffres :
    après classement : le contexte sert à *trouver* le fragment, jamais à
    *prouver* la réussite. Le rapport chiffre l'artefact ainsi évité (jusqu'à
    trois questions de rappel sur le jeu élargi).
+
 2. **Troncature contrôlée, avec un résultat plus nuancé qu'annoncé.** Le
    découpage vise 500 tokens contre une fenêtre d'encodeur de 512 : le préfixe
    faisait sortir 23 fragments (7 %) de cette fenêtre. L'expérience a été
@@ -162,6 +205,8 @@ Deux précautions déterminent la validité de ces chiffres :
    c'est un comportement propre à BM25 qui reste à comprendre avant de
    généraliser la méthode.
 
+### 6. Limites
+
 Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des
 corpus de plusieurs milliers de fragments ; 25 et 50 questions ne sauraient les
 confirmer ni les infirmer. Ce qui est établi ici, c'est le sens de l'arbitrage
@@ -170,6 +215,8 @@ usage combiné à la RRF. Reste à trancher laquelle des populations de requête
 `/ask` doit servir en priorité, à comprendre la sensibilité de BM25 au budget de
 découpage, et si une contextualisation *sélective* — limitée aux fragments
 réellement décontextualisés — ne prendrait pas le meilleur des deux mondes.
+
+### 7. Reproduction
 
 Rapports : `eval/reports/2026-07-26_contextual_retrieval.md` et `…_440.md`.
 
@@ -190,7 +237,57 @@ appel — un défaut de cache échoue au lieu de coûter.
 
 ---
 
+## Réécriture de requête — deux stratégies comparées
+
+### 1. Protocole
+
+Une question posée de façon conversationnelle (« Parle-moi des régimes
+spéciaux ») recherche mal : l'ouverture occupe une part du vecteur sans porter de
+sens. Deux stratégies ont été comparées à la requête brute, sur un jeu « dur » de
+25 formulations impératives ou parlées, avec le jeu de 50 questions en contrôle
+de non-régression.
+
+* **`strip`** — retrait heuristique de l'ouverture conversationnelle.
+  Déterministe, sans appel au modèle.
+* **`llm`** — reformulation en requête factuelle par le backend. Un appel de
+  modèle par requête, résultat non déterministe.
+
+### 2. Résultats
+
+| Stratégie | Jeu dur @3 | Jeu dur @5 | Jeu de 50 @3 | Jeu de 50 @5 |
+| :--- | :---: | :---: | :---: | :---: |
+| requête brute | 0,48 | 0,72 | 0,82 | 0,86 |
+| `strip` | 0,72 | **0,88** | 0,82 | 0,86 |
+| `llm` | **0,84** | **0,88** | 0,80 | 0,88 |
+
+**Le gain est réel et il est important** : sur les formulations conversationnelles,
+retirer la seule ouverture fait passer le rappel de 0,48 à 0,72 à k = 3, sans
+rien coûter. La question phare l'illustre — « Parle-moi des régimes spéciaux »
+ne remonte pas du tout la page définitionnelle « Régime spécial d'études », qui
+apparaît au rang 4 dès que la requête est ramenée à « régimes spéciaux ».
+
+**La réécriture par le modèle va plus loin, mais elle paraphrase.** Elle gagne
+3 questions de plus à k = 3 sur le jeu dur, et en perd une sur le jeu de 50 :
+en reformulant « interrompre mes études pendant un an », elle efface le lien
+lexical vers « césure ». `strip` ne touche jamais ces questions.
+
+### 3. Arbitrage
+
+**À k = 5, les deux stratégies sont à égalité** (0,88). L'arbitrage ne porte donc
+pas sur le rappel mais sur ce qu'une requête doit coûter : `llm` demande un appel
+de modèle supplémentaire et ne rend pas deux fois le même résultat. Aucune des
+deux n'est branchée dans `/ask`.
+
+### 4. Reproduction
+
+Script : `eval/query_rewrite_experiment.py` ; rapport :
+`eval/reports/2026-07-26_query_rewrite.md`.
+
+---
+
 ## Sensibilité à la taille du corpus — 18 documents comparés à 28
+
+### 1. Protocole
 
 Retrouver le bon document parmi dix-huit est intrinsèquement facile : une part
 du rappel de référence pouvait venir de là plutôt que de la qualité de la
@@ -200,6 +297,8 @@ recherche. Un lot de dix pages distractrices
 inchangé** : c'est la botte de foin qui grossit, pas la mesure. Les deux index
 sont reconstruits dans le même passage, même encodeur et même découpage ; la
 collection de production n'est jamais ouverte en écriture. Aucun appel LLM.
+
+### 2. Résultats
 
 | Jeu de questions | Méthode | 18 documents | 28 documents |
 | :--- | :--- | :---: | :---: |
@@ -211,7 +310,7 @@ collection de production n'est jamais ouverte en écriture. Aucun appel LLM.
 | **Dur** (25 questions, k=5) | RRF | 0,88 | **0,80** |
 
 **Le sémantique et BM25 ne perdent aucune question**, sur 75 questions et trois
-valeurs de k. Les arbitrages du 26 juillet — e5 plutôt que CamemBERT, k = 5 —
+valeurs de k. Les arbitrages retenus — e5 plutôt que CamemBERT, k = 5 —
 résistent donc à un corpus élargi de moitié. Ce zéro n'a de valeur que vérifié :
 une immobilité totale pourrait tout aussi bien signifier que le lot n'est jamais
 monté assez haut pour gêner. Un diagnostic tranche, et il écarte cette lecture —
@@ -219,6 +318,8 @@ les distracteurs atteignent le top-8 sur **14 des 50 questions faciles** en
 sémantique (12 des 25 questions dures en BM25) et le **rang 1** dans les quatre
 configurations. Un tiers du top-8 peut donc être constitué de matière nouvelle
 sans que le document attendu perde sa place.
+
+### 3. Diagnostic des deux régressions RRF
 
 **La RRF est la seule méthode à céder** : −2 questions sur le jeu dur à k = 3 et
 k = 5, +1 sur le jeu facile — sous le seuil de 3 questions fixé avant la mesure,
@@ -234,14 +335,18 @@ mesurée est donc une propriété de la RRF, non de l'encodeur — le risque
 identifié au départ, « e5 dilue les sigles », n'est ni confirmé ni infirmé par
 ce test.
 
+### 4. Limites
+
 Ce que la mesure ne couvre pas : le lot est voisin par le vocabulaire mais
 **disjoint par le contenu**, ce qui teste la dilution et non l'ambiguïté entre
 deux documents qui répondent tous les deux. Le document le plus adverse
 disponible — le règlement intérieur des bibliothèques universitaires, un second
 règlement intérieur face à six questions — a été écarté parce que son titre
 serait compté comme source attendue par le harnais ; l'instruire suppose de
-resserrer ces six annotations, au prix de la comparabilité avec les rapports du
-23 juillet.
+resserrer ces six annotations, au prix de la comparabilité avec les rapports
+antérieurs.
+
+### 5. Reproduction
 
 Script : `eval/distractor_experiment.py` ; rapport :
 `eval/reports/2026-07-26_corpus_scaling.md`.
@@ -250,14 +355,14 @@ Script : `eval/distractor_experiment.py` ; rapport :
 
 ## Performances d'inférence et latence
 
-*Mesures effectuées le 2026-07-23 sur le corpus de référence :*
+*Mesures effectuées sur le corpus de référence :*
 
 | Backend LLM | Latence moyenne (`/ask`) | Taux de rejet contextuel (hors-corpus) |
 | :--- | :--- | :--- |
 | **Mistral API** (`mistral-small-latest`) | ~3,0 s / requête | **100 % (4/4)** des requêtes hors-corpus rejetées |
-| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | **100 % (4/4)** des requêtes hors-corpus rejetées *(mesure du 2026-07-26)* |
+| **Ollama local** (`mistral` 7B, CPU) | > 120 s à `num_ctx=8192` / `k=5` (dépassement de délai intercepté) ; ~190 s à chaud avec repli `num_ctx=4096` / `k=3` | **100 % (4/4)** des requêtes hors-corpus rejetées |
 
-Le taux de rejet du backend local a été mesuré le 2026-07-26 sur les quatre
+Le taux de rejet du backend local a été mesuré séparément, sur les quatre
 requêtes hors-corpus de `eval/questions.yaml` (q17 à q20), dans la configuration
 de repli `num_ctx=4096` / `k=3`, modèle maintenu chaud. Les quatre réponses
 reproduisent le refus canonique à l'identique, sans source associée ; le verdict
@@ -273,13 +378,15 @@ présente des latences élevées. Ce comportement est conforme à l'arbitrage re
 au départ — *développement sur API, démonstration en local* — ainsi qu'au repli
 documenté `num_ctx=4096`, `k ≤ 5`. Les dépassements de délai sont interceptés et
 remontent une exception `LLMBackendError(timeout)`, traduite par un code HTTP
-`503` (F5).
+`503`.
 
 Rapport détaillé : `eval/reports/2026-07-23_end-to-end_k5.md`.
 
 ---
 
-## Évaluation conversationnelle V2 (F12)
+## Évaluation conversationnelle multi-tour
+
+### 1. Résultat et cause principale
 
 Le rapport `eval/reports/2026-07-23_conversation_k5.md` fait état d'un rappel de
 **3/6** sur les tours de conversation annotés comme répondables. L'analyse
@@ -292,6 +399,8 @@ qui porte la réponse attendue, est **absente du top-5** : il s'agit du même
 mécanisme d'éviction de la page centrale que celui déjà observé sur la requête
 RSE.
 
+### 2. Facteurs secondaires
+
 Un facteur aggravant a été quantifié : **11,7 % de l'index est constitué de
 fragments de moins de 50 caractères** (`FAQ`, `Césure`, `Bonus`, etc. — éléments
 de navigation devenus unités indexées), contre une médiane de 786 caractères. Un
@@ -300,7 +409,7 @@ similarité élevé, occupe une position du top-k et évince du contenu substant
 Un second biais, de nature différente, relève effectivement de l'annotation : un
 tour annoté `answerable` **produit un refus correct** (le corpus ne contient
 aucune règle de césure propre à la filière droit), or un refus vide la liste des
-sources (F6) et se comptabilise donc mécaniquement comme un échec de recherche.
+sources et se comptabilise donc mécaniquement comme un échec de recherche.
 
 ---
 
@@ -318,7 +427,8 @@ Tous les rapports sont générés par le harnais et versionnés dans
 | `2026-07-26_corpus_scaling.md` | Lot de distracteurs, 18 → 28 documents |
 | `2026-07-26_query_rewrite.md` | Réécriture de requête |
 | `2026-07-23_end-to-end_k5.md` | Latences `/ask` et refus hors-corpus |
-| `2026-07-23_conversation_k5.md` | Évaluation conversationnelle V2 |
+| `2026-07-23_conversation_k5.md` | Évaluation conversationnelle multi-tour |
 
-Les rapports datés du 23 juillet portent sur le jeu de 16 à 20 questions
-antérieur : ils constituent l'historique des mesures, non la référence courante.
+Les rapports les plus anciens portent sur le jeu de 16 à 20 questions antérieur :
+ils constituent l'historique des mesures, non la référence courante. Les noms de
+fichiers gardent leur date, qui les ordonne.

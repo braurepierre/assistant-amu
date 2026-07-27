@@ -8,15 +8,15 @@ l'enrichir.
 ## rag_system.md
 
 > Les itérations v1–v3 sont des améliorations **raisonnées**, ciblant les quatre
-> cas limites du §7.4 (hors corpus, contradiction, hors sujet, ambiguïté). La v1
+> cas limites prévus au départ (hors corpus, contradiction, hors sujet, ambiguïté). La v1
 > est en outre motivée empiriquement (bug de retour à la ligne repéré en écrivant
 > le test de refus). La validation chiffrée sur `eval/questions.yaml` (taux de
 > refus correct, fidélité) est à faire dès qu'un backend LLM + un corpus figé sont
-> disponibles (F6, §7.6).
+> disponibles.
 
 ### v3 — 2026-07-22 — quotes-first léger + concision
 - **Diff** : ajout d'une section « Méthode » demandant de repérer d'abord les
-  passages pertinents et de n'en rien extrapoler (variante *quotes-first* du §7.4,
+  passages pertinents et de n'en rien extrapoler (variante *quotes-first*,
   sans bloc `<citations>` en sortie pour garder la réponse propre) ; règle 5 :
   concision, pas de préambule.
 - **Raison** : améliorer la *fidélité* (RAGAS faithfulness) et couper les
@@ -37,11 +37,11 @@ l'enrichir.
   une seule ligne ; la règle 1 couvre désormais explicitement les questions **hors
   sujet** (et pas seulement l'information absente).
 - **Raison (empirique)** : en câblant la détection de refus par comparaison
-  normalisée (§7.6), le retour à la ligne de la v0 rendait le « mot pour mot »
+  normalisée, le retour à la ligne de la v0 rendait le « mot pour mot »
   ambigu — un modèle pouvait reproduire ou non la coupure. Une ligne unique lève
   l'ambiguïté.
 - **Cas visé** : « Quelle heure est-il ? » → doit produire exactement la phrase de
-  refus, 0 source citée (F6).
+  refus, sans aucune source citée.
 
 ### v0 — 2026-07-22 — version initiale
 - Contenu repris tel quel de la spécification initiale (prompt RAG v0).
@@ -50,12 +50,12 @@ l'enrichir.
   en fin de prompt.
 - Raison : point de départ du pipeline de génération, à itérer en Phase 3 sur
   les quatre cas limites (hors corpus, contradictions, hors sujet, ambiguïté).
-- Cas de test : à couvrir en Phase 3 (F6 — refus vérifié par comparaison
-  normalisée, ≥ 3 itérations motivées).
+- Cas de test : à couvrir en Phase 3 — refus vérifié par comparaison
+  normalisée, au moins trois itérations motivées.
 
 ## condense_system.md
 
-### v0 — 2026-07-22 — version initiale (V2)
+### v0 — 2026-07-22 — version initiale
 - Contenu repris tel quel de la spécification initiale (prompt de condensation v0).
 - Fichier posé dès le squelette, **branché en Phase 7** : `RagPipeline._condense`
   l'utilise comme message système quand `history` est fourni. Non modifié depuis
@@ -63,7 +63,7 @@ l'enrichir.
 
 ## context_system.md
 
-> Prompt de **contextualisation des fragments** (Contextual Retrieval, §5.3.1).
+> Prompt de **contextualisation des fragments** (Contextual Retrieval).
 > Il ne sert pas à répondre : il produit, à l'indexation, la phrase qui situe
 > chaque fragment dans son document. `PROMPT_VERSION` dans
 > `ingestion/contextualize.py` suit ces versions — le cache disque est indexé

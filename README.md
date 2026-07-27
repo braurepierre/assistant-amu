@@ -13,6 +13,9 @@ Le système est **indépendant du modèle de langage utilisé** (commutation par
 | [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture) et un glossaire relié aux fichiers du code. Page autonome : aucun serveur ni étape de compilation, il suffit de l'ouvrir dans un navigateur. |
 | [`docs/mesures.md`](docs/mesures.md) | **Mesures et évaluation** — résultats détaillés, tables par question, commentaire des mécanismes. |
 | [`DEMO.md`](DEMO.md) | Parcours de démonstration de bout en bout, requêtes prêtes à l'emploi. |
+| [`prompts/CHANGELOG.md`](prompts/CHANGELOG.md) | Ingénierie de prompt — chaque itération des trois prompts système avec sa raison et le cas de test qui l'a motivée. |
+| [`docs/README.md`](docs/README.md) | Index de `docs/` et mode d'emploi de la page pédagogique : d'où viennent ses chiffres, comment la tenir à jour. |
+| [`eval/reports/`](eval/reports/) | Rapports bruts produits par le harnais d'évaluation, un par mesure. |
 
 ---
 
@@ -35,7 +38,7 @@ sources.yaml ──> Téléchargement ──> Extraction (pdfplumber/bs4) ──
      └──> Vectorisation ("passage: " + texte, e5-small) ──> Stockage ChromaDB (distance cosinus)
      └──> [Évaluation] Génération de l'index BM25 en mémoire à partir des mêmes fragments
 
-PIPELINE DE REQUÊTE V1 (temps réel)
+PIPELINE DE REQUÊTE (temps réel)
 Requête utilisateur ──> Vectorisation ("query: " + question) ──> Recherche k-NN ChromaDB
      └──> Construction du prompt RAG (consignes système + contexte XML + requête)
      └──> Inférence via LLMBackend ──> Génération de la réponse et restitution des références
@@ -43,7 +46,7 @@ Requête utilisateur ──> Vectorisation ("query: " + question) ──> Recher
 
 ### Contraintes techniques identifiées et résolutions
 
-* **Formatage des préfixes E5** — les modèles de la famille E5 requièrent impérativement les préfixes `"query: "` pour les requêtes et `"passage: "` pour les documents. Leur absence dégrade silencieusement la qualité des représentations vectorielles. Le module `embedder.py` gère ces spécificités au moyen d'une table {famille de modèles → préfixes} et désactive tout préfixe pour les modèles non concernés (`sentence-camembert-base`, comparaison de la Phase 5).
+* **Formatage des préfixes E5** — les modèles de la famille E5 requièrent impérativement les préfixes `"query: "` pour les requêtes et `"passage: "` pour les documents. Leur absence dégrade silencieusement la qualité des représentations vectorielles. Le module `embedder.py` gère ces spécificités au moyen d'une table {famille de modèles → préfixes} et désactive tout préfixe pour les modèles non concernés (`sentence-camembert-base`, comparaison des modèles d'embeddings).
 * **Espace métrique ChromaDB** — la collection est explicitement initialisée avec le paramètre `metadata={"hnsw:space": "cosine"}`, afin de remplacer la métrique euclidienne L2 appliquée par défaut par ChromaDB.
 * **Gestion du contexte Ollama** — Ollama tronque silencieusement, et sans erreur, les prompts dépassant la variable `num_ctx` (fixée par défaut à 2048 ou 4096 tokens) plutôt que la capacité réelle du modèle. Cette variable a été portée à `OLLAMA_NUM_CTX=8192` afin de prévenir toute perte involontaire d'information lors de l'injection des contextes.
 
@@ -150,7 +153,7 @@ Le backend LLM n'est pas conteneurisé : il est soit externe (API Mistral), soit
 
 Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équivalent au *context recall* du framework RAGAS) selon trois stratégies de recherche : sémantique, lexicale (BM25) et hybride (RRF). Un rapport Markdown daté est automatiquement généré dans `eval/reports/`, incluant une section « désaccords » recensant les questions pour lesquelles une seule méthode identifie le fragment attendu.
 
-> **Résultats de référence (2026-07-26)**
+> **Résultats de référence**
 > *Corpus de test : 18 documents, 316 fragments, 50 questions d'évaluation, k=5.*
 >
 > | Méthode | k=2 | k=3 | k=5 | k=8 |
@@ -159,7 +162,7 @@ Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équ
 > | bm25 | 0,70 | 0,78 | 0,84 | 0,88 |
 > | rrf | 0,74 | 0,82 | 0,86 | **0,92** |
 >
-> La baseline du 23 juillet (0,94 / 0,81 / 0,88 sur 16 questions) est supplantée par celle-ci, mesurée sur un jeu 3 fois plus grand : elle en reste l'historique, pas la référence.
+> La mesure antérieure sur 16 questions (0,94 / 0,81 / 0,88) est supplantée par celle-ci, établie sur un jeu trois fois plus grand : elle en reste l'historique, pas la référence.
 
 Quatre études complètent cette référence :
 
@@ -168,7 +171,7 @@ Quatre études complètent cette référence :
 * **Sensibilité à la taille du corpus** — un corpus élargi de 18 à 28 documents ne coûte **aucune question** au sémantique ni à BM25. La RRF est la seule méthode à céder, ce qui oppose un contrepoids à son avance mesurée à k = 8.
 * **Latence et refus** — ~3,0 s par requête sur l'API Mistral ; **100 % des requêtes hors-corpus rejetées** sur les deux backends. L'inférence locale sur CPU reste lente par nature (repli documenté `num_ctx=4096`, `k ≤ 5`).
 
-**Une convention gouverne l'ensemble de ces travaux : mesurer n'est pas brancher.** La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés, documentés et **non intégrés** au pipeline `/ask`, qui demeure purement sémantique en V1.
+**Une convention gouverne l'ensemble de ces travaux : mesurer n'est pas brancher.** La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés, documentés et **non intégrés** au pipeline `/ask`, qui demeure purement sémantique.
 
 > Chiffres complets, tables par question, désaccords commentés et diagnostics : **[`docs/mesures.md`](docs/mesures.md)**. Rapports bruts datés : `eval/reports/`.
 
@@ -179,12 +182,12 @@ Quatre études complètent cette référence :
 Les choix d'implémentation suivants découlent du périmètre arrêté au départ et constituent des décisions assumées, non des omissions :
 
 * **Inclus :** architecture RAG complète, gestion des refus, traçabilité des citations, API REST, harnais d'évaluation.
-* **Exclus du périmètre V1 :** authentification, traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
-* **Ajouté après la V1 :** conteneurisation et intégration continue (§5.3.6), ainsi que l'expérimentation *Contextual Retrieval* (§5.3.1) — cette dernière sous forme d'index parallèle mesuré, sans modification du pipeline `/ask`.
+* **Exclus du périmètre :** authentification, traitement en flux (*streaming*), ré-ordonnancement (*reranking*) par cross-encoder, recherche hybride dans `/ask` (la fusion RRF est **mesurée mais non intégrée au pipeline de production**), traitement OCR (les PDF scannés sont exclus et signalés), support multilingue (français uniquement).
+* **Ajouté après la première livraison :** conteneurisation et intégration continue, ainsi que l'expérimentation *Contextual Retrieval* — cette dernière sous forme d'index parallèle mesuré, sans modification du pipeline `/ask`.
 
-**Perspectives d'évolution (V2+) :**
+**Perspectives d'évolution :**
 
-1. *Contextual Retrieval* **mesuré** (voir [`docs/mesures.md`](docs/mesures.md)) : la contextualisation systématique de l'index gagne plus qu'elle ne perd sur ce corpus, sans que cela suffise à la brancher — la V1 s'en tient au principe « mesurer n'est pas brancher ». La piste à instruire consiste à ne contextualiser que les fragments effectivement décontextualisés — ceux dont le texte ne nomme ni son document ni son sujet — plutôt que la totalité de l'index.
+1. *Contextual Retrieval* **mesuré** (voir [`docs/mesures.md`](docs/mesures.md)) : la contextualisation systématique de l'index gagne plus qu'elle ne perd sur ce corpus, sans que cela suffise à la brancher — le pipeline s'en tient au principe « mesurer n'est pas brancher ». La piste à instruire consiste à ne contextualiser que les fragments effectivement décontextualisés — ceux dont le texte ne nomme ni son document ni son sujet — plutôt que la totalité de l'index.
 2. Activation de la recherche hybride (sémantique + BM25 via RRF) au niveau du pipeline de production, sous réserve de validation par les mesures. Deux mesures s'y opposent partiellement et doivent être arbitrées ensemble : la RRF gagne 3 questions sur le sémantique à k = 8, mais elle est **la seule méthode que l'élargissement du corpus dégrade**. Une bascule décidée sur le seul gain à k = 8 échangerait donc une amélioration constatée sur un corpus figé contre une fragilité au passage à l'échelle.
 3. Module de ré-ordonnancement (*reranking*) par cross-encoder.
 4. Automatisation du calcul des métriques RAGAS.
@@ -194,19 +197,19 @@ Les choix d'implémentation suivants découlent du périmètre arrêté au dépa
 ## État du projet et feuille de route
 
 - [x] **Phase 0** — Structure et socle logiciel
-- [x] **Phase 1** — Acquisition et ingestion des données (F1, F2)
-- [x] **Phase 2** — Indexation vectorielle et moteur de recherche (F3, F4)
-- [x] **Phase 3** — Pipeline de génération sourcée et ingénierie de prompt (F5, F6)
-- [x] **Phase 4** — Déploiement de l'interface API FastAPI (F7)
-- [x] **Phase 5** — Implémentation du harnais d'évaluation (F8)
-- [x] **Phase 6** — Implémentation alternative LangChain (branche `langchain-port`, F9)
-- [x] **Phase 7 (V2)** — Support de la recherche multi-tour par condensation de requêtes (F10-F12)
+- [x] **Phase 1** — Acquisition et ingestion des données
+- [x] **Phase 2** — Indexation vectorielle et moteur de recherche
+- [x] **Phase 3** — Pipeline de génération sourcée et ingénierie de prompt
+- [x] **Phase 4** — Déploiement de l'interface API FastAPI
+- [x] **Phase 5** — Implémentation du harnais d'évaluation
+- [x] **Phase 6** — Implémentation alternative LangChain (branche `langchain-port`)
+- [x] **Phase 7** — Support de la recherche multi-tour par condensation de requêtes
 
 > **Statut actuel :** l'ensemble des fonctionnalités des phases 0 à 7 est développé, couvert par les tests unitaires et **validé sur le corpus réel** (18 documents, 316 fragments) avec les deux backends. Les résultats de référence en recherche, les latences `/ask`, la comparaison des modèles d'embeddings et l'équivalence du port LangChain ont tous fait l'objet de mesures rapportées.
 >
-> **Évaluation conversationnelle V2 (F12).** Le rapport fait état d'un rappel de **3/6** sur les tours de conversation annotés comme répondables, attribué à une **limitation avérée de la recherche** et non à un défaut d'annotation. Le diagnostic — éviction de la page institutionnelle par une page de composante, 11,7 % de l'index constitué de fragments de moins de 50 caractères — est détaillé dans [`docs/mesures.md`](docs/mesures.md).
+> **Évaluation conversationnelle multi-tour.** Le rapport fait état d'un rappel de **3/6** sur les tours de conversation annotés comme répondables, attribué à une **limitation avérée de la recherche** et non à un défaut d'annotation. Le diagnostic — éviction de la page institutionnelle par une page de composante, 11,7 % de l'index constitué de fragments de moins de 50 caractères — est détaillé dans [`docs/mesures.md`](docs/mesures.md).
 >
-> L'architecture V2 maintient une rétrocompatibilité descendante complète : en l'absence d'historique de conversation (`history`), le point d'entrée `/ask` reproduit exactement le comportement de la V1.
+> Le multi-tour maintient une rétrocompatibilité descendante complète : en l'absence d'historique de conversation (`history`), le point d'entrée `/ask` reproduit exactement le comportement mono-tour.
 
 ---
 
@@ -216,7 +219,7 @@ Deux travaux comparatifs sont conduits hors de la branche principale. Ils y rest
 
 ### Portage LangChain — branche `langchain-port`
 
-Réimplémentation parallèle du pipeline de requête, à des fins d'analyse comparative des abstractions apportées par le framework. L'équivalence fonctionnelle des deux implémentations est **mesurée et non postulée** : `eval/compare_pipelines.py` rejoue le même jeu de questions dans les deux implémentations, à collection ChromaDB, prompt système et backend identiques — **parité des refus de 19/20** (2026-07-23, `mistral-small-latest`, k=5, 20 questions), l'unique divergence relevant de la génération et non de l'agencement du pipeline.
+Réimplémentation parallèle du pipeline de requête, à des fins d'analyse comparative des abstractions apportées par le framework. L'équivalence fonctionnelle des deux implémentations est **mesurée et non postulée** : `eval/compare_pipelines.py` rejoue le même jeu de questions dans les deux implémentations, à collection ChromaDB, prompt système et backend identiques — **parité des refus de 19/20** (`mistral-small-latest`, k=5, 20 questions), l'unique divergence relevant de la génération et non de l'agencement du pipeline.
 
 Détail et analyse des limites de l'abstraction : **README de la branche `langchain-port`**.
 
@@ -226,7 +229,7 @@ Confrontation du pipeline maison à **AnythingLLM v1.15.0** en déploiement Dock
 
 Deux réserves bornent sa portée, énoncées par le rapport lui-même : la mesure porte sur le **jeu de 20 questions et le corpus antérieurs** aux chiffres de référence ci-dessus, et le jury n'était pas aveugle à l'identité des systèmes.
 
-Le rapport imputait l'essentiel de l'écart à deux réglages par défaut du produit tiers. Ces deux réglages ont été **corrigés et remesurés** le 27 juillet, les vingt questions reposées et les seize répondables rejugées à l'aveugle : l'attribution **n'est pas confirmée**. Le refus paramétré est sans effet mesurable (0/4 refus nets avant comme après) et la réparation de l'extraction ne produit aucune réponse pleinement ancrée. Une troisième cause a été identifiée à cette occasion, et elle appartient au harnais de ce dépôt : le workspace du produit tiers contenait chaque source en double, ce qui ramenait sa profondeur de recherche effective de 4 à 2 — y compris lors de la mesure du 26 juillet.
+Le rapport imputait l'essentiel de l'écart à deux réglages par défaut du produit tiers. Ces deux réglages ont été **corrigés et remesurés**, les vingt questions reposées et les seize répondables rejugées à l'aveugle : l'attribution **n'est pas confirmée**. Le refus paramétré est sans effet mesurable (0/4 refus nets avant comme après) et la réparation de l'extraction ne produit aucune réponse pleinement ancrée. Une troisième cause a été identifiée à cette occasion, et elle appartient au harnais de ce dépôt : le workspace du produit tiers contenait chaque source en double, ce qui ramenait sa profondeur de recherche effective de 4 à 2 — y compris lors de la mesure d'origine.
 
 Méthode, chiffres, limites et procédure de reprise : **README de la branche `worktree-compare-anythingllm`**. Rapport complet et réponses brutes des deux systèmes : `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` sur cette même branche.
 
