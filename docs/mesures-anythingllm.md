@@ -22,7 +22,8 @@ capacité.
   aucune réponse pleinement ancrée.
 * Une réserve appartient au harnais de ce dépôt : le workspace du produit tiers
   contenait chaque source en double, ce qui ramenait sa profondeur de recherche
-  effective de 4 à 2. La mesure n'a pas été rejouée à profondeur corrigée.
+  effective de 4 à 2. La mesure de référence n'a pas été rejouée à profondeur
+  corrigée ; le volet configuré, qui retire les doublons, opère à profondeur 4.
 * Le jeu de questions (20) et le corpus sont antérieurs aux chiffres de
   référence du projet : cette comparaison ne se lit pas à côté du recall@5
   courant.
@@ -91,7 +92,13 @@ corrigés, pour en mesurer la part dans l'écart :
    des neuf pages web — toutes sur `www.univ-amu.fr` — sont extraites à un seul
    mot. L'extracteur `bs4` d'assistant-amu traite ces neuf pages sans échec.
 
-Les deux réglages corrigés, les vingt questions ont été reposées et les seize
+La reconfiguration retire également du workspace les dix coquilles vides et les
+quatorze doublons hérités du défaut d'ingestion : le volet avant/après opère
+donc à profondeur de recherche corrigée (vérifié sur les vingt questions — deux
+textes distincts remontés avant, quatre après). La différence avant/après
+cumule ces trois changements.
+
+Les réglages corrigés, les vingt questions ont été reposées et les seize
 questions répondables rejugées à l'aveugle avant/après :
 
 | | défaut | configuré |
