@@ -283,6 +283,12 @@ réponses réellement produites (`2026-07-27_anythingllm_verdicts_verification.m
 | — plausible mais non ancrée, ou partiellement ancrée | 0/16 | 13/16 |
 | — substantiellement fausse | 0/16 | 2/16 |
 
+> **Réserve établie le 27 juillet.** La colonne AnythingLLM a été mesurée avec un
+> workspace contenant chaque source en double, ce qui ramenait son `topN = 4` à
+> **deux textes distincts**. Le défaut vient du harnais de ce dépôt, non du
+> produit. Ces chiffres n'ont pas été rejoués à profondeur corrigée : ils restent
+> un artefact daté.
+
 ### Deux causes structurelles, et non une infériorité générale du produit
 
 1. **`queryRefusalResponse` laissé à `null`.** Le mode `query` est censé se
@@ -296,11 +302,21 @@ réponses réellement produites (`2026-07-27_anythingllm_verdicts_verification.m
    hallucinations sur la césure, le RSE, le logement et le handicap.
    L'extracteur `bs4` d'assistant-amu traite ces neuf pages sans échec.
 
+> **Ces deux causes ont été corrigées et remesurées le 27 juillet
+> (`2026-07-27_anythingllm_configured.md`). L'attribution ne tient pas.** Le
+> réglage du refus est sans effet mesurable — 0/4 refus nets avant comme après —
+> parce qu'il ne couvre que le workspace vide, non la question hors sujet. Le
+> défaut d'extraction est bien réel, mais le corriger ne produit aucune réponse
+> pleinement ancrée. Les deux points ci-dessus restent le constat exact de ce qui
+> a été observé le 26 juillet ; c'est leur portée explicative qui est démentie.
+
 ### Ce que ce rapport ne montre pas
 
 - **La performance d'AnythingLLM correctement configuré** — refus paramétré,
   connecteur web adapté, éventuellement un autre embeddeur. Le cadrage est
-  *out-of-the-box*, ce n'est pas un plafond de capacité produit.
+  *out-of-the-box*, ce n'est pas un plafond de capacité produit. *Deux de ces
+  trois réglages ont été corrigés et remesurés depuis :
+  `2026-07-27_anythingllm_configured.md`.*
 - **Une mesure recoupable avec les chiffres de tête du README.** L'expérience
   porte sur le jeu de **20 questions** antérieur au passage à 50, et sur le
   corpus sans les dix distracteurs. La colonne assistant-amu (14/16, 4/4) se lit
@@ -312,7 +328,8 @@ réponses réellement produites (`2026-07-27_anythingllm_verdicts_verification.m
   inter-juges n'est mesurable.
 - **La preuve du tableau d'extraction.** Le décompte de mots par page provient
   de la sortie standard de `cmd_ingest`, qui l'imprime sans jamais l'écrire : il
-  n'est pas persisté.
+  n'est pas persisté. *Corrigé le 27 juillet : `anythingllm_configured_ingest.json`
+  conserve les décomptes avant et après réimportation.*
 
 ### Rejouer l'expérience
 
@@ -326,6 +343,22 @@ python eval/anythingllm_compare.py ingest                        # importe le co
 python eval/anythingllm_compare.py ask --questions eval/questions.yaml
 ```
 
+`ingest` **ajoute** au workspace sans réconcilier : l'exécuter deux fois y laisse
+chaque source en double et divise par deux la profondeur de recherche effective.
+Vérifier le nombre de documents avant de mesurer.
+
+Le volet « produit configuré » se rejoue ensuite ainsi :
+
+```bash
+python eval/anythingllm_retest_configured.py plan     # état du workspace, sans écriture
+python eval/anythingllm_retest_configured.py apply    # refus, retrait des doublons, réimportation
+python eval/anythingllm_retest_configured.py ask --all
+python eval/configured_bundle.py                      # dossiers à l'aveugle avant/après
+python eval/blind_rejudge_prompts.py --bundles eval/reports/configured_rejudge/bundles.json \
+    --out-dir eval/reports/configured_rejudge/briefs
+python eval/configured_tally.py                       # levée de l'aveugle et décomptes
+```
+
 Le côté assistant-amu se rejoue par `python eval/evaluate.py --mode end-to-end --k 5`.
 Les deux côtés consomment des appels à l'API Mistral.
 
@@ -337,13 +370,20 @@ Les deux côtés consomment des appels à l'API Mistral.
 | `eval/serialize_retrieved_sources.py` | Récupère les passages lus par assistant-amu, sans appel de modèle |
 | `eval/blind_rejudge_bundle.py`, `…_prompts.py` | Construit les dossiers de jugement anonymisés et la clé |
 | `eval/blind_rejudge_agreement.py` | Accord inter-juges sur les trois passes |
+| `eval/anythingllm_retest_configured.py` | Corrige les réglages, réimporte les cinq pages, repose les questions |
+| `eval/configured_bundle.py` | Dossiers de jugement à l'aveugle avant/après reconfiguration |
+| `eval/configured_tally.py` | Levée de l'aveugle, décomptes, critères de refus |
 | `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` | Rapport complet, tableau question par question |
 | `eval/reports/2026-07-27_anythingllm_verdicts_verification.md` | Confrontation des verdicts aux réponses brutes |
 | `eval/reports/2026-07-27_blind_rejudge.md` | Rejugement à l'aveugle et ancrage instrumenté |
 | `eval/reports/2026-07-27_inter_judge_agreement.md` | Accord inter-juges sur trois passes |
+| `eval/reports/2026-07-27_anythingllm_configured.md` | Le produit une fois ses deux réglages corrigés |
 | `eval/reports/anythingllm_judge_verdicts.json` | Verdicts du jury d'origine |
 | `eval/reports/blind_rejudge/` | Dossiers anonymisés, clé, verdicts du jury aveugle |
+| `eval/reports/configured_rejudge/` | Dossiers, clé et verdicts du jury avant/après |
 | `eval/reports/anythingllm_raw_answers.json` | Réponses brutes d'AnythingLLM, passages inclus |
+| `eval/reports/anythingllm_configured_answers.json` | Les 20 réponses du produit reconfiguré |
+| `eval/reports/anythingllm_configured_ingest.json` | Journal d'ingestion : refus posé, retraits, décomptes de mots |
 | `eval/reports/assistant_amu_full_answers.json` | Réponses brutes d'assistant-amu |
 | `eval/reports/assistant_amu_retrieved_sources.json` | Passages récupérés par assistant-amu, par question |
 
@@ -404,6 +444,44 @@ publié ne bouge**.
 quatorze de ses verdicts tombant dans la même catégorie. Le chiffre informatif
 est le 13/16 d'AnythingLLM, réparti sur quatre catégories.
 
+### Ce que la reconfiguration d'AnythingLLM a établi
+
+Les deux réglages mis en cause ont été corrigés et les vingt questions reposées
+(`2026-07-27_anythingllm_configured.md`). Les seize questions répondables ont été
+rejugées à l'aveugle par huit juges recevant la réponse *avant* et la réponse
+*après* comme systèmes A et B, sans savoir laquelle suit le correctif.
+
+| | défaut | configuré |
+|---|---|---|
+| Refus nets sur les 4 questions hors-corpus | 0/4 | **0/4** |
+| Correcte et ancrée, sur 16 | 2/16 | **0/16** |
+| Partiellement ancrée | 3/16 | 7/16 |
+| Non ancrée (plausible) | 7/16 | 5/16 |
+| Substantiellement fausse | 3/16 | 4/16 |
+
+Trois conclusions, dans l'ordre de ce qu'elles coûtent :
+
+- **Le réglage du refus ne change rien.** Pas une des quatre réponses
+  hors-corpus ne bouge de catégorie. En mode `query`, la phrase de refus n'est
+  rendue que si la recherche ne remonte **aucun** passage — or elle en remonte
+  quatre, pertinents ou non.
+- **Réparer l'extraction ne produit pas d'ancrage.** Les cinq pages passent de
+  1 mot à 13 000-18 000, mais le parseur conserve le balisage HTML : sur les
+  24 extraits des six questions que ces pages devaient réparer, **2** en
+  proviennent — contre **10 sur 16** pour les quatre questions hors-corpus. Des
+  fragments qui ne ressemblent à rien remontent là où rien ne correspond.
+- **Un troisième changement, qui nous appartient.** Le workspace contenait chaque
+  source **en double** : `topN = 4` ne rendait que deux textes distincts. Ce
+  défaut vient de `anythingllm_compare.py ingest`, exécuté deux fois, et il
+  affectait toute la mesure du 26 juillet — dont le 0/16.
+
+Le chiffre à ne pas lire seul est le nombre de questions déplacées. Le jury du
+27 juillet et celui de ce rapport ont jugé **le même** run par défaut : ils
+s'accordent sur 12 verdicts sur 16. Sept questions déplacées par le correctif,
+contre quatre par le seul changement de jury — l'écart n'est pas séparable du
+bruit question par question. Ce qui y résiste est d'ensemble : les deux réponses
+pleinement ancrées disparaissent, l'ancrage partiel passe de 3 à 7.
+
 ### Fil ouvert
 
 Les trois passes emploient le **même modèle et le même barème** : ce qui est
@@ -414,8 +492,15 @@ autre famille, dirait seul si le barème lui-même oriente les verdicts.
 L'anonymisation retire par ailleurs les titres de source des passages, ce qui
 prive assistant-amu d'une information que son prompt lui fournit en production —
 sans effet sur les questions de contenu, mais le `answer_was_available` du
-verdict q16 n'est pas fiable. Et la performance d'AnythingLLM correctement
-configuré reste l'angle mort principal.
+verdict q16 n'est pas fiable.
+
+Sur la reconfiguration, deux points restent ouverts. La réimportation en **HTML
+brut** n'est qu'un chemin de correction parmi d'autres, et le résultat suggère
+qu'il n'est pas le bon : ce que donnerait le produit avec un connecteur web
+adapté, ou ces pages fournies en texte, n'est pas mesuré. Et les chiffres du
+26 juillet **n'ont pas été rejoués** à profondeur de recherche corrigée : ils
+restent un artefact daté, dont on sait désormais qu'il a été mesuré à deux textes
+distincts au lieu de quatre.
 
 ---
 

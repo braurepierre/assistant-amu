@@ -11,6 +11,11 @@ corpus/raw/
 # corpus, au même titre que chroma_db/ : régénérée par la commande contextualize.
 corpus/contexts.jsonl
 
+# Dossiers remis aux juges — dérivés de bundles.json par blind_rejudge_prompts.py,
+# régénérés à l'identique par la commande du README. Ce qui fonde les verdicts,
+# et n'est pas reproductible autrement, reste versionné : bundles, clé, verdicts.
+eval/reports/*/briefs/
+
 # Python
 __pycache__/
 *.py[cod]

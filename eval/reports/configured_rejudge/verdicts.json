@@ -1,0 +1,258 @@
+[
+  {
+    "id": "q01",
+    "system": "A",
+    "verdict": "refused",
+    "answer_was_available": false,
+    "key_evidence": "« il n'y a pas d'information spécifique sur la procédure pour demander une césure à l'université » — et de fait les quatre extraits ne traitent que de la liberté d'expression, de la neutralité et laïcité, des jobs étudiants et des Campus connectés.",
+    "justification": "Le système décline explicitement de répondre faute de matière ; la vérification des extraits confirme qu'aucun ne mentionne la césure, donc la réponse n'était pas disponible. La suggestion de contacter la scolarité est un renvoi générique, non une affirmation substantielle à ancrer."
+  },
+  {
+    "id": "q01",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "« (Source : Procédure standard pour les demandes de césure en France, adaptée aux règles d'Aix-Marseille Université.) » — aucun des quatre extraits (laïcité, jobs étudiants, autorisation de manifestation, préambule du règlement intérieur) ne traite de la césure.",
+    "justification": "L'intégralité de la procédure décrite (éligibilité, durée d'un an, délai d'un mois, désinscription administrative, adresse de contact) provient de connaissances générales que les extraits ne portent pas. J'ai hésité avec `incorrect` à cause de détails très spécifiques et invérifiables ici (délai d'un mois, adresse scolarite@univ-amu.fr, rubrique du site), mais aucun extrait ne les contredit : je retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q02",
+    "system": "A",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "« L'université a 1 mois pour étudier votre demande » et « Vous serez désinscrit administrativement pour l'année de césure » — les extraits ne portent que sur le pass Culture, les emplois étudiants, les conditions particulières d'examen et les sorties de salle d'examen.",
+    "justification": "La réponse affirmative et toute la procédure détaillée reposent sur des connaissances générales ; aucun extrait ne mentionne la césure ni l'interruption d'études. La réponse revendique d'ailleurs elle-même une « procédure standard » comme source, hors extraits."
+  },
+  {
+    "id": "q02",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "« (Note : Les documents fournis ne mentionnent pas explicitement la césure, mais cette pratique est courante dans les universités françaises.) » — aveu explicite que le socle de la réponse est extérieur aux extraits.",
+    "justification": "Le système répond bien (donc pas `refused`) mais le cœur de la réponse — possibilité d'interrompre un an, demande écrite, accord de la composante — n'est soutenu par aucun des quatre extraits, qui traitent du pass Culture, des emplois étudiants et des conditions d'examen. La réserve signalée en fin de réponse est honnête mais ne change pas l'ancrage."
+  },
+  {
+    "id": "q03",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 2 : « Ces aménagements peuvent porter sur votre emploi du temps, la durée de votre cursus d'études ou encore les modalités de contrôle des connaissances. » ; réponse : « Bourses SHN (ex : bourses du ministère des Sports ou des fédérations). »",
+    "justification": "Le noyau (emploi du temps, durée du cursus, modalités de contrôle des connaissances, reconnaissance des compétences via une UE, signalement sur Parcoursup) est bien soutenu par les extraits 1 et 2, mais la réponse y ajoute de nombreuses affirmations absentes : aides financières et bourses SHN, aides au logement et transports, cours à distance, tutorat, justificatifs exigés, référents, ainsi qu'une case « étudiant salarié » sur Parcoursup alors que l'extrait ne cite que « sportif de haut niveau » ou « artiste confirmé ». J'hésitais avec incorrect à cause de cette case ; je retiens la catégorie la moins sévère, l'extrait n'énonçant pas explicitement que la liste des cases est close."
+  },
+  {
+    "id": "q03",
+    "system": "B",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « Ces aménagements peuvent porter sur votre emploi du temps, la durée de votre cursus d'études ou encore les modalités de contrôle des connaissances. » ; réponse : « Reconnaissance du statut SHN : Accès à des dispositifs spécifiques (ex : partenariats avec les fédérations sportives). »",
+    "justification": "La partie centrale (emploi du temps, durée du cursus, modalités de contrôle des connaissances, reconnaissance des compétences par une unité d'enseignement, signalement via la case dédiée sur Parcoursup) est directement soutenue par les extraits 1 et 3 ; la section sur les sportifs de haut niveau ajoute en revanche des éléments qui n'y figurent pas (autorisation d'absences pour entraînements et compétitions, cours à distance, partenariats avec les fédérations, tutorat)."
+  },
+  {
+    "id": "q04",
+    "system": "A",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse : « il n'y a pas d'informations spécifiques sur les solutions de logement pour les étudiants. Cependant, voici les options courantes en France » — les quatre extraits ne traitent que du déroulement des examens (« Pour être admis à participer à l'épreuve, les étudiants doivent être en possession de leur carte d'étudiant »).",
+    "justification": "Aucun des extraits fournis ne porte sur le logement ; la réponse le signale, mais répond tout de même en mobilisant des connaissances générales (CROUS, colocation, APL, montants de loyer) que les extraits ne soutiennent pas. Le système ne déclinant pas de répondre, refused ne s'applique pas."
+  },
+  {
+    "id": "q04",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse : « D'après les documents fournis, voici les solutions de logement étudiant … Dossier social étudiant (DSE) … à remplir avant le 31 mai » ; le seul extrait lié au logement ne dit que : « Le Dégaine … référence les aides sociales et financières auxquelles les étudiants peuvent prétendre ».",
+    "justification": "L'unique élément pertinent des extraits est la web application « Le Dégaine » et son lien vers la catégorie logement ; la réponse ne la mentionne pas et développe un ensemble entier de dispositifs, plateformes, quartiers, adresses et fourchettes de prix issus de connaissances générales, sans appui dans les extraits. J'hésitais avec incorrect en raison de plusieurs ressources et montants invérifiables ; faute de contradiction explicite avec les extraits, je retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q05",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « vous pouvez renseigner la fiche de liaison handicap sur Parcoursup » et « Vous pouvez prendre contact avec le service ou référent dédié aux étudiants à besoins particuliers de votre établissement » ; en regard, la réponse affirme « Accès aux locaux (ascenseurs, places de parking réservées, etc.) », « interprètes en LSF », « Prise en charge partielle ou totale des frais liés au handicap » et « Fournir un certificat médical », absents des extraits.",
+    "justification": "Le cœur est soutenu — la fiche de liaison Parcoursup, le référent/service dédié de l'établissement et l'existence d'un droit à des aménagements figurent bien dans les extraits — mais l'énumération des aménagements (examens, matériel, accessibilité, aides financières, certificat médical) ne repose sur aucun passage fourni. Rien ne contredit les extraits, d'où la catégorie intermédiaire."
+  },
+  {
+    "id": "q05",
+    "system": "B",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « prise de note et transmission des cours par un autre étudiant, tutorat méthodologique, adaptation de votre emploi du temps selon vos contraintes, dispenses d'assiduité, accès à une salle de repos, tiers temps pour les examens, matériel adapté, sujets adaptés, logiciel de correction orthographique » et « aménagements, mis en oeuvre et coordonnés par la mission handicap en lien avec l'équipe pédagogique » ; en regard, la réponse ajoute « Téléphone : 04 13 94 22 22 », « handicap@univ-amu.fr », « Plan d'Accompagnement de l'Étudiant en Situation de Handicap (PAESH) », « certificat médical (datant de moins de 3 mois) » et « bourse handicap du CROUS ».",
+    "justification": "L'essentiel des aménagements listés (tiers temps, sujets et matériel adaptés, salle de repos, prise de notes, tutorat, logiciel correcteur) ainsi que la coordination par la mission handicap et la fiche de liaison Parcoursup sont directement soutenus par les extraits. S'y ajoutent en revanche de nombreuses affirmations non portées par eux — coordonnées de contact et URL précises, sigle PAESH là où l'extrait 4 mentionne le PPES, délai du certificat médical, logement et aides financières ; ces éléments sont fabriqués mais ne contredisent pas frontalement les extraits, je retiens donc la catégorie la moins sévère."
+  },
+  {
+    "id": "q06",
+    "system": "A",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "L'extrait 2 dit seulement : « les salaires que vous percevez en tant qu'étudiant sur l'année sont exonérés de l'impôt sur le revenu, dans la limite de 3 fois le montant du Smic mensuel » ; la réponse affirme « SMIC horaire (environ 11,65 € brut/heure en 2025) » et « exonérés d'impôt dans la limite de 3 fois le SMIC mensuel (soit environ 4 500 €/an) ».",
+    "justification": "Outre une quasi-totalité de contenu non soutenu par les extraits (plateformes, adresses AMU inventées, jobs en ligne, conseils de candidature), la réponse énonce deux faits chiffrés faux : le SMIC horaire brut 2025 n'est pas 11,65 € (taux de 2024, porté à 11,88 € depuis novembre 2024), et trois fois le SMIC mensuel représente environ 5 400 €, non « environ 4 500 €/an ». Le seul élément réellement ancré, l'exonération fiscale, est ainsi assorti d'une quantification erronée."
+  },
+  {
+    "id": "q06",
+    "system": "B",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « dans la limite de 3 fois le montant du Smic mensuel » ; la réponse affirme « exonérés d'impôt sur le revenu dans la limite de 3 fois le SMIC annuel (soit environ 47 000 € en 2024) ».",
+    "justification": "La réponse contredit directement le passage dont elle est tirée en transformant le plafond mensuel en plafond annuel, ce qui produit un montant (environ 47 000 €) faux d'un facteur douze — le plafond réel avoisine 5 400 €. Les autres points (service vie étudiante, associations, possibilité d'emploi à l'université) sont partiellement soutenus, mais cette affirmation contradictoire et substantielle entraîne à elle seule la catégorie."
+  },
+  {
+    "id": "q07",
+    "system": "A",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse A : « (Note : Les documents fournis ne mentionnent pas explicitement les duplicatas, mais cette procédure est standard dans les universités françaises.) » — le seul extrait pertinent dit uniquement « La délivrance du diplôme définitif doit intervenir dans les six mois qui suivent la demande. »",
+    "justification": "Aucun extrait ne traite du duplicata : la demande écrite, la pièce d'identité, le justificatif de perte, le timbre fiscal de 20-30 € et les modalités de remise relèvent tous de connaissances générales, ce que la réponse reconnaît elle-même tout en répondant quand même."
+  },
+  {
+    "id": "q07",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « (Source : Adapté des procédures standard pour les demandes de duplicata de diplôme en France, en lien avec les règles d'Aix-Marseille Université.) » — les extraits ne parlent que de l'ordre public, des modalités de paiement des droits d'inscription et du délai de délivrance du diplôme définitif.",
+    "justification": "L'intégralité de la procédure décrite (conditions, pièces justificatives, timbre fiscal de 20 € en 2025, délai de 2 à 4 semaines, adresses, courriels et téléphones des IUT) est absente des extraits fournis à ce système ; j'hésitais avec `incorrect` en raison des coordonnées précises fabriquées, mais faute de pouvoir les démentir depuis les extraits, je retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q08",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 1 : « Les étudiants et étudiantes ne pouvant se consacrer à temps plein à la poursuite de leurs études peuvent demander à bénéficier d'un RSE […] de déroger aux règles de limitation du nombre d'inscriptions consécutives dans une même filière […] d'être prioritaire dans leur choix de groupe de TD et TP ».",
+    "justification": "Le cœur de la réponse — définition du RSE, allongement du cursus et priorité dans le choix des groupes de TD/TP — est bien soutenu par l'extrait 1 (et le PPES par l'extrait 3), mais la réponse ajoute quantité d'affirmations substantielles absentes : liste des cinq publics concernés, aménagements d'examens (temps supplémentaire, braille), cours à distance ou en horaires décalés, procédure détaillée, certificat médical de moins de trois mois, adresse électronique, numéro de téléphone et URL."
+  },
+  {
+    "id": "q08",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « D'après les documents fournis, il n'y a pas d'information spécifique sur le Régime Spécial d'Études (RSE). Cependant, voici ce que cela désigne généralement dans le contexte universitaire français ».",
+    "justification": "Les extraits fournis à ce système ne portent que sur le calendrier des examens et le signalement à la mission handicap, et ne définissent nulle part le RSE ; la réponse est fournie explicitement au titre des pratiques courantes, donc non soutenue. Ce n'est pas un `refused` puisque le système répond bien à la question au lieu de décliner."
+  },
+  {
+    "id": "q09",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « La CVEC est une taxe affectée destinée à financer des actions en faveur de la vie étudiante, notamment dans des domaines tels que l'accompagnement social, culturel, sportif mais également la santé. Elle concerne les étudiants inscrits en formation initiale dans un établissement d'enseignement supérieur en France. »",
+    "justification": "Le cœur de la réponse (nature de taxe affectée, public concerné en formation initiale, domaines financés) est directement soutenu par l'extrait 3. Mais la réponse y ajoute un grand nombre d'affirmations substantielles absentes des extraits : montant de 100 € pour 2025, exonération automatique des boursiers échelons 0 à 7, modalités de paiement et attestation, adresse de contact cvec@univ-amu.fr, non-remboursabilité, rapport d'utilisation des fonds, ainsi que des domaines de financement non cités (innovation pédagogique, transition écologique)."
+  },
+  {
+    "id": "q09",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Aucun des quatre extraits fournis ne mentionne la CVEC (extraits 1 et 2 : ECI et seconde chance ; extraits 3 et 4 : mutuelle et complémentaire santé) ; la réponse le reconnaît elle-même : « Source : Contexte non directement mentionné dans les documents fournis, mais la CVEC est une obligation légale pour les étudiants en France. »",
+    "justification": "Le système répond bien à la question, mais aucun élément de sa réponse (définition, montant, exonérations, modalités de paiement) n'est porté par les extraits qui lui ont été fournis ; l'ensemble repose sur des connaissances générales, ce que la réponse signale explicitement. Il ne s'agit pas d'un refus puisqu'une réponse complète est produite."
+  },
+  {
+    "id": "q10",
+    "system": "A",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Réponse : « Niveau 1 : Cadrage national (règles générales de l'AMU) », alors que les extraits 2 et 4 énoncent « niveau 1 : le présent cadrage de l'établissement » ; et « Site de Marseille : 5 rue du 11 Novembre, 13100 Aix-en-Provence », adresse dont le libellé se contredit lui-même.",
+    "justification": "La structure en trois niveaux et les trois types d'évaluation (CT, CCP, ECI, au moins trois épreuves) sont bien soutenus par les extraits 2, 3 et 4, mais la réponse qualifie le niveau 1 de « cadrage national » là où les deux documents de cadrage le définissent comme celui de l'établissement, et elle fabrique un bloc de coordonnées comportant un fait vérifiablement faux (un « site de Marseille » situé à Aix-en-Provence) ainsi qu'un numéro de téléphone et un courriel absents des extraits. S'y ajoutent des règles entières non soutenues (seuil de compensation à 6/20, note de 0 en cas d'absence non justifiée, remplacement des notes de première session, aménagements handicap/SHN/salariés)."
+  },
+  {
+    "id": "q10",
+    "system": "B",
+    "verdict": "correct_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extraits 3 et 4 : « niveau 1 : le présent cadrage de l'établissement, niveau 2 : les prescriptions communes à l'ensemble des masters d'une même composante, niveau 3 : les dispositions propres à une formation : maquettes d'enseignement et M3C spécifiques aux unités d'enseignement (UE) » et « Les règles de niveau 2 et 3 des composantes doivent respecter strictement les règles de niveau 1 » ; extraits 1 et 2 : l'URL https://allsh.univ-amu.fr/fr/formation/scolarite/examens.",
+    "justification": "Chaque affirmation substantielle — l'architecture en trois niveaux, la définition de chacun, la subordination stricte des niveaux 2 et 3 au niveau 1, le lien de consultation et la restriction au master — provient des extraits fournis à ce système, dont le seul document de cadrage est celui du master. J'ai hésité avec partially_grounded en raison des illustrations ajoutées entre parenthèses (durée des examens, coefficients, stages, mémoires, ENT) : présentées comme de simples exemples et non comme des règles constatées, elles ne me paraissent pas des affirmations substantielles, et je retiens donc la catégorie la moins sévère."
+  },
+  {
+    "id": "q11",
+    "system": "A",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Réponse A : « Les notes de la seconde session remplacent celles de la première session » — alors que l'extrait 4 précise : « les UE acquises par capitalisation ou par compensation seulement lorsqu'elle sera supérieure à la note obtenue à l'évaluation initiale ».",
+    "justification": "Outre une contradiction directe avec l'extrait 4 sur la seconde session, la réponse invente l'essentiel de son contenu (seuil éliminatoire à 6/20, compensation d'une année par les deux années suivantes, liste d'UE non compensables) ainsi que des coordonnées de scolarité — dont une adresse « Site de Marseille » située à Aix-en-Provence — qui ne figurent dans aucun extrait et sont vérifiablement fausses."
+  },
+  {
+    "id": "q11",
+    "system": "B",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « Pas de compensation entre semestres : Chaque semestre est indépendant » et « Les BCC sont compensables entre eux au sein d'un même semestre ».",
+    "justification": "Ces deux affirmations centrales sont vérifiablement fausses au regard du corpus, qui pose l'inverse (les BCC se compensent avec leur BCC jumeau de l'autre semestre, et les UE se compensent annuellement à l'intérieur des BCC jumeaux) ; les extraits fournis à B ne portent par ailleurs aucune règle de compensation, seule la mention « 0.5 par BCC » recoupant la réponse."
+  },
+  {
+    "id": "q12",
+    "system": "A",
+    "verdict": "correct_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 3 : « Un BCC est un Bloc de Connaissances et Compétences » et « Dans ces blocs on retrouve des unités d'enseignement (UE) avec des crédits (coefficients) différents ».",
+    "justification": "La définition et le rattachement des UE aux blocs sont littéralement dans les extraits ; l'association des crédits ECTS au BCC et la mention de la validation sont de légères extensions dérivables des extraits — j'hésitais avec partially_grounded et retiens, comme demandé, la catégorie la moins sévère."
+  },
+  {
+    "id": "q12",
+    "system": "B",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Soutenu — extrait 4 : « Les BCC jumeaux sont validés par capitalisation ou par compensation dès lors que leur moyenne annuelle, pondérée par les ECTS des UE qui les composent, est supérieure ou égale à 10 ». Ajouté — réponse B : « BCC1 = Fondamentaux disciplinaires, BCC2 = Méthodologie » et « Une année est validée si la moyenne générale des BCC est ≥ 10/20 ».",
+    "justification": "Le cœur (définition du sigle, compensation entre BCC jumeaux sur la moyenne annuelle) est bien soutenu, mais la réponse ajoute des intitulés de BCC inventés, une règle de validation de l'année par moyenne générale absente des extraits (qui montrent au contraire une validation BCC par BCC avec tolérance à 9) et des rubriques de sites web non attestées ; j'hésitais avec incorrect sur la règle de validation et retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q13",
+    "system": "A",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse A : « Lien : https://iaweb.univ-amu.fr [...] Montant 2025 : 100 € [...] Licence : ~ 170 € » — alors que les quatre extraits ne portent que sur « Le Dégaine », le préambule du règlement intérieur, le maintien de l'ordre dans les locaux et les formalités pour un séjour à l'étranger.",
+    "justification": "Aucun des extraits fournis à ce système ne traite de l'inscription administrative en ligne : la totalité de la procédure décrite (CVEC, montants, URL, calendrier, contacts) provient de connaissances générales, et la mention « Source : Adapté des documents fournis » ne s'appuie sur rien. J'hésitais avec incorrect (adresse « Site de Marseille : 5 rue du 11 Novembre, 13100 Aix-en-Provence », montants de droits) et retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q13",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « (Source : Adapté des procédures standard d'inscription en ligne pour les universités françaises, bien que non explicitement détaillé dans les documents fournis.) »",
+    "justification": "Les quatre extraits fournis (deux copies du préambule du règlement intérieur, deux du Titre 2 sur l'ordre public) ne contiennent rien sur l'IA web ; la réponse expose malgré tout une procédure complète tirée de connaissances générales, ce qu'elle reconnaît elle-même. Le système ne décline pas de répondre, donc refused ne s'applique pas."
+  },
+  {
+    "id": "q14",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Soutenu : « Les étudiants doivent être présents devant la salle d'examen quinze minutes au moins avant le début de l'épreuve » et « publié au plus tard 15 jours avant le début de l'épreuve pour les examens de la première session et au plus tard 5 jours avant [...] pour les examens de la seconde chance ». Non soutenu : « Les résultats sont publiés sur l'ENT dans un délai maximal de 15 jours après la fin des épreuves » ; « déposer une demande auprès de la Mission Handicap au plus tard 1 mois avant le début des examens [...] certificat médical datant de moins de 3 mois ».",
+    "justification": "Le cœur (calendriers arrêtés par la CFVU, délais de 15 et 5 jours, contenu de la convocation, présence 15 minutes avant, interdiction d'entrer sans autorisation, aucun document sauf indication contraire) est bien tiré des extraits, mais les Titres III à V (délais d'aménagement, échelle des sanctions, procédure de recours, coordonnées) sont entièrement ajoutés. J'hésitais avec ungrounded_plausible vu le volume d'ajouts et retiens la catégorie la moins sévère."
+  },
+  {
+    "id": "q14",
+    "system": "B",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « Affichage des sujets : Les sujets d'examens terminaux sont publiés au plus tard 15 jours avant la première session et 5 jours avant la seconde chance », alors que l'extrait rattache ce délai à la convocation : « L'affichage des épreuves écrites et orales [...] vaut convocation individuelle aux examens : il précise la date, l'horaire, la durée, le lieu et l'intitulé de chaque épreuve, et doit être publié au plus tard 15 jours avant ».",
+    "justification": "Une affirmation substantielle contredit les extraits en transposant aux sujets d'examens un délai qui s'applique à l'affichage valant convocation ; s'y ajoute la rubrique « Sanctions — Frais d'inscription », absente des extraits et incohérente. Les points sur l'accès aux salles et le matériel autorisé sont, eux, correctement ancrés."
+  },
+  {
+    "id": "q15",
+    "system": "A",
+    "verdict": "incorrect",
+    "answer_was_available": null,
+    "key_evidence": "Réponse A : « Sécurité sociale étudiante (obligatoire pour les moins de 28 ans) » et « UFR ALLSH — Site de Marseille : 5 rue du 11 Novembre, 13100 Aix-en-Provence » ; les extraits ne contiennent que la charte des examens (« L'étudiant ne doit pas troubler le bon déroulement des examens »), la charte du doctorat et la charte anti-plagiat.",
+    "justification": "La quasi-totalité de la structure exposée (Titres I à III, droits à l'information, recours au tribunal administratif dans un délai de 2 mois, révision des notes sous 15 jours, aides CROUS, adresses, courriel et téléphone de scolarité) est absente des extraits fournis à ce système, qui ne traitent que du déroulement des examens, du doctorat et du plagiat. Au-delà de cette absence d'ancrage, la réponse énonce des faits vérifiablement faux — le régime obligatoire de sécurité sociale étudiante pour les moins de 28 ans n'existe plus, et un « site de Marseille » est localisé à une adresse d'Aix-en-Provence — ce qui fait basculer le verdict d'`ungrounded_plausible` vers `incorrect`."
+  },
+  {
+    "id": "q15",
+    "system": "B",
+    "verdict": "ungrounded_plausible",
+    "answer_was_available": null,
+    "key_evidence": "Réponse B : « Droit à la liberté d'expression, de réunion et d'association », « Droit de vote et d'éligibilité aux instances représentatives (CROUS, conseils d'UFR) », « Accès à un référent handicap » — aucun de ces éléments ne figure dans les quatre extraits, qui se limitent au comportement en examen, aux copies, à la charte du doctorat et à la charte anti-plagiat.",
+    "justification": "La section « Droits », qui répond à la moitié de la question, repose intégralement sur des connaissances générales : les extraits ne mentionnent aucun droit étudiant. Seuls trois éléments de la section « Devoirs » sont soutenus (« Ne pas troubler le bon déroulement des enseignements ou des examens » reprend presque littéralement l'extrait 1 ; la lutte contre le plagiat et la mention de la Charte des examens viennent des extraits 3 et 4), ce qui ne suffit pas à faire tenir le cœur de la réponse ; j'ai hésité avec `partially_grounded` et je l'écarte parce que la partie ancrée reste minoritaire, la laïcité, la CVEC, la représentation et l'ensemble des droits n'ayant aucun appui."
+  },
+  {
+    "id": "q16",
+    "system": "A",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 1 : « Fermeture des services administratifs du jeudi 23 juillet 2026 au soir au dimanche 23 août 2026 inclus », repris exactement ; en regard, la réponse affirme « D'après les documents, voici les périodes clés » puis énonce « Congés de Noël : 20 décembre 2025 au 4 janvier 2026 », « Période d'examens : Janvier 2026 », un téléphone (04 13 55 10 00), des horaires d'ouverture et des comptes de réseaux sociaux introuvables dans les extraits.",
+    "justification": "Le noyau de la réponse — consulter le site de la Faculté des sciences, dont les extraits citent bien le domaine sciences.univ-amu.fr, et le contenu attendu du calendrier pédagogique — est soutenu, de même que la date de fermeture administrative ; mais la réponse y ajoute une masse d'éléments substantiels absents des extraits (URL précise, chemin dans l'ENT, panneaux d'affichage et bâtiment, coordonnées et horaires de scolarité, calendrier de dates attribué à tort aux documents). J'hésitais avec `ungrounded_plausible` vu le volume d'ajouts ; je retiens la catégorie la moins sévère, aucune affirmation ne contredisant les extraits."
+  },
+  {
+    "id": "q16",
+    "system": "B",
+    "verdict": "partially_grounded",
+    "answer_was_available": null,
+    "key_evidence": "Extrait 1 : « les périodes d'inscription, les calendriers pédagogiques précisant les dates de rentrée, les périodes d'enseignement, de stages, de congés et d'examens... » ; en regard, la réponse présente l'adresse https://sciences.univ-amu.fr/fr/votre-scolarite/calendriers comme un « lien mentionné dans les documents fournis », alors que les seuls liens des extraits sont /fr/actualites et /fr/rentree.",
+    "justification": "La section « Contenu du calendrier » est directement soutenue par les extraits (dates de rentrée, enseignement, congés, examens, stages, fermeture administrative), et l'orientation vers le site de la Faculté des sciences est cohérente avec le domaine cité ; mais la réponse ajoute des affirmations substantielles non soutenues — l'URL précise présentée à tort comme figurant dans les documents, la rubrique de l'ENT et le passage par le bureau de scolarité. J'ai hésité avec `incorrect` à cause de l'attribution erronée du lien aux documents ; je retiens la catégorie la moins sévère, car il s'agit d'une source revendiquée à tort et non d'un fait qui contredise le contenu des extraits."
+  }
+]

@@ -1,0 +1,184 @@
+{
+  "refusal": "Je ne trouve pas cette information dans les documents disponibles.",
+  "uploaded": [
+    {
+      "file": "03_la-c-sure-amu.html",
+      "url": "https://www.univ-amu.fr/fr/cesure",
+      "wordCount": 18028
+    },
+    {
+      "file": "04_r-gime-sp-cial-d-tudes-rse.html",
+      "url": "https://www.univ-amu.fr/fr/regime-special-detudes",
+      "wordCount": 13398
+    },
+    {
+      "file": "06_droits-d-inscription-et-aides-financi-res.html",
+      "url": "https://www.univ-amu.fr/fr/droits-dinscription-aides-financieres",
+      "wordCount": 13078
+    },
+    {
+      "file": "07_se-loger-vie-des-campus-amu.html",
+      "url": "https://www.univ-amu.fr/fr/vie-des-campus/vivre-amu/se-loger",
+      "wordCount": 14315
+    },
+    {
+      "file": "08_mission-handicap-amu.html",
+      "url": "https://www.univ-amu.fr/fr/mission-handicap",
+      "wordCount": 13525
+    }
+  ],
+  "removed": [
+    {
+      "title": "www.univ-amu.fr_fr_cesure.html",
+      "url": "link://https://www.univ-amu.fr/fr/cesure",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_cesure-ea883d6e-611b-4e73-aa6f-43fc9b8a3a98.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_regime-special-detudes.html",
+      "url": "link://https://www.univ-amu.fr/fr/regime-special-detudes",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_regime-special-detudes-5a366d31-f85f-4a4f-bf30-e2073b744245.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_droits-dinscription-aides-financieres.html",
+      "url": "link://https://www.univ-amu.fr/fr/droits-dinscription-aides-financieres",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_droits-dinscription-aides-financieres-799ce9d6-7223-4c29-a867-e83a93c0a043.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_vie-des-campus_vivre-amu_se-loger.html",
+      "url": "link://https://www.univ-amu.fr/fr/vie-des-campus/vivre-amu/se-loger",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_vie-des-campus_vivre-amu_se-loger-8ea6fb7f-0fa0-4f27-8a6d-0f1189c8737a.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_mission-handicap.html",
+      "url": "link://https://www.univ-amu.fr/fr/mission-handicap",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_mission-handicap-f46c691b-5051-4674-9f4c-00beaefa9396.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_cesure.html",
+      "url": "link://https://www.univ-amu.fr/fr/cesure",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_cesure-ea883d6e-611b-4e73-aa6f-43fc9b8a3a98.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_droits-dinscription-aides-financieres.html",
+      "url": "link://https://www.univ-amu.fr/fr/droits-dinscription-aides-financieres",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_droits-dinscription-aides-financieres-799ce9d6-7223-4c29-a867-e83a93c0a043.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_mission-handicap.html",
+      "url": "link://https://www.univ-amu.fr/fr/mission-handicap",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_mission-handicap-f46c691b-5051-4674-9f4c-00beaefa9396.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_regime-special-detudes.html",
+      "url": "link://https://www.univ-amu.fr/fr/regime-special-detudes",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_regime-special-detudes-5a366d31-f85f-4a4f-bf30-e2073b744245.json",
+      "wordCount": 1
+    },
+    {
+      "title": "www.univ-amu.fr_fr_vie-des-campus_vivre-amu_se-loger.html",
+      "url": "link://https://www.univ-amu.fr/fr/vie-des-campus/vivre-amu/se-loger",
+      "location": "custom-documents/url-www.univ-amu.fr_fr_vie-des-campus_vivre-amu_se-loger-8ea6fb7f-0fa0-4f27-8a6d-0f1189c8737a.json",
+      "wordCount": 1
+    },
+    {
+      "title": "iut.univ-amu.fr_fr_services-de-scolarite.html",
+      "url": "link://https://iut.univ-amu.fr/fr/services-de-scolarite",
+      "location": "custom-documents/url-iut.univ-amu.fr_fr_services-de-scolarite-f40fd8e6-9b09-4d73-8199-86aa07952324.json",
+      "wordCount": 320
+    },
+    {
+      "title": "11_allsh-sigles-et-acronymes.pdf",
+      "url": "file:///app/collector/hotdir/11_allsh-sigles-et-acronymes.pdf",
+      "location": "custom-documents/11_allsh-sigles-et-acronymes.pdf-1c668d03-269f-476f-91c1-6ed6f2ca20d8.json",
+      "wordCount": 336
+    },
+    {
+      "title": "sciences.univ-amu.fr_fr_votre-scolarite_calendriers.html",
+      "url": "link://https://sciences.univ-amu.fr/fr/votre-scolarite/calendriers",
+      "location": "custom-documents/url-sciences.univ-amu.fr_fr_votre-scolarite_calendriers-b8f8c639-d217-4e99-a7e1-8a0ff3e23682.json",
+      "wordCount": 380
+    },
+    {
+      "title": "facdedroit.univ-amu.fr_fr_accueil_scolarite_regimes-speciaux.html",
+      "url": "link://https://facdedroit.univ-amu.fr/fr/accueil/scolarite/regimes-speciaux",
+      "location": "custom-documents/url-facdedroit.univ-amu.fr_fr_accueil_scolarite_regimes-speciaux-7e8d0ba2-479c-4bdd-91b0-d12b648f0995.json",
+      "wordCount": 400
+    },
+    {
+      "title": "allsh.univ-amu.fr_fr_formation_scolarite_examens_modalites-controle-connaissances-competences-m3c.html",
+      "url": "link://https://allsh.univ-amu.fr/fr/formation/scolarite/examens/modalites-controle-connaissances-competences-m3c",
+      "location": "custom-documents/url-allsh.univ-amu.fr_fr_formation_scolarite_examens_modalites-controle-connaissances-competences-m3c-e80d4123-1e85-4f89-882d-e7533943712f.json",
+      "wordCount": 647
+    },
+    {
+      "title": "15_droit-compensation-des-notes-par-bloc-de-connaissances-licen.pdf",
+      "url": "file:///app/collector/hotdir/15_droit-compensation-des-notes-par-bloc-de-connaissances-licen.pdf",
+      "location": "custom-documents/15_droit-compensation-des-notes-par-bloc-de-connaissances-licen.pdf-eb7acf9e-42ef-4224-96fa-f47ccce9fb2f.json",
+      "wordCount": 707
+    },
+    {
+      "title": "00_calendrier-universitaire-2026-2027-arr-t-du-pr-sident.pdf",
+      "url": "file:///app/collector/hotdir/00_calendrier-universitaire-2026-2027-arr-t-du-pr-sident.pdf",
+      "location": "custom-documents/00_calendrier-universitaire-2026-2027-arr-t-du-pr-sident.pdf-dd645689-d99d-4845-b7cc-9c185ebd4718.json",
+      "wordCount": 748
+    },
+    {
+      "title": "05_guide-de-l-inscription-administrative-en-ligne-ia-web.pdf",
+      "url": "file:///app/collector/hotdir/05_guide-de-l-inscription-administrative-en-ligne-ia-web.pdf",
+      "location": "custom-documents/05_guide-de-l-inscription-administrative-en-ligne-ia-web.pdf-9ffa6ca3-c4b3-43ea-a687-f28737cd6663.json",
+      "wordCount": 2283
+    },
+    {
+      "title": "01_charte-des-tudiants-et-stagiaires-d-amu.pdf",
+      "url": "file:///app/collector/hotdir/01_charte-des-tudiants-et-stagiaires-d-amu.pdf",
+      "location": "custom-documents/01_charte-des-tudiants-et-stagiaires-d-amu.pdf-d691847c-3c19-49a0-a5a7-8e5487fa417d.json",
+      "wordCount": 2326
+    },
+    {
+      "title": "10_allsh-charte-des-examens.pdf",
+      "url": "file:///app/collector/hotdir/10_allsh-charte-des-examens.pdf",
+      "location": "custom-documents/10_allsh-charte-des-examens.pdf-a61e26c2-38a6-4ac4-9cac-8c065be51414.json",
+      "wordCount": 3955
+    },
+    {
+      "title": "14_droit-guide-de-la-vie-tudiante-2025.pdf",
+      "url": "file:///app/collector/hotdir/14_droit-guide-de-la-vie-tudiante-2025.pdf",
+      "location": "custom-documents/14_droit-guide-de-la-vie-tudiante-2025.pdf-9c9e45fe-1a9d-4501-bfa7-ebe855f89f3c.json",
+      "wordCount": 5076
+    },
+    {
+      "title": "13_allsh-cadrage-m3c-master-2025-2026.pdf",
+      "url": "file:///app/collector/hotdir/13_allsh-cadrage-m3c-master-2025-2026.pdf",
+      "location": "custom-documents/13_allsh-cadrage-m3c-master-2025-2026.pdf-d59d42f4-dd2e-4d96-8358-4b59ac6420d1.json",
+      "wordCount": 5278
+    },
+    {
+      "title": "12_allsh-cadrage-m3c-licence-et-deust-2025-2026.pdf",
+      "url": "file:///app/collector/hotdir/12_allsh-cadrage-m3c-licence-et-deust-2025-2026.pdf",
+      "location": "custom-documents/12_allsh-cadrage-m3c-licence-et-deust-2025-2026.pdf-4c7da343-42bc-44e4-8691-976eaa456dff.json",
+      "wordCount": 6055
+    },
+    {
+      "title": "02_r-glement-int-rieur-d-aix-marseille-universit.pdf",
+      "url": "file:///app/collector/hotdir/02_r-glement-int-rieur-d-aix-marseille-universit.pdf",
+      "location": "custom-documents/02_r-glement-int-rieur-d-aix-marseille-universit.pdf-69cf0041-54ba-44d6-95e5-60f05e1d52e7.json",
+      "wordCount": 8616
+    }
+  ],
+  "removed_starved": 10,
+  "removed_duplicates": 14,
+  "refusal_after": "Je ne trouve pas cette information dans les documents disponibles.",
+  "after": {
+    "documents": 19,
+    "distinct_titles": 19,
+    "still_starved": 0
+  }
+}

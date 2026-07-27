@@ -1,0 +1,82 @@
+[
+  {
+    "id": "q01",
+    "A": "defaut",
+    "B": "configure"
+  },
+  {
+    "id": "q02",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q03",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q04",
+    "A": "defaut",
+    "B": "configure"
+  },
+  {
+    "id": "q05",
+    "A": "defaut",
+    "B": "configure"
+  },
+  {
+    "id": "q06",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q07",
+    "A": "defaut",
+    "B": "configure"
+  },
+  {
+    "id": "q08",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q09",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q10",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q11",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q12",
+    "A": "defaut",
+    "B": "configure"
+  },
+  {
+    "id": "q13",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q14",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q15",
+    "A": "configure",
+    "B": "defaut"
+  },
+  {
+    "id": "q16",
+    "A": "configure",
+    "B": "defaut"
+  }
+]
