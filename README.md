@@ -13,7 +13,7 @@ comparables.
 
 Installation : `uv pip install -e ".[dev,langchain]"`.
 
-## 1. Équivalence mesurée, non postulée
+## 1. Équivalence des deux implémentations
 
 `eval/compare_pipelines.py` rejoue le même jeu de questions dans les deux
 implémentations, au sein d'un même processus, à collection ChromaDB, prompt
@@ -29,9 +29,9 @@ le modèle.
 *20 questions, `mistral-small-latest` des deux côtés, k = 5.*
 
 Un recouvrement inférieur à 1 est attendu : même contexte et même prompt, mais
-deux formulations d'un modèle non déterministe. Le signal d'équivalence est la
-parité des refus et des citations, non l'égalité mot à mot. L'unique divergence
-de refus relève de la génération, non de l'agencement du pipeline.
+deux formulations d'un modèle non déterministe. L'équivalence se lit sur la
+parité des refus et des citations, non sur l'égalité mot à mot. L'unique
+divergence de refus relève de la génération, non de l'agencement du pipeline.
 
 Rapport détaillé, question par question :
 `eval/reports/2026-07-23_pipeline_vs_langchain.md`.
@@ -64,5 +64,5 @@ Rapport détaillé, question par question :
 
 LangChain fait gagner quelques lignes d'orchestration, au prix d'une dépendance
 volumineuse et d'un contrôle moindre sur les points sensibles du pipeline —
-préfixes d'encodeur, métrique cosinus, fenêtre de contexte Ollama. Ce sont
-précisément les points que ce projet cherche à savoir expliquer.
+préfixes d'encodeur, métrique cosinus, fenêtre de contexte Ollama — que
+l'implémentation manuelle garde explicites.
