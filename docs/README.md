@@ -53,9 +53,8 @@ responsabilité transférée d'une classe à une autre.
 
 `site/` construit un site à partir des documents qui existent déjà dans le
 dépôt : `README.md`, `DEMO.md`, `mesures.md`, une référence d'API extraite de
-`src/`, une démonstration enregistrée et les deux pages autonomes recopiées
-telles quelles. Rien n'y est rédigé en double — ces fichiers restent la source,
-le site les compose.
+`src/`, et les deux pages autonomes recopiées telles quelles. Rien n'y est
+rédigé en double — ces fichiers restent la source, le site les compose.
 
 Construction locale :
 
@@ -76,31 +75,6 @@ pas versionnés : ils sont reconstruits à chaque appel.
 dépendance d'exécution du projet n'est installée sur le serveur de
 construction. Le corollaire est qu'un membre construit dynamiquement serait
 invisible ; le paquet déclare aujourd'hui toute son API dans le source.
-
-**Démonstration enregistrée.** Le site ne peut pas faire tourner l'assistant :
-Read the Docs sert des fichiers, et `/ask` demande l'index, le modèle
-d'embedding et un backend. Une page restitue donc des échanges réellement
-obtenus, enregistrés depuis l'API locale :
-
-```bash
-python -m uvicorn assistant_amu.api.main:app --port 8000   # dans un autre terminal
-python docs/site/capture_demo.py
-```
-
-Deux fichiers, versionnés tous les deux, et volontairement séparés :
-`demo-scenarios.json` porte les questions à jouer et la prose de la page ;
-`demo-capture.json` ne porte que les données obtenues. Reformuler la page ne
-coûte donc aucune nouvelle capture — seul un changement de corpus, de modèle ou
-de prompt en demande une.
-
-L'enregistrement retient aussi les fragments retrouvés, lus directement dans la
-base vectorielle : `/ask` ne renvoie **aucune** source quand il refuse (F6), si
-bien qu'un refus faute de recherche et un refus faute de matière y seraient
-indiscernables. Une question de mise en route est posée avant les autres, pour
-ne pas imputer le chargement du modèle à la latence du premier échange.
-
-Un échange qui se passe mal est enregistré comme les autres : c'est le prix de
-la valeur de preuve de la page.
 
 **Publication.** `.readthedocs.yaml`, à la racine, appelle le même script.
 Pelican n'étant ni Sphinx ni MkDocs, la construction passe par
