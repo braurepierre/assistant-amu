@@ -52,6 +52,8 @@ résumé.
 
 ## Résultats de référence
 
+### 1. Corpus et chiffres de référence
+
 *Corpus de test : 18 documents, 316 fragments, 50 questions d'évaluation, k=5.*
 
 * **Rappel sémantique @5 :** 0,86
@@ -65,7 +67,7 @@ régression du système — c'est le corpus d'évaluation qui couvre désormais 
 documents et des tournures qu'il ne testait pas encore (règlement intérieur,
 droits d'inscription, sigles, procédures propres à une composante…).
 
-### Courbe recall@k (k ∈ {2, 3, 5, 8}) — un résultat nouveau à k = 8
+### 2. Courbe recall@k
 
 | Méthode | k=2 | k=3 | k=5 | k=8 |
 |---|---|---|---|---|
@@ -86,7 +88,7 @@ seule méthode qu'un corpus élargi dégrade, et pour une raison structurelle �
 elle fusionne un classement profond, où les documents ajoutés sont presque
 toujours présents.
 
-### Désaccords sémantique / BM25 (k=5), commentés
+### 3. Désaccords sémantique / BM25
 
 | id | question | trouvé par | mécanisme |
 |---|---|---|---|
