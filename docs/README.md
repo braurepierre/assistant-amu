@@ -31,6 +31,14 @@ d'ingestion, la chaîne de réponse — s'en tiennent aux traitements principaux
 Le détail d'implémentation ne charge pas les schémas : survoler un bloc en
 donne le rôle et le fichier.
 
+La page se lit à **deux niveaux**. Sept blocs, signalés par un contour plus
+marqué, ouvrent au clic le schéma du fonctionnement interne du script qu'ils
+désignent : extraction, découpage, vectorisation, base vectorielle,
+construction du prompt. Un fil d'Ariane ramène au schéma de départ, la touche
+Échap également. Les cinq schémas de second niveau sont ceux dont la logique
+mérite d'être vue — un fichier qui ne fait qu'enchaîner deux appels n'en a
+pas.
+
 Les schémas sont rendus par **Cytoscape**, chargé depuis un CDN. Hors ligne,
 chaque schéma retombe sur la liste ordonnée de ses étapes, écrite en clair dans
 le HTML.
