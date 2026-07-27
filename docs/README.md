@@ -4,7 +4,7 @@
 | --- | --- |
 | `concepts-assistant-amu.html` | Page pédagogique autonome (voir ci-dessous). |
 | `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
-| `architecture-assistant-amu.html` | Carte du code : modules, chaînes d'appel, rôle de chaque classe (voir ci-dessous). |
+| `architecture-assistant-amu.html` | Carte du code : organisation du dépôt et chaînes de traitement (voir ci-dessous). |
 | `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
 
 ## La page pédagogique
