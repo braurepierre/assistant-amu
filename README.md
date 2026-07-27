@@ -228,6 +228,8 @@ Confrontation du pipeline maison à **AnythingLLM v1.15.0** en déploiement Dock
 
 Deux réserves bornent sa portée, énoncées par le rapport lui-même : la mesure porte sur le **jeu de 20 questions et le corpus antérieurs** aux chiffres de référence ci-dessus, et le jury n'était pas aveugle à l'identité des systèmes.
 
+Le rapport imputait l'essentiel de l'écart à deux réglages par défaut du produit tiers. Ces deux réglages ont été **corrigés et remesurés** le 27 juillet, les vingt questions reposées et les seize répondables rejugées à l'aveugle : l'attribution **n'est pas confirmée**. Le refus paramétré est sans effet mesurable (0/4 refus nets avant comme après) et la réparation de l'extraction ne produit aucune réponse pleinement ancrée. Une troisième cause a été identifiée à cette occasion, et elle appartient au harnais de ce dépôt : le workspace du produit tiers contenait chaque source en double, ce qui ramenait sa profondeur de recherche effective de 4 à 2 — y compris lors de la mesure du 26 juillet.
+
 Méthode, chiffres, limites et procédure de reprise : **README de la branche `worktree-compare-anythingllm`**. Rapport complet et réponses brutes des deux systèmes : `eval/reports/2026-07-26_anythingllm_vs_assistant-amu.md` sur cette même branche.
 
 ---

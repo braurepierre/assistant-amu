@@ -1374,3 +1374,68 @@ méthode, que les rapports n'étaient plus reproductibles que par lui. Deux
 affirmations exactes séparément, contradictoires ensemble, et dans le même
 document — le genre d'incohérence qu'une revue produit précisément parce qu'elle
 examine chaque point isolément.
+
+## 2026-07-27 — AnythingLLM configuré : l'explication en deux réglages ne tient pas
+
+**Fait.** Le dernier fil ouvert de la comparaison est refermé. Les deux réglages
+par défaut auxquels le rapport du 26 juillet imputait l'essentiel de l'écart sont
+corrigés, les vingt questions reposées, les seize répondables rejugées à
+l'aveugle par huit juges recevant l'avant et l'après comme systèmes A et B.
+Rapport `eval/reports/2026-07-27_anythingllm_configured.md` sur la branche.
+L'attribution n'est pas confirmée.
+
+**Le réglage du refus ne gouverne pas le cas qu'on lui prêtait.** `queryRefusalResponse`
+est posé, relu après coup, et sans effet mesurable : 0/4 refus nets avant comme
+après, pas une des quatre réponses hors-corpus ne change de catégorie. q17 répond
+toujours « Canberra », q20 livre toujours la recette. Le mécanisme est simple une
+fois vu : en mode `query`, la phrase de refus n'est rendue que si la recherche ne
+remonte **aucun** passage — or elle en remonte quatre, pertinents ou non, le seuil
+de similarité valant 0,25. Le réglage couvre le workspace vide, non la question
+hors sujet. Le rapport du 26 juillet écrivait « à l'absence de source pertinente,
+le modèle retombe sur ses connaissances générales » : la première moitié est
+exacte, la seconde suppose une causalité que la mesure dément.
+
+**Réparer l'extraction ne produit pas d'ancrage, et déplace le défaut.** Les cinq
+pages du gabarit Drupal passent de 1 mot à 13 000-18 000 une fois réimportées en
+HTML brut. Mais le parseur de fichiers conserve le balisage : les fragments
+récupérés contiennent `<li>`, `<a class="cta--link" …>`, `<div class="col
+paragraph …">`. La conséquence se lit à l'envers de ce qui était visé — sur les
+24 extraits des six questions que ces pages devaient réparer, **2** en
+proviennent ; sur les 16 extraits des quatre questions hors-corpus, **10**. La
+question sur la capitale de l'Australie récupère la page césure ; la question sur
+la césure, non. Des fragments qui ne ressemblent à rien remontent là où rien ne
+correspond.
+
+**Un troisième changement, qui appartient au harnais.** `apply` a aussi retiré
+14 doublons : le workspace contenait chacune des 19 sources deux fois, ce qui
+ramenait un `topN = 4` à deux textes distincts. Vérifié sur les vingt questions,
+2 avant et 4 après. Le défaut vient de `anythingllm_compare.py ingest`, qui ajoute
+au lieu de réconcilier et a été exécuté deux fois — il affectait donc **toute** la
+mesure du 26 juillet, dont le 0/16 publié. Aucune différence avant/après ne peut
+être imputée aux deux seuls réglages du produit, et le rapport le dit à chaque
+endroit où il compare.
+
+**Le témoin est ce qui rend les chiffres lisibles.** Les seize réponses du run par
+défaut avaient déjà été jugées à l'aveugle le 27 juillet au matin. Le jury de ce
+rapport les a rejugées sans le savoir, sur un matériel identique : **12 verdicts
+sur 16 coïncident**, les quatre divergences ne franchissant jamais plus d'une
+catégorie. Sept questions déplacées par le correctif, contre quatre par le seul
+changement de jury : l'écart entre les deux runs n'est pas séparable du bruit,
+question par question. Ce qui y résiste est d'ensemble — les deux seules réponses
+pleinement ancrées du run par défaut disparaissent, et l'ancrage partiel passe de
+3 à 7. Sans ce témoin, « sept questions sur seize bougent » se serait lu comme un
+effet.
+
+**Ce que ça vaut.** L'hypothèse des deux réglages était la plus économique : elle
+expliquait un écart embarrassant par des cases à cocher, ce qui protégeait à la
+fois le produit tiers et la neutralité de la comparaison. Elle avait tout pour
+être vraie et n'a pas été vérifiée pendant deux jours, alors que la vérifier ne
+demandait qu'un conteneur et vingt appels. Le seul écart dont l'ampleur dépasse
+clairement le bruit de jugement s'est révélé imputable à un défaut de ce dépôt.
+
+**Reste à faire.** La réimportation en HTML brut n'est qu'un chemin de correction
+parmi d'autres, et le résultat suggère qu'il n'est pas le bon : ce que donnerait
+le produit avec un connecteur web adapté, ou ces pages fournies en texte, n'est
+pas mesuré. Les chiffres du 26 juillet n'ont pas non plus été rejoués à
+profondeur de recherche corrigée ; ils restent un artefact daté, dont on sait
+désormais qu'il a été mesuré à deux textes distincts au lieu de quatre.
