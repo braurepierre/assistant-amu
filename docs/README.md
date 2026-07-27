@@ -6,6 +6,7 @@
 | `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
 | `architecture-assistant-amu.html` | Carte du code : organisation du dépôt et chaînes de traitement (voir ci-dessous). |
 | `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
+| `site/` | Site de documentation construit par Pelican et publié sur Read the Docs (voir ci-dessous). |
 
 ## La page pédagogique
 
@@ -47,6 +48,38 @@ Cette page ne porte **aucun chiffre de mesure** : elle n'a donc pas de bloc
 `STATS` et ne dépend pas de `build_concepts.py`. Ce qui la périme, c'est un
 changement de structure — un module déplacé, une dépendance ajoutée, une
 responsabilité transférée d'une classe à une autre.
+
+## Site de documentation
+
+`site/` construit un site à partir des documents qui existent déjà dans le
+dépôt : `README.md`, `DEMO.md`, `mesures.md`, une référence d'API extraite de
+`src/`, et les deux pages autonomes recopiées telles quelles. Rien n'y est
+rédigé en double — ces fichiers restent la source, le site les compose.
+
+Construction locale :
+
+```bash
+uv run --no-project --with-requirements docs/site/requirements.txt \
+    python docs/site/build_site.py
+# le site est écrit dans docs/site/output/, à ouvrir dans un navigateur
+```
+
+Le script assemble d'abord `docs/site/content/` — métadonnées Pelican ajoutées
+à la volée, titre de premier niveau retiré, liens relatifs réécrits vers leur
+adresse sur le site ou vers le dépôt quand la cible n'est pas publiée — puis
+lance Pelican. Les deux répertoires produits, `content/` et `output/`, ne sont
+pas versionnés : ils sont reconstruits à chaque appel.
+
+**Référence d'API.** Elle est extraite du source par analyse statique
+(`apiref.py`, module `ast`) : rien n'est importé ni exécuté, donc aucune
+dépendance d'exécution du projet n'est installée sur le serveur de
+construction. Le corollaire est qu'un membre construit dynamiquement serait
+invisible ; le paquet déclare aujourd'hui toute son API dans le source.
+
+**Publication.** `.readthedocs.yaml`, à la racine, appelle le même script.
+Pelican n'étant ni Sphinx ni MkDocs, la construction passe par
+`build.commands`, qui remplace les étapes prédéfinies de Read the Docs et écrit
+le résultat dans `$READTHEDOCS_OUTPUT/html`.
 
 ## Mise à jour de la page pédagogique
 

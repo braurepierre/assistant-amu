@@ -1,0 +1,13 @@
+{# The site has no blog. This template exists because Pelican loads it whenever
+   an article-shaped file appears in the content tree, and a missing template is
+   a build failure rather than a warning. #}
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} — {{ SITENAME }}{% endblock %}
+
+{% block content %}
+<article class="page">
+  <h1>{{ article.title }}</h1>
+  {{ article.content }}
+</article>
+{% endblock %}

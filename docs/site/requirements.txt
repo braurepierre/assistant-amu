@@ -1,0 +1,5 @@
+# Documentation site only — deliberately disjoint from the project's runtime
+# dependencies. The API reference is extracted from the source with `ast`
+# (docs/site/apiref.py), so the build server never installs torch, chromadb or
+# sentence-transformers.
+pelican[markdown]>=4.9,<5

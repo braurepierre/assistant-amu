@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="{{ DEFAULT_LANG }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+  <meta name="description" content="{{ SITESUBTITLE }}">
+  <link rel="stylesheet" href="{{ SITEURL }}/theme/css/site.css">
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <header class="masthead">
+    <a class="masthead-title" href="{{ SITEURL }}/index.html">{{ SITENAME }}</a>
+    <p class="masthead-subtitle">{{ SITESUBTITLE }}</p>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Sommaire du site">
+      {% set prose = pages | selectattr('nav_group', 'equalto', 'prose') | sort(attribute='nav_order') | list %}
+      {% set api = pages | selectattr('nav_group', 'equalto', 'api') | sort(attribute='nav_order') | list %}
+
+      <ul class="nav-list">
+        {% for entry in prose %}
+        <li><a href="{{ SITEURL }}/{{ entry.url }}"{% if entry == page %} class="current" aria-current="page"{% endif %}>{{ entry.nav_label }}</a></li>
+        {% endfor %}
+      </ul>
+
+      {% if api %}
+      <p class="nav-title">{{ NAV_GROUP_TITLES['api'] }}</p>
+      <ul class="nav-list">
+        {% for entry in api %}
+        <li><a href="{{ SITEURL }}/{{ entry.url }}"{% if entry == page %} class="current" aria-current="page"{% endif %}>{{ entry.nav_label }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if NAV_EXTRA_LINKS %}
+      <p class="nav-title">{{ NAV_EXTRA_TITLE }}</p>
+      <ul class="nav-list">
+        {% for href, label in NAV_EXTRA_LINKS %}
+        <li><a href="{{ SITEURL }}/{{ href }}">{{ label }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <p class="nav-title">Dépôt</p>
+      <ul class="nav-list">
+        <li><a href="{{ REPO_URL }}">Code source sur GitHub</a></li>
+      </ul>
+    </nav>
+
+    <main id="contenu" class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <footer class="colophon">
+    <p>{{ SITENAME }} — documentation construite avec Pelican, publiée sur Read the Docs.</p>
+  </footer>
+</body>
+</html>

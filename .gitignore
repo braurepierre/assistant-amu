@@ -24,6 +24,12 @@ dist/
 .mypy_cache/
 .ruff_cache/
 
+# Site de documentation : l'arbre de contenu Pelican et la sortie construite sont
+# entièrement reconstruits par `python docs/site/build_site.py`. Les sources sont
+# les documents Markdown du dépôt et le code de `src/`.
+docs/site/content/
+docs/site/output/
+
 # Virtual environments
 .venv/
 venv/

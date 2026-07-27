@@ -1,0 +1,267 @@
+/* AssistantAMU documentation site — sober two-column layout, light and dark.
+   No external font, no CDN: the site stays readable offline and on Read the Docs
+   alike. Colours are declared once as custom properties and swapped wholesale by
+   the colour-scheme query. */
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f6f7f9;
+  --bg-code: #f2f3f5;
+  --text: #1b1f24;
+  --text-soft: #56606b;
+  --rule: #dfe3e8;
+  --accent: #1f5c8b;
+  --accent-soft: #e8f0f6;
+  --measure: 46rem;
+  --sidebar: 15rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --bg-soft: #1b1f23;
+    --bg-code: #1e2328;
+    --text: #e6e9ec;
+    --text-soft: #9aa4ae;
+    --rule: #2b3239;
+    --accent: #6fb2e0;
+    --accent-soft: #1c2b36;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.skip {
+  position: absolute;
+  left: -100vw;
+}
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 10;
+  padding: 0.5rem 0.75rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+}
+
+/* --- Masthead ------------------------------------------------------------ */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-soft);
+}
+
+.masthead-title {
+  display: inline-block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.masthead-subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  max-width: var(--measure);
+}
+
+/* --- Layout -------------------------------------------------------------- */
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5rem;
+  padding: 0 1.5rem;
+}
+
+.sidebar {
+  flex: 0 0 var(--sidebar);
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1.75rem 0 2rem;
+  font-size: 0.9rem;
+}
+
+.nav-title {
+  margin: 1.5rem 0 0.4rem;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-list a {
+  display: block;
+  padding: 0.28rem 0.6rem;
+  margin-left: -0.6rem;
+  border-radius: 4px;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+.nav-list a:hover {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+.nav-list a.current {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--measure);
+  padding: 1.75rem 0 4rem;
+}
+
+/* --- Prose --------------------------------------------------------------- */
+
+.content h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.9rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.content h2 {
+  margin: 2.5rem 0 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--rule);
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.content h3 { margin: 1.9rem 0 0.6rem; font-size: 1.1rem; }
+.content h4 { margin: 1.5rem 0 0.5rem; font-size: 0.98rem; color: var(--text-soft); }
+
+.content a { color: var(--accent); }
+
+.content p, .content li { overflow-wrap: break-word; }
+
+.content blockquote {
+  margin: 1.2rem 0;
+  padding: 0.6rem 1rem;
+  border-left: 3px solid var(--rule);
+  background: var(--bg-soft);
+  color: var(--text-soft);
+}
+.content blockquote p:first-child { margin-top: 0; }
+.content blockquote p:last-child { margin-bottom: 0; }
+
+.content hr {
+  height: 1px;
+  margin: 2.5rem 0;
+  border: 0;
+  background: var(--rule);
+}
+
+/* --- Code ---------------------------------------------------------------- */
+
+code, pre, kbd, samp {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.content :not(pre) > code {
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  background: var(--bg-code);
+  font-size: 0.88em;
+}
+
+.content pre {
+  margin: 1.1rem 0;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: var(--bg-code);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.content pre code { background: none; padding: 0; }
+
+/* --- Tables -------------------------------------------------------------- */
+
+/* The measurement tables are wider than the text column: they scroll inside
+   their own box rather than pushing the page sideways. */
+.content table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.2rem 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.content th, .content td {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.content th { background: var(--bg-soft); font-weight: 600; }
+
+/* --- API reference ------------------------------------------------------- */
+
+/* Module names and signatures are set in code font inside headings, where the
+   code background would read as a chip rather than as a title. Signatures are
+   long and must never be truncated: they wrap instead. */
+.content h2 code, .content h3 code, .content h4 code, .content h5 code {
+  background: none;
+  padding: 0;
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+/* --- Colophon ------------------------------------------------------------ */
+
+.colophon {
+  border-top: 1px solid var(--rule);
+  padding: 1rem 1.5rem;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+.colophon p { margin: 0; }
+
+/* --- Narrow screens ------------------------------------------------------ */
+
+@media (max-width: 52rem) {
+  .layout { display: block; padding: 0 1.1rem; }
+  .sidebar {
+    position: static;
+    max-height: none;
+    width: auto;
+    padding: 1.25rem 0 0.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .content { padding-top: 1.25rem; }
+  .content h1 { font-size: 1.6rem; }
+}
