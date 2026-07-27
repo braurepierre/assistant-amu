@@ -8,6 +8,9 @@ the relative links rewritten to their address on the site. Whatever the site
 does not publish (the prompt changelog, the raw evaluation reports) is
 redirected to the GitHub repository rather than left broken.
 
+The home page is the exception: ``home.md`` next to this script exists for the
+site alone, so that the README does not have to serve two audiences at once.
+
 The API reference is produced by :mod:`apiref`, which reads the source with
 ``ast`` — the build server never installs the project's runtime dependencies.
 
@@ -41,8 +44,14 @@ BLOB_URL = f"{REPO_URL}/blob/main"
 
 # Prose pages: (source file, slug, title, nav label). The title overrides the H1
 # of the source file, which is stripped — the theme prints the title itself.
+#
+# ``home.md`` is the one page written for the site alone: a GitHub landing page
+# and a documentation home want different things — install commands on one side,
+# orientation and navigation on the other — and one file cannot be both. Every
+# other page is a deliverable of the repository, staged here rather than copied.
 PROSE_PAGES = [
-    (ROOT / "README.md", "index", "AssistantAMU", "Présentation"),
+    (SITE_DIR / "home.md", "index", "AssistantAMU", "Accueil"),
+    (ROOT / "README.md", "presentation", "Présentation du projet", "Présentation"),
     (ROOT / "DEMO.md", "demonstration", "Guide de démonstration", "Démonstration"),
     (DOCS_DIR / "mesures.md", "mesures", "Mesures et évaluation", "Mesures"),
 ]
@@ -82,8 +91,8 @@ LINK_MAP = {
     "docs/architecture-assistant-amu.html": "architecture-assistant-amu.html",
     "docs/mesures.md": "mesures.html",
     "DEMO.md": "demonstration.html",
-    "README.md": "index.html",
-    "docs/README.md": f"{BLOB_URL}/docs/README.md",
+    "README.md": "presentation.html",
+    "docs/maintenance.md": f"{BLOB_URL}/docs/maintenance.md",
     "prompts/CHANGELOG.md": f"{BLOB_URL}/prompts/CHANGELOG.md",
     "eval/reports/": f"{REPO_URL}/tree/main/eval/reports",
 }

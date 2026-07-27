@@ -1,14 +1,11 @@
-# docs/ — documentation du projet
+# Maintenance de la documentation
 
-| Fichier | Objet |
-| --- | --- |
-| `concepts-assistant-amu.html` | Page pédagogique autonome (voir ci-dessous). |
-| `concepts.facts.yaml`, `build_concepts.py` | Source des chiffres de la page et générateur associé. |
-| `architecture-assistant-amu.html` | Carte du code : organisation du dépôt et chaînes de traitement (voir ci-dessous). |
-| `mesures.md` | Mesures et évaluation : résultats détaillés, tables par question, commentaire des mécanismes. |
-| `site/` | Site de documentation construit par Pelican et publié sur Read the Docs (voir ci-dessous). |
+Guide destiné au contributeur : d'où viennent les chiffres publiés, comment les
+régénérer, comment se construit le site, et ce qui périme chaque document. Il ne
+présente pas le projet — cette fonction revient au `README.md` principal — et
+n'est pas publié sur le site.
 
-## La page pédagogique
+## Page pédagogique
 
 `concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
 de build) qui explique **ce que fait réellement AssistantAMU**, brique par brique,
@@ -23,7 +20,7 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 > Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
 
-## La carte du code
+## Carte du code
 
 `architecture-assistant-amu.html` répond à une autre question que la page
 pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
@@ -70,6 +67,15 @@ adresse sur le site ou vers le dépôt quand la cible n'est pas publiée — pui
 lance Pelican. Les deux répertoires produits, `content/` et `output/`, ne sont
 pas versionnés : ils sont reconstruits à chaque appel.
 
+**Page d'accueil.** `docs/site/home.md` est le seul document rédigé pour le site
+seul. Une vitrine GitHub et un accueil de documentation n'ont pas le même
+objet — commandes d'installation d'un côté, orientation et navigation de
+l'autre — et un fichier unique ne peut pas remplir les deux fonctions sans en
+sacrifier une. Le `README.md` est donc publié comme page « Présentation », et
+l'accueil se limite à orienter. Conséquence à retenir en écrivant : **aucun
+chiffre de mesure ne figure sur l'accueil**, pour ne pas créer une copie de plus
+à tenir à jour.
+
 **Référence d'API.** Elle est extraite du source par analyse statique
 (`apiref.py`, module `ast`) : rien n'est importé ni exécuté, donc aucune
 dépendance d'exécution du projet n'est installée sur le serveur de
@@ -80,6 +86,26 @@ invisible ; le paquet déclare aujourd'hui toute son API dans le source.
 Pelican n'étant ni Sphinx ni MkDocs, la construction passe par
 `build.commands`, qui remplace les étapes prédéfinies de Read the Docs et écrit
 le résultat dans `$READTHEDOCS_OUTPUT/html`.
+
+## Unité graphique du site et des pages autonomes
+
+Le site et les deux pages autonomes partagent une même palette (encre `#0F1F4D`,
+fond `#F4F6FB`, accent `#143b8f`), un même rayon d'arrondi et une même
+typographie — *Sora* pour les titres, *Public Sans* pour le texte, *IBM Plex
+Mono* pour le code. Les valeurs de référence sont celles déclarées dans le
+`:root` des pages autonomes ; `docs/site/theme/static/css/site.css` les reprend.
+Modifier l'une des deux surfaces suppose donc de reporter le changement sur
+l'autre.
+
+Les polices sont chargées depuis le même CDN par les deux surfaces, avec repli
+sur la pile système : hors ligne, la mise en page et les couleurs tiennent, seule
+la fonte change.
+
+**Écart résiduel assumé.** Le site suit le thème sombre du système, les pages
+autonomes non — leur mise en forme est en clair dans quelques milliers de lignes
+de HTML, et leur ajouter un thème sombre exposerait les schémas Cytoscape, les
+graphiques et KaTeX à des régressions sans rapport avec l'objet de ces pages. En
+thème sombre, passer du site à une page autonome change donc de fond.
 
 ## Mise à jour de la page pédagogique
 

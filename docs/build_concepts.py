@@ -25,8 +25,8 @@ Usage:
 NOT usable in CI as it stands: the page records the current commit SHA, so any
 commit touching the page makes it "stale" against HEAD at once. Wiring it as a
 guard would mean excluding `commit` and `updated` from the comparison. See
-docs/README.md, which has always said so — the two documents contradicted each
-other from the same commit.
+docs/maintenance.md, which has always said so — the two documents contradicted
+each other from the same commit.
 """
 
 from __future__ import annotations
