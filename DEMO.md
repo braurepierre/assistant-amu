@@ -28,7 +28,7 @@ $env:LLM_BACKEND = "mistral"
 .venv\Scripts\python.exe -m uvicorn assistant_amu.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-## Deux façons de démontrer
+## Interfaces de démonstration
 
 - **A. Interface conversationnelle (recommandée)** → **http://127.0.0.1:8000/**
   Interface aux couleurs AMU. Saisir la question dans le champ prévu : l'assistant
@@ -104,7 +104,7 @@ accompagnée de l'historique :
 > **césure** à Aix-Marseille Université ? »* — puis la réponse restitue les dates
 > de dépôt, citées `[S1]`.
 >
-> **Le contraste entre le tour 1 (`null`) et le tour 2 (condensé) donne à voir la condensation.**
+> Le contraste entre le tour 1 (`null`) et le tour 2 (condensé) montre la condensation.
 
 ---
 
@@ -130,7 +130,7 @@ Question hors du corpus : le système refuse au lieu d'inventer.
 
 ---
 
-## Bascule sur le backend local Ollama (souveraineté)
+## Bascule sur le backend local Ollama
 
 Lancer d'abord l'application **Ollama**, puis :
 
@@ -141,5 +141,4 @@ $env:LLM_BACKEND = "ollama"; $env:OLLAMA_NUM_CTX = "4096"
 
 > Sur CPU, l'inférence Ollama est lente (de plusieurs dizaines de secondes à
 > environ deux minutes par réponse) : conserver un `k` bas (par exemple `"k": 3`).
-> Ce mode démontre la **souveraineté** de l'exécution ; l'API Mistral reste le
-> mode rapide pour itérer.
+> Ce mode fonctionne sans service externe ; l'API Mistral reste le mode rapide.
