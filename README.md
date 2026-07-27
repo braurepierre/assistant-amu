@@ -1,7 +1,7 @@
 # AssistantAMU — branche `worktree-compare-anythingllm`
 
-> Cette branche ne porte qu'une expérience annexe, **hors du périmètre spécifié
-> du projet**. Pour le projet lui-même — architecture, installation, mesures de
+> Cette branche ne porte qu'une expérience annexe, hors du périmètre spécifié
+> du projet. Pour le projet lui-même — architecture, installation, mesures de
 > recherche, périmètre et limites — se reporter au `README.md` de la branche
 > `main`, qui fait référence. Ce document ne décrit que ce qui est propre à la
 > branche.
@@ -18,13 +18,12 @@ principale au-delà d'un renvoi, et rien n'est intégré au pipeline de producti
 | Refus sur 4 questions volontairement hors-corpus | **4/4** | **1/4** |
 | Questions répondables (16) — correcte et ancrée | **14/16** | **0/16** |
 
-Trois éléments bornent la lecture de ces chiffres et se lisent avec eux :
-l'explication d'abord avancée — deux réglages par défaut du produit tiers — a été
-corrigée, remesurée et **n'est pas confirmée** ; le workspace du produit tiers
-contenait chaque source en double, ce qui ramenait sa profondeur de recherche
-effective de 4 à 2, défaut qui appartient au harnais de ce dépôt et grève la
-mesure d'origine ; enfin le jeu de questions et le corpus sont antérieurs aux
-chiffres de référence de `main`.
+Trois réserves bornent ces chiffres : la correction des deux réglages par
+défaut du produit tiers ne comble pas l'écart ; le workspace du produit tiers
+contenait chaque source en double — défaut du harnais de ce dépôt — ce qui
+ramenait sa profondeur de recherche effective de 4 à 2, sans que la mesure ait
+été rejouée à profondeur corrigée ; enfin le jeu de questions et le corpus sont
+antérieurs aux chiffres de référence de `main`.
 
 **Protocole, tables, attribution des écarts, solidité des verdicts, limites et
 procédure de reprise : [`docs/mesures-anythingllm.md`](docs/mesures-anythingllm.md).**
