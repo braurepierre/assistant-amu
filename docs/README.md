@@ -26,13 +26,14 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 
 `architecture-assistant-amu.html` répond à une autre question que la page
 pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
-organisé. Elle décrit les quatre couches et leur sens de dépendance, la chaîne
-d'ingestion, le trajet d'une requête `/ask`, le rôle de chaque classe et ce
-qu'elle laisse délibérément à une autre.
+organisé. Trois sections — l'organisation du code en cinq ensembles, la chaîne
+d'ingestion, la chaîne de réponse — s'en tiennent aux traitements principaux.
+Le détail d'implémentation ne charge pas les schémas : survoler un bloc en
+donne le rôle et le fichier.
 
-Les diagrammes sont écrits en **Mermaid**, chargé depuis un CDN. Hors ligne, la
-source textuelle de chaque diagramme s'affiche à sa place plutôt qu'un cadre
-vide (repli géré dans `initDiagrams`).
+Les schémas sont rendus par **Cytoscape**, chargé depuis un CDN. Hors ligne,
+chaque schéma retombe sur la liste ordonnée de ses étapes, écrite en clair dans
+le HTML.
 
 Cette page ne porte **aucun chiffre de mesure** : elle n'a donc pas de bloc
 `STATS` et ne dépend pas de `build_concepts.py`. Ce qui la périme, c'est un

@@ -11,7 +11,7 @@ Le système est **indépendant du modèle de langage utilisé** (commutation par
 | Document | Objet |
 | :--- | :--- |
 | [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture) et un glossaire relié aux fichiers du code. Page autonome : aucun serveur ni étape de compilation, il suffit de l'ouvrir dans un navigateur. |
-| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Carte du code** — les quatre couches et leur sens de dépendance, la chaîne d'ingestion, le trajet d'une requête `/ask`, le rôle de chaque classe. Page autonome, diagrammes inclus. |
+| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Carte du code** — l'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse. Schémas manipulables : survoler une étape en donne le rôle et le fichier. |
 | [`docs/mesures.md`](docs/mesures.md) | **Mesures et évaluation** — résultats détaillés, tables par question, commentaire des mécanismes. |
 | [`DEMO.md`](DEMO.md) | Parcours de démonstration de bout en bout, requêtes prêtes à l'emploi. |
 | [`prompts/CHANGELOG.md`](prompts/CHANGELOG.md) | Ingénierie de prompt — chaque itération des trois prompts système avec sa raison et le cas de test qui l'a motivée. |
