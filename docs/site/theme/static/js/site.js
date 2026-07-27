@@ -99,8 +99,11 @@
 
   /* --- Groups of the site summary --------------------------------------- */
 
-  /* The API reference is a block of five pages. It folds as a whole, and stays
-     open on its own pages whatever was stored. */
+  /* Each group of the tree folds as a whole. The build decides how it opens —
+     the API reference folded, the short groups open — and the reader's last
+     choice overrides that, in either direction, on the groups they are not
+     currently reading. The group holding the current page stays open whatever
+     was stored: its pages are the ones the reader is in. */
   function setUpGroups() {
     var groups = document.querySelectorAll(".sidebar .nav-group");
     Array.prototype.forEach.call(groups, function (group) {
@@ -108,10 +111,11 @@
       if (!toggle) return;
       var key = "amu.group." + group.id;
       var inside = group.querySelector("a.current");
+      var stored = recall(key);
 
-      if (!inside && recall(key) === "open") {
-        group.classList.remove("closed");
-        toggle.setAttribute("aria-expanded", "true");
+      if (!inside && stored) {
+        group.classList.toggle("closed", stored !== "open");
+        toggle.setAttribute("aria-expanded", stored === "open" ? "true" : "false");
       }
 
       toggle.addEventListener("click", function () {

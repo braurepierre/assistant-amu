@@ -45,18 +45,26 @@ STATIC_DIR = CONTENT_DIR / "static"
 REPO_URL = "https://github.com/braurepierre/assistant-amu"
 BLOB_URL = f"{REPO_URL}/blob/main"
 
-# Prose pages: (source file, slug, title, nav label). The title overrides the H1
-# of the source file, which is stripped — the theme prints the title itself.
+# Prose pages: (source file, slug, title, nav label, nav group, nav order). The
+# title overrides the H1 of the source file, which is stripped — the theme
+# prints the title itself.
+#
+# The group is the *kind* of document, not its subject: what a reader comes to
+# do decides where they go first. ``nav_order`` is global rather than per group,
+# so the sequence the sidebar draws is also the one previous/next follows, and
+# the pages staged here interleave with the standalone ones below.
 #
 # ``home.md`` is the one page written for the site alone: a GitHub landing page
 # and a documentation home want different things — install commands on one side,
 # orientation and navigation on the other — and one file cannot be both. Every
 # other page is a deliverable of the repository, staged here rather than copied.
+# It stands in its own group, which the theme draws without a title: an entry
+# point is not a category.
 PROSE_PAGES = [
-    (SITE_DIR / "home.md", "index", "AssistantAMU", "Accueil"),
-    (ROOT / "README.md", "presentation", "Présentation du projet", "Présentation"),
-    (ROOT / "DEMO.md", "demonstration", "Guide de démonstration", "Démonstration"),
-    (DOCS_DIR / "mesures.md", "mesures", "Mesures et évaluation", "Mesures"),
+    (SITE_DIR / "home.md", "index", "AssistantAMU", "Accueil", "home", "10"),
+    (ROOT / "README.md", "presentation", "Présentation du projet", "Présentation", "start", "20"),
+    (ROOT / "DEMO.md", "demonstration", "Guide de démonstration", "Démonstration", "start", "30"),
+    (DOCS_DIR / "mesures.md", "mesures", "Mesures et évaluation", "Mesures", "understand", "60"),
 ]
 
 # Opening of every API page. It states how the reference is produced, and why its
@@ -140,13 +148,15 @@ STANDALONE_META = {
         "concepts-assistant-amu",
         "Page pédagogique",
         "Page pédagogique",
-        "50",
+        "understand",
+        "40",
     ),
     "architecture-assistant-amu.html": (
         "architecture-assistant-amu",
         "Organisation du code et chaînes de traitement",
         "Organisation du code",
-        "60",
+        "understand",
+        "50",
     ),
 }
 
@@ -225,15 +235,15 @@ def front_matter(**fields: str) -> str:
 
 
 def stage_prose() -> None:
-    for order, (source, slug, title, nav_label) in enumerate(PROSE_PAGES, start=1):
+    for source, slug, title, nav_label, nav_group, nav_order in PROSE_PAGES:
         body = source.read_text(encoding="utf-8")
         body = _FIRST_H1.sub("", body, count=1)
         page = front_matter(
             title=title,
             slug=slug,
             nav_label=nav_label,
-            nav_group="prose",
-            nav_order=f"{order * 10:02d}",
+            nav_group=nav_group,
+            nav_order=nav_order,
         )
         page += "\n" + rewrite_links(body)
         (PAGES_DIR / f"{slug}.md").write_text(page, encoding="utf-8")
@@ -264,7 +274,7 @@ def stage_standalone_pages() -> None:
     """Turn each standalone page into a page of the site."""
     for source in STANDALONE_PAGES:
         html = source.read_text(encoding="utf-8")
-        slug, title, nav_label, order = STANDALONE_META[source.name]
+        slug, title, nav_label, nav_group, order = STANDALONE_META[source.name]
 
         # Their sections come from the summary they carry, so the site tree and
         # the page can never list different things.
@@ -278,7 +288,7 @@ def stage_standalone_pages() -> None:
             title=title,
             slug=slug,
             nav_label=nav_label,
-            nav_group="prose",
+            nav_group=nav_group,
             nav_order=order,
             # The page opens on its own banner, which already carries its title.
             hide_title="true",

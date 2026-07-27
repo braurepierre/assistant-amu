@@ -36,11 +36,20 @@
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
 
-  {# Ordered reading sequence, shared by the sidebar and the previous/next pair
-     at the foot of each page. #}
-  {% set prose = pages | selectattr('nav_group', 'equalto', 'prose') | sort(attribute='nav_order') | list %}
-  {% set api = pages | selectattr('nav_group', 'equalto', 'api') | sort(attribute='nav_order') | list %}
-  {% set ordered = prose + api %}
+  {# The groups NAV_GROUPS declares, in its order, each sorted by nav_order. An
+     empty group is dropped rather than drawn as a bare title. Built once and
+     used twice: the sidebar draws it, and the previous/next pair at the foot of
+     the page walks the flattened sequence — so the reading order the reader is
+     offered is by construction the one the tree shows. #}
+  {% set nav = namespace(groups=[], ordered=[]) %}
+  {% for key, title, folded in NAV_GROUPS %}
+    {% set entries = pages | selectattr('nav_group', 'equalto', key) | sort(attribute='nav_order') | list %}
+    {% if entries %}
+      {% set nav.groups = nav.groups + [(key, title, folded, entries)] %}
+      {% set nav.ordered = nav.ordered + entries %}
+    {% endif %}
+  {% endfor %}
+  {% set ordered = nav.ordered %}
 
   {# Same bar as the standalone pages: the amU mark, the site name, and the
      subtitle pushed to the right as their repository line is. #}
@@ -60,28 +69,33 @@
 
   <div class="layout">
     <nav class="sidebar" id="sommaire" aria-label="Sommaire du site">
-      <ul class="nav-list">
-        {% for entry in prose %}
-        {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
-        {% endfor %}
-      </ul>
-
-      {# The API reference is five pages of its own: the group folds as a whole,
-         so the rest of the tree stays in view. Open when the reader is in it. #}
-      {% if api %}
-      {% set in_api = page is defined and page.nav_group == 'api' %}
-      <div class="nav-group{% if not in_api %} closed{% endif %}" id="groupe-api">
+      {% for key, title, folded, entries in nav.groups %}
+      {# A titled group folds as a whole, so a long one cannot push the rest of
+         the tree out of view. It is open whenever the reader is inside it,
+         whatever was stored. A group without a title is drawn as a plain list:
+         it holds the entry point, which no heading would help to find. #}
+      {% if title %}
+      {% set inside = page is defined and page.nav_group == key %}
+      <div class="nav-group{% if folded and not inside %} closed{% endif %}" id="groupe-{{ key }}">
         <button type="button" class="nav-title group-toggle"
-                aria-expanded="{{ 'true' if in_api else 'false' }}" aria-controls="liste-api">
-          <span class="group-caret" aria-hidden="true">▸</span>{{ NAV_GROUP_TITLES['api'] }}
+                aria-expanded="{{ 'false' if folded and not inside else 'true' }}"
+                aria-controls="liste-{{ key }}">
+          <span class="group-caret" aria-hidden="true">▸</span>{{ title }}
         </button>
-        <ul class="nav-list" id="liste-api">
-          {% for entry in api %}
+        <ul class="nav-list" id="liste-{{ key }}">
+          {% for entry in entries %}
           {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
           {% endfor %}
         </ul>
       </div>
+      {% else %}
+      <ul class="nav-list">
+        {% for entry in entries %}
+        {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
+        {% endfor %}
+      </ul>
       {% endif %}
+      {% endfor %}
 
       <p class="nav-title">Dépôt</p>
       <ul class="nav-list">

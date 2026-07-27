@@ -63,8 +63,24 @@ REPO_URL = "https://github.com/braurepierre/assistant-amu"
 
 # --- Navigation -------------------------------------------------------------
 
-# Every page carries its own nav_group/nav_order metadata.
-NAV_GROUP_TITLES = {"api": "Référence d'API"}
+# Groups of the sidebar, in reading order: the ``nav_group`` its pages carry,
+# the title drawn above it, and whether it opens folded for a reader who is not
+# inside it.
+#
+# The groups name a *kind* of document — get started, understand, look up —
+# rather than a subject. A reader arriving decides by what they came to do, and
+# the sidebar has to answer that before it answers anything else.
+#
+# ``home`` has no title: it holds the entry point alone, and an entry point is
+# not a category. Only the API reference opens folded — five pages that would
+# push the rest of the tree out of view; the others are short enough to stay
+# open, and each remains foldable by hand.
+NAV_GROUPS = [
+    ("home", None, False),
+    ("start", "Prise en main", False),
+    ("understand", "Comprendre", False),
+    ("api", "Référence d'API", True),
+]
 
 # --- Markdown ---------------------------------------------------------------
 

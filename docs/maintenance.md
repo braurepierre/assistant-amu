@@ -8,7 +8,7 @@ n'est pas publié sur le site.
 ## Page pédagogique
 
 `concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
-de build) qui explique **ce que fait réellement AssistantAMU**, brique par brique,
+de build) qui explique ce que fait AssistantAMU, brique par brique,
 avec des démonstrations manipulables (chunking, requête RAG, réécriture) et un
 glossaire relié aux fichiers du code. Elle s'ouvre directement dans un navigateur.
 
@@ -81,19 +81,32 @@ Le travail est fait par `docs/site/embed.py`, à la mise en scène :
 | Ressources externes | Polices, KaTeX, Cytoscape : conservées et déplacées avec le contenu |
 | Corps | Bannière, sections, tiroir du glossaire et script deviennent le corps d'une page Pelican |
 
-**Le confinement est mécanique, non une liste de sélecteurs choisis à la main** :
-toute règle est préfixée, donc une règle ajoutée plus tard à ces pages ne peut pas
-s'échapper par accident sur l'habillage du site.
+Le confinement est mécanique : toute règle est préfixée, donc une règle ajoutée
+plus tard à ces pages ne peut pas s'échapper sur l'habillage du site.
 
-**Les fichiers sources ne sont jamais modifiés.** Ouverts directement depuis
-`docs/`, ils restent les pages autonomes qu'ils doivent être — un fichier, aucun
-serveur. C'est la raison d'être de leur format, et rien n'en dépend côté site.
+**Les fichiers sources ne sont pas modifiés.** Ouverts directement depuis
+`docs/`, ils restent des pages autonomes — un fichier, aucun serveur.
 
 **Ce qu'il faut vérifier après une modification de ces pages** : que la bannière,
 le tiroir du glossaire, les formules KaTeX et les schémas Cytoscape fonctionnent
 toujours dans la page publiée. Un sélecteur d'élément nu ajouté à leur feuille de
 style est confiné sans risque ; en revanche, un script qui interrogerait un
 élément du bandeau du site échouerait, ces deux mondes restant distincts.
+
+**Rangement par genre documentaire.** Le sommaire classe d'abord les pages par
+ce que le lecteur vient faire, et non par sujet : « Prise en main » (présentation,
+démonstration), « Comprendre » (page pédagogique, organisation du code, mesures),
+« Référence d'API ». L'accueil reste hors groupe.
+
+Les groupes sont déclarés dans `NAV_GROUPS` (`docs/site/pelicanconf.py`), qui
+fixe leur ordre, leur intitulé et leur état d'ouverture ; chaque page porte sa
+clé de groupe et son rang dans `PROSE_PAGES`, `STANDALONE_META` ou `API_PAGES`
+(`docs/site/build_site.py`). Le rang `nav_order` est **global, non par groupe** :
+le gabarit aplatit les groupes dans l'ordre de `NAV_GROUPS` pour en tirer la
+navigation précédent/suivant, si bien que l'ordre de lecture proposé est par
+construction celui qu'affiche l'arbre. Ajouter un groupe demande une ligne dans
+`NAV_GROUPS` et sa clé sur les pages concernées ; un groupe vide n'est pas
+dessiné, et un groupe sans intitulé est rendu comme une liste simple.
 
 **Sommaire du site en arbre.** Toutes les pages, et pas seulement les deux
 autonomes, sont des rubriques dépliables sur leurs titres de second niveau. Les
@@ -113,12 +126,9 @@ du lecteur, conservé sous la clé `amu.rubrics`.
 
 **Page d'accueil.** `docs/site/home.md` est le seul document rédigé pour le site
 seul. Une vitrine GitHub et un accueil de documentation n'ont pas le même
-objet — commandes d'installation d'un côté, orientation et navigation de
-l'autre — et un fichier unique ne peut pas remplir les deux fonctions sans en
-sacrifier une. Le `README.md` est donc publié comme page « Présentation », et
-l'accueil se limite à orienter. Conséquence à retenir en écrivant : **aucun
-chiffre de mesure ne figure sur l'accueil**, pour ne pas créer une copie de plus
-à tenir à jour.
+objet : le `README.md` est publié comme page « Présentation », et l'accueil se
+limite à orienter. Aucun chiffre de mesure ne figure sur l'accueil, pour ne pas
+créer une copie à tenir à jour.
 
 **Fonctions du navigateur.** `docs/site/theme/static/js/site.js` porte quatre
 comportements, sans dépendance ni étape de construction :
@@ -126,7 +136,7 @@ comportements, sans dépendance ni étape de construction :
 | Fonction | Détail |
 | :--- | :--- |
 | Sommaire du site rétractable | Bouton du bandeau ; préférence conservée sous la clé `amu.nav`. Sous 56 rem, le sommaire devient un tiroir refermé par défaut, par le voile ou par la touche Échap |
-| Groupe « Référence d'API » rétractable | Cinq pages qui se replient d'un bloc, pour que le reste de l'arbre reste visible. Ouvert d'office lorsque le lecteur est sur l'une d'elles, sinon selon son dernier choix (clé `amu.group.groupe-api`) |
+| Groupes du sommaire rétractables | Chaque groupe se replie d'un bloc, pour que le reste de l'arbre reste visible. « Référence d'API » s'ouvre replié — cinq pages qui chasseraient le reste — les autres ouverts. Le groupe de la page courante est ouvert d'office ; les autres suivent le dernier choix du lecteur, dans les deux sens (clé `amu.group.groupe-<clé du groupe>`) |
 | Sommaire de la page | Construit à partir des `h2`/`h3`, rétractable (clé `amu.toc`), avec suivi de la position de lecture. Omis en dessous de trois titres, masqué sous 78 rem. **Un titre qui n'est qu'une signature de fonction en est écarté** : sur une page d'API, les lister toutes reproduirait la page au lieu de la résumer — modules et classes en portent la structure, les fonctions se lisent à l'intérieur |
 | Copie des blocs de code | Bouton révélé au survol de chaque bloc. Hors contexte sécurisé, repli sur `execCommand` |
 | Ancres de titre | Rendues à la construction par l'extension `toc` de Markdown, pas par le script |
@@ -136,9 +146,8 @@ titre, la navigation précédent/suivant — rendue par le gabarit à partir de
 `nav_order` — et la totalité du texte. Seuls disparaissent le sommaire de page,
 qui n'apparaît alors pas plutôt que d'apparaître vide, et les boutons de copie.
 
-La recherche n'est **pas** implémentée, et c'est délibéré : le site compte onze
-pages toutes visibles simultanément dans le sommaire. Les sites de référence en
-ont une parce qu'ils comptent des centaines de pages.
+Le site n'a pas de recherche : il compte onze pages, toutes visibles
+simultanément dans le sommaire.
 
 **Référence d'API.** Ses cinq rubriques portent **les noms que la page « Organisation du code et
 chaînes de traitement » donne aux cinq ensembles** du dépôt — socle commun, ingestion du corpus,
@@ -188,8 +197,7 @@ surfaces suppose de reporter le changement sur l'autre.
 | Titres, texte, code | *Sora*, *Public Sans*, *IBM Plex Mono* |
 
 Le bandeau reprend celui des pages autonomes : fond bleu, marque `amU` en pastille
-blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet — c'est la
-signature de l'identité, elle perd sa valeur si elle est répandue.
+blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet.
 
 Les polices sont chargées depuis le même CDN par les deux surfaces, ce qui leur
 fait partager une entrée de cache, avec repli sur la pile système : hors ligne,
@@ -243,7 +251,7 @@ Deux façons de le mettre à jour :
 D'où viennent les chiffres de `concepts.facts.yaml` : des **rapports datés** de
 `eval/reports/` (recall, sensibilité à k, réécriture) et de
 `python -m assistant_amu.ingestion stats` (corpus). Les valeurs sont recopiées
-depuis la mesure, jamais estimées.
+depuis ces rapports.
 
 ## Ajout d'une rubrique à la page pédagogique
 
