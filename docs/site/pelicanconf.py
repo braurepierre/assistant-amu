@@ -58,7 +58,11 @@ SITENAME = "AssistantAMU"
 SITESUBTITLE = "Assistant documentaire RAG sur les documents publics d'Aix-Marseille Université"
 DEFAULT_LANG = "fr"
 TIMEZONE = "Europe/Paris"
-LOCALE = ("fr_FR.UTF-8", "fr_FR", "French_France")
+# Candidates, not a requirement: a slim build image carries none of them, and
+# Pelican warns on every build. Nothing rendered here is locale-dependent — the
+# site has no articles and prints no formatted date — so the empty string closes
+# the list with "whatever the system has", which always resolves.
+LOCALE = ("fr_FR.UTF-8", "fr_FR", "French_France", "")
 REPO_URL = "https://github.com/braurepierre/assistant-amu"
 
 # Where the assistant panel sends its questions. Empty means the origin the page
