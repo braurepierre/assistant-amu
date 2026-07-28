@@ -76,7 +76,12 @@ jobs:
       - name: Démarrer le conteneur et interroger /health
         run: |
           set -euo pipefail
-          docker run -d --name amu -p 8000:8000 assistant-amu:ci
+          # Le backend par défaut est l'API hébergée, qui exige une clé : sans
+          # elle l'application refuse de démarrer (F5), et il n'y a pas de clé
+          # ici. Le backend local n'en demande aucune et n'est pas joignable
+          # depuis ce conteneur — c'est précisément la situation que la ligne
+          # suivante décrit et que ce test vérifie.
+          docker run -d --name amu -e LLM_BACKEND=ollama -p 8000:8000 assistant-amu:ci
           # /health rend 200 même sans index ni backend joignable (il en rend
           # l'état) : c'est le contrat exact que ce test vérifie.
           for _ in $(seq 1 45); do
