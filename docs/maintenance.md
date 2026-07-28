@@ -113,8 +113,9 @@ Le travail est fait par `docs/site/embed.py`, à la mise en scène :
 | :--- | :--- |
 | Feuille de style | Confinée sous la classe `.embed`, règle par règle. `:root`, `html` et `body` deviennent le conteneur ; les blocs `@media` sont parcourus ; `@keyframes` est laissé intact |
 | Bandeau et sommaire propres à la page | Masqués : le site les fournit. Les éléments restent dans le document, car leur script les interroge |
+| Bannière d'ouverture | Sa classe `hero` est retirée, donc les règles qui la peignent en sombre cessent de s'appliquer : la page s'ouvre sur son titre et son chapeau dans la carte de lecture, comme les pages rédigées en Markdown. L'exergue et la frise animée, qui appartenaient à la bannière, ne sont plus affichés |
 | Ressources externes | Polices, KaTeX, Cytoscape : conservées et déplacées avec le contenu |
-| Corps | Bannière, sections, tiroir du glossaire et script deviennent le corps d'une page Pelican |
+| Corps | Ouverture, sections, tiroir du glossaire et script deviennent le corps d'une page Pelican |
 
 Le confinement est mécanique : toute règle est préfixée, donc une règle ajoutée
 plus tard à ces pages ne peut pas s'échapper sur l'habillage du site.
@@ -380,11 +381,14 @@ depuis ces rapports.
 Le contenu conceptuel est rédigé à la main ; il n'est pas généré. Pour rester
 cohérent avec le reste de la page :
 
-1. **Section** — dupliquer un bloc `<section id="sN">` avec son `sec-num`, son
-   titre et ses cartes. Réutiliser les classes existantes (`.card`, `.evalrow`,
-   `.recall-chart`, `.grid2`…) pour conserver l'unité visuelle.
-2. **Sommaire latéral** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
+1. **Section** — dupliquer un bloc `<section id="sN">` avec son en-tête
+   `<div class="sec-head"><h2>Titre</h2></div>` et ses cartes. Réutiliser les
+   classes existantes (`.card`, `.evalrow`, `.recall-chart`, `.grid2`…) pour
+   conserver l'unité visuelle ; le `<span class="tag">` en fin de titre est
+   facultatif et signale une rubrique adossée à une mesure.
+2. **Sommaire latéral** — ajouter `<a href="#sN" data-sec="sN">Titre</a>` dans le bon
    groupe. Le surlignage au défilement (scroll-spy) s'en charge automatiquement.
+   Les entrées ne sont pas numérotées.
 3. **Glossaire** — si la rubrique introduit un terme, ajouter une entrée dans
    l'objet `G`, entre les marqueurs `GLOSSARY`. Elle apparaît d'elle-même dans
    les renvois « Termes liés » ; **relancer ensuite `python

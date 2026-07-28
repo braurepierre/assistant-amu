@@ -8,8 +8,8 @@ reader falls into and where the view changes.
 
 So the published copy is disassembled: the stylesheet is confined under a single
 class so it cannot reach the site chrome, the bar and the section list they carry
-are hidden — the site provides both — and what remains, hero, sections, glossary
-drawer and script, becomes the body of a Pelican page.
+are hidden — the site provides both — and what remains, opening, sections,
+glossary drawer and script, becomes the body of a Pelican page.
 
 The scoping is mechanical rather than a hand-picked list of selectors: every rule
 is prefixed, so a rule added to those pages later cannot escape by accident.
@@ -104,14 +104,34 @@ _HEAD_ASSETS = re.compile(
     r'<(?:link|script)\b[^>]*(?:href|src)="https?://[^"]+"[^>]*>(?:</script>)?'
 )
 
+# The banner a standalone page opens on. Published, it gives way to the opening
+# every prose page of the site has — the title at the top of the reading card —
+# so that moving from "Mesures et évaluation" to the pedagogical page is not a
+# change of genre. Its class is *dropped* rather than overridden: the rules the
+# page writes for a dark banner stop matching, and the ones it writes for a light
+# surface apply to the opening as they do to the sections below, dark scheme
+# included. The source under docs/ is untouched and keeps its banner.
+_HERO = re.compile(r'(<header[^>]*\sclass=")hero(")')
+
 # What the site now provides, and which must therefore stop being drawn twice.
 SUPERSEDED = """
-/* The site carries the bar, the section list and the page frame. */
+/* The site carries the bar, the section list and the page frame. The reading
+   card is the paper now, so the wrapper stops painting one under it. */
 .embed #topbar,.embed #sidebar,.embed #sideOverlay{display:none}
-/* Freed of its navigation column, the content spans the reading card. */
-.embed .layout{display:block;max-width:none;margin:0}
+.embed{background:none}
+/* Freed of its navigation column, the content spans the reading card. The
+   padding is dropped rather than kept: the card gives its own, and on a narrow
+   screen the site styles a `.layout` of its own that this one answers to. */
+.embed .layout{display:block;max-width:none;margin:0;padding:0}
 .embed main{max-width:none;padding:0}
 .embed>footer{margin-top:48px}
+/* The opening, once the banner is gone: a title and a lead. The eyebrow and the
+   animated strip belonged to the banner and go with it; the strip keeps its
+   element, which the page's script writes into. */
+.embed .page-open .in{max-width:none;margin:0}
+.embed .page-open .eyebrow,.embed .page-open .hero-tokens{display:none}
+.embed .page-open h1{margin:0 0 0.9rem}
+.embed .page-open p.sub{max-width:none;margin:0}
 """
 
 
@@ -125,7 +145,7 @@ def embed(html: str) -> tuple[str, str]:
     match = _BODY.search(html)
     if not match:
         raise SystemExit("standalone page: no <body> to embed")
-    body = _STYLE.sub("", match.group("body"))
+    body = _HERO.sub(r"\1page-open\2", _STYLE.sub("", match.group("body")))
 
     # Fonts, KaTeX, Cytoscape: kept, and moved with the content. Browsers accept
     # these tags in the body, and Pelican only ever hands us a body.

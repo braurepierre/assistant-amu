@@ -354,10 +354,11 @@ body {
   border-radius: var(--radius);
 }
 
-/* An embedded page brings its own banner and its own spacing: the reading card
-   only frames it, and clips the banner to its corners. */
+/* An embedded page opens like a prose page — embed.py drops the banner it
+   carries — so the reading card gives it the same padding as the others. It
+   still brings wide blocks of its own, schemas and tables, which the card
+   clips to its corners rather than letting them spill into the gutter. */
 .content.embedded {
-  padding: 0;
   overflow: hidden;
 }
 
