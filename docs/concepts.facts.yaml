@@ -17,7 +17,7 @@ corpus:            # `python -m assistant_amu.ingestion stats`
 
 eval_questions: 50 # taille du jeu answerable (eval/questions.yaml, élargi le 2026-07-26)
 hard_questions: 25 # taille du jeu « dur » (eval/hard_questions.yaml, élargi le 2026-07-26)
-tests: 142         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-26)
+tests: 163         # `pytest -q` -> nombre de tests verts (relevé le 2026-07-28)
 
 recall_at_5:       # eval/reports/*_retrieval_*.md (baseline k=5, jeu élargi à 50 q. le 2026-07-26)
   semantic: 0.86
