@@ -32,10 +32,21 @@
   --muted: #6b7290;
   --radius: 12px;
 
+  /* Code tokens. Four hues, no more: the commands of the installation guide
+     are read for their comments and their strings, not for their punctuation. */
+  --code-comment: #6b7290;
+  --code-string: #17624a;
+  --code-keyword: #143b8f;
+  --code-literal: #8a4b12;
+
   /* Proper to the site: reading column and navigation column. */
   --measure: 46rem;
   --sidebar: 262px;
-  --topbar: 46px;
+  /* Height of a masthead on one line, closing rule included. What sticks below
+     the bar is positioned from here, and the drawer must start where the bar
+     ends — so site.js measures the bar and overwrites this value, which only
+     holds for a bar on one line and for a page whose script never ran. */
+  --topbar: 50px;
 
   --font-text: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-title: "Sora", var(--font-text);
@@ -106,10 +117,84 @@ body {
   border-radius: 5px;
 }
 
+/* The genres, as tabs. The open one is underlined in white, inside the bar: the
+   yellow keeps its single use, the rule that closes the band. */
+.masthead-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 1.4rem;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 0.7rem 3px;
+  border-bottom: 2px solid transparent;
+  color: #c9d5f2;
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.12s, border-color 0.12s;
+}
+.tab:hover { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.4); }
+.tab:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.tab.current { color: #fff; border-bottom-color: #fff; font-weight: 600; }
+
+/* The one element of the bar that may be shortened: the tabs and the mark are
+   read, the subtitle is recognised. */
 .masthead-subtitle {
+  min-width: 0;
   margin: 0 0 0 auto;
+  padding-left: 1.5rem;
+  overflow: hidden;
   font-size: 12px;
   color: #b9c6ee;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The bar closes on the repository mark. It is the only place the site names
+   its source, so it keeps a title and an off-screen label: an icon alone tells
+   a screen reader nothing. */
+.masthead-repo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  margin-left: 14px;
+  border-radius: 7px;
+  color: #fff;
+  opacity: 0.82;
+  transition: opacity 0.12s, background 0.12s;
+}
+.masthead-repo:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
+.masthead-repo:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; opacity: 1; }
+.masthead-repo svg { display: block; }
+
+/* Carried by the markup, not by the layout: read aloud, never drawn. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Chevrons ------------------------------------------------------------ */
+
+/* One drawing for the three summaries — group, rubric, page. It points right
+   when what it opens is folded, and turns a quarter when it is open. */
+.chev {
+  display: block;
+  transition: transform 0.15s;
 }
 
 /* --- Layout -------------------------------------------------------------- */
@@ -125,6 +210,15 @@ body {
   padding: 0 1.5rem 3rem;
 }
 
+/* The button that opens the summary is written before it in the markup and
+   drawn after it, between the tree and the text. Ordering the four columns here
+   rather than in the markup keeps the reading order of a keyboard or a screen
+   reader independent from the order of the page. */
+.nav-float { order: 2; }
+.sidebar { order: 1; }
+.content { order: 3; }
+.toc { order: 4; }
+
 .sidebar {
   flex: 0 0 var(--sidebar);
   position: sticky;
@@ -137,49 +231,8 @@ body {
   border-right: 1px solid var(--line);
 }
 
-.nav-title {
-  margin: 1.4rem 0 0.4rem 0.7rem;
-  font-family: var(--font-title);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-/* Only a title opening the summary loses its top margin. A group title is the
-   first child of its own block, and must keep the space separating it from the
-   entries above — the same space "Dépôt" has. */
-.sidebar > .nav-title:first-child { margin-top: 0; }
-
-/* A whole group of the tree, folded by its own title. */
-/* The caret takes the indent the other group titles leave empty, so the label
-   itself starts at the same place as "Dépôt" just below. */
-.group-toggle {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-left: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  /* No font declaration here: .nav-title already carries the small caps of the
-     other group titles, and a button must not be given back its own. */
-}
-.group-toggle:hover { color: var(--blue); }
-.group-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
-
-.group-caret {
-  flex: 0 0 0.7rem;
-  font-size: 9px;
-  line-height: 1;
-  transition: transform 0.15s;
-  transform: rotate(90deg);
-}
-.nav-group.closed .group-caret { transform: none; }
-.nav-group.closed .nav-list { display: none; }
-
+/* No heading above the tree: the open tab of the bar names the genre whose
+   pages are listed, and repeating it here would say it twice. */
 .nav-list {
   list-style: none;
   margin: 0;
@@ -234,14 +287,14 @@ body {
   border-radius: 6px;
   background: none;
   color: var(--muted);
-  font-size: 10px;
   line-height: 1;
   cursor: pointer;
-  transition: transform 0.15s, color 0.12s, background 0.12s;
+  transition: color 0.12s, background 0.12s;
 }
 .sub-toggle:hover { background: var(--blue-bg); color: var(--blue); }
 .sub-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-.nav-item.open > .nav-row > .sub-toggle { transform: rotate(90deg); }
+.sub-toggle .chev { width: 11px; height: 11px; }
+.nav-item.open > .nav-row > .sub-toggle .chev { transform: rotate(90deg); }
 
 .sub-list {
   display: none;
@@ -346,8 +399,11 @@ body {
 
 code, pre, kbd, samp { font-family: var(--font-mono); }
 
+/* Narrow padding on purpose: inline code sits inside sentences, next to a comma
+   or a closing parenthesis, and a wider chip would detach it from its own
+   punctuation. */
 .content :not(pre) > code {
-  padding: 0.1em 0.35em;
+  padding: 0.1em 0.25em;
   border-radius: 4px;
   background: var(--paper);
   color: var(--ink);
@@ -366,6 +422,32 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
 }
 
 .content pre code { background: none; padding: 0; }
+
+/* Colouring of the fenced blocks, produced by the codehilite extension. The
+   shell samples of the installation guide are read for their comments and their
+   arguments; what carries no meaning — punctuation, plain names — keeps the
+   text colour rather than adding a hue. */
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .cp, .highlight .cs {
+  color: var(--code-comment);
+  font-style: italic;
+}
+.highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kp,
+.highlight .kr, .highlight .kt, .highlight .ow, .highlight .nb, .highlight .bp {
+  color: var(--code-keyword);
+  font-weight: 500;
+}
+.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc,
+.highlight .sd, .highlight .se, .highlight .sh, .highlight .si, .highlight .sx,
+.highlight .sr, .highlight .ss { color: var(--code-string); }
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi,
+.highlight .mo, .highlight .il { color: var(--code-literal); }
+/* Keys of a JSON sample, and variables of a shell one. */
+.highlight .nt, .highlight .na { color: var(--code-keyword); font-weight: 600; }
+.highlight .nv, .highlight .vi, .highlight .vg, .highlight .vc { color: var(--code-literal); }
+.highlight .nf, .highlight .nc { color: var(--ink); font-weight: 600; }
+/* Pygments marks as an error whatever its lexer did not expect — a shell
+   fragment cut mid-command. It is legible text, not a fault to signal. */
+.highlight .err { color: inherit; background: none; border: 0; }
 
 /* --- Tables -------------------------------------------------------------- */
 
@@ -415,26 +497,47 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
 }
 .colophon p { margin: 0; }
 
-/* --- Icon button, scrim -------------------------------------------------- */
+/* --- Button of the site summary, scrim ----------------------------------- */
 
+/* Posed on the page, without a frame: it commands the reading surface, and is
+   not a piece of the identity band. It stays level with the first line of the
+   text and follows the scroll, so the tree can be taken back at any point of a
+   long page. Retracted, the tree leaves its column and the button takes its
+   place at the left edge — where the reader last saw it. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 30px;
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 0;
   border-radius: 7px;
-  background: transparent;
-  color: #fff;
-  font-size: 15px;
+  background: none;
+  color: var(--muted);
   line-height: 1;
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
+  transition: background 0.12s, color 0.12s;
 }
-.icon-btn:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.5); }
-.icon-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.icon-btn svg { display: block; }
+.icon-btn:hover { background: var(--blue-bg); color: var(--blue); }
+.icon-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.nav-float {
+  align-self: flex-start;
+  position: sticky;
+  top: calc(var(--topbar) + 1rem);
+  /* Level with the top edge of the reading card. */
+  margin-top: 1.75rem;
+  /* Half the column gap on either side: the button stands in the gutter
+     between the tree and the text rather than opening a column of its own. */
+  margin-left: -1rem;
+  margin-right: -1rem;
+  /* Above the drawer, which covers the text on a narrow screen. */
+  z-index: 60;
+}
+body.nav-closed .nav-float { margin-left: 0; }
 
 /* Only ever shown under the drawer, on a narrow screen. */
 .scrim {
@@ -451,8 +554,11 @@ body.nav-closed .sidebar {
 }
 
 /* Freed of its left column, the text recentres rather than leaving a gap
-   between itself and the page summary. */
-body.nav-closed .content {
+   between itself and the page summary. A page whose genre holds it alone —
+   the entry point — is drawn without a tree at all, and recentres the same
+   way. */
+body.nav-closed .content,
+.layout.solo .content {
   margin-left: auto;
 }
 
@@ -491,8 +597,9 @@ body.nav-closed .content {
 .toc-head:hover { color: var(--blue); }
 .toc-head:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
 
-.toc-caret { display: inline-block; transition: transform 0.15s; font-size: 10px; }
-.toc-closed .toc-caret { transform: rotate(-90deg); }
+.toc-caret { display: inline-flex; align-items: center; }
+.toc-caret .chev { width: 10px; height: 10px; transform: rotate(90deg); }
+.toc-closed .toc-caret .chev { transform: none; }
 .toc-closed .toc-list { display: none; }
 
 .toc-list {
@@ -612,8 +719,12 @@ body.nav-closed .content {
 
 @media (max-width: 56rem) {
   .layout { display: block; padding: 0 1.1rem 2rem; }
+  /* No gutter left to stand in: the button opens the page, above the text it
+     shares its left edge with. */
+  .nav-float { margin: 0.9rem 0 0; top: calc(var(--topbar) + 0.5rem); }
   /* Below this width the site summary is a drawer over the text rather than a
-     column beside it. */
+     column beside it. Its entries start below the button, which stays in place
+     over the drawer and closes it. */
   .sidebar {
     position: fixed;
     top: var(--topbar);
@@ -622,17 +733,33 @@ body.nav-closed .content {
     z-index: 50;
     width: 280px;
     max-height: none;
-    padding: 1.2rem 0.75rem 2rem 1rem;
+    /* The top padding clears the button, which stays over the drawer. */
+    padding: 3.4rem 0.75rem 2rem 1rem;
     background: var(--card);
     border-right: 1px solid var(--line);
     box-shadow: 6px 0 24px rgba(15, 31, 77, 0.18);
   }
   body.nav-closed .sidebar { display: none; }
   .content {
-    margin-top: 1.2rem;
+    margin-top: 0.6rem;
     padding: 1.3rem 1.2rem 2rem;
   }
   .content h1 { font-size: 1.55rem; }
-  .masthead { flex-wrap: wrap; }
-  .masthead-subtitle { margin-left: 0; flex-basis: 100%; }
+  /* Two lines and no more: the name and the repository mark, then the tabs,
+     which scroll sideways rather than wrap. The subtitle is dropped — a third
+     line of bar would take the screen the text needs, and the page says what
+     the site is. */
+  .masthead { flex-wrap: wrap; padding-bottom: 0; }
+  .masthead-subtitle { display: none; }
+  .masthead-repo { order: 2; margin-left: auto; }
+  .masthead-tabs {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .masthead-tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 6px 0.7rem 5px; }
+  .tab:first-child { padding-left: 0; }
 }

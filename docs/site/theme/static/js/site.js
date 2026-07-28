@@ -1,6 +1,6 @@
-/* AssistantAMU documentation site — the four behaviours the prose cannot carry
-   on its own: retracting the two summaries, following the reading position,
-   and copying a command.
+/* AssistantAMU documentation site — the behaviours the prose cannot carry on
+   its own: retracting the two summaries, following the reading position,
+   copying a command, and measuring the bar the rest is positioned from.
 
    No dependency and no build step. Everything degrades to a usable page when
    the script does not run: the site summary is open, the page summary is
@@ -19,6 +19,25 @@
   }
   function recall(key) {
     try { return window.localStorage.getItem(key); } catch (error) { return null; }
+  }
+
+  /* --- Height of the masthead ------------------------------------------- */
+
+  /* Everything that sticks below the bar is positioned from --topbar, whose
+     declared value is that of a bar on one line. Below 56rem the subtitle takes
+     a line of its own and the bar grows, so the measured height replaces the
+     declared one — otherwise the drawer opens over the subtitle. Without the
+     script the declared value holds and only that overlap comes back. */
+  function setUpMastheadHeight() {
+    var masthead = document.querySelector(".masthead");
+    if (!masthead) return;
+
+    function measure() {
+      var height = Math.round(masthead.getBoundingClientRect().height);
+      document.documentElement.style.setProperty("--topbar", height + "px");
+    }
+    measure();
+    window.addEventListener("resize", measure);
   }
 
   /* --- Site summary, retractable ---------------------------------------- */
@@ -93,36 +112,6 @@
         if (open && at === -1) opened.push(key);
         if (!open && at !== -1) opened.splice(at, 1);
         remember("amu.rubrics", JSON.stringify(opened));
-      });
-    });
-  }
-
-  /* --- Groups of the site summary --------------------------------------- */
-
-  /* Each group of the tree folds as a whole. The build decides how it opens —
-     the API reference folded, the short groups open — and the reader's last
-     choice overrides that, in either direction, on the groups they are not
-     currently reading. The group holding the current page stays open whatever
-     was stored: its pages are the ones the reader is in. */
-  function setUpGroups() {
-    var groups = document.querySelectorAll(".sidebar .nav-group");
-    Array.prototype.forEach.call(groups, function (group) {
-      var toggle = group.querySelector(".group-toggle");
-      if (!toggle) return;
-      var key = "amu.group." + group.id;
-      var inside = group.querySelector("a.current");
-      var stored = recall(key);
-
-      if (!inside && stored) {
-        group.classList.toggle("closed", stored !== "open");
-        toggle.setAttribute("aria-expanded", stored === "open" ? "true" : "false");
-      }
-
-      toggle.addEventListener("click", function () {
-        var open = group.classList.contains("closed");
-        group.classList.toggle("closed", !open);
-        toggle.setAttribute("aria-expanded", open ? "true" : "false");
-        remember(key, open ? "open" : "closed");
       });
     });
   }
@@ -260,9 +249,9 @@
     });
   }
 
+  setUpMastheadHeight();
   setUpSidebar();
   setUpRubrics();
-  setUpGroups();
   setUpPageSummary();
   setUpCopyButtons();
 })();

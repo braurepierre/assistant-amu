@@ -1,3 +1,13 @@
+{# Icons are drawn rather than typed: ▸ and ☰ are rendered by whichever font the
+   system substitutes, at a size and a weight the page does not control. These
+   follow the text colour and the type scale like any other glyph would. #}
+{% macro chevron() %}
+  <svg class="chev" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor"
+       stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4.25 2.25 8 6l-3.75 3.75"/>
+  </svg>
+{% endmacro %}
+
 {% macro branch(url, label, key, is_current) %}
   {% set sections = NAV_SECTIONS.get(key, []) %}
   <li class="nav-item{% if sections %} has-sub{% endif %}{% if is_current %} open{% endif %}">
@@ -5,7 +15,7 @@
       <a href="{{ url }}"{% if is_current %} class="current" aria-current="page"{% endif %}>{{ label }}</a>
       {% if sections %}
       <button type="button" class="sub-toggle" aria-expanded="{{ 'true' if is_current else 'false' }}"
-              aria-label="Déplier les sections de {{ label }}"><span aria-hidden="true">▸</span></button>
+              aria-label="Déplier les sections de {{ label }}">{{ chevron() }}</button>
       {% endif %}
     </div>
     {% if sections %}
@@ -36,72 +46,82 @@
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
 
-  {# The groups NAV_GROUPS declares, in its order, each sorted by nav_order. An
-     empty group is dropped rather than drawn as a bare title. Built once and
-     used twice: the sidebar draws it, and the previous/next pair at the foot of
-     the page walks the flattened sequence — so the reading order the reader is
-     offered is by construction the one the tree shows. #}
-  {% set nav = namespace(groups=[], ordered=[]) %}
-  {% for key, title, folded in NAV_GROUPS %}
+  {# The genres NAV_GROUPS declares, in its order, each sorted by nav_order. An
+     empty genre is dropped rather than drawn as an empty tab. Built once and
+     used three times: the tabs of the bar, the summary — which lists the open
+     tab alone — and the previous/next pair at the foot of the page, which walks
+     the flattened sequence and therefore crosses the tabs, as the reading order
+     does. #}
+  {% set nav = namespace(groups=[], ordered=[], current=[]) %}
+  {% for key, title in NAV_GROUPS %}
     {% set entries = pages | selectattr('nav_group', 'equalto', key) | sort(attribute='nav_order') | list %}
     {% if entries %}
-      {% set nav.groups = nav.groups + [(key, title, folded, entries)] %}
+      {% set nav.groups = nav.groups + [(key, title, entries)] %}
       {% set nav.ordered = nav.ordered + entries %}
+      {% if page is defined and page.nav_group == key %}{% set nav.current = entries %}{% endif %}
     {% endif %}
   {% endfor %}
   {% set ordered = nav.ordered %}
+  {# A tree of one branch is not a tree: the entry point stands alone in its
+     genre and is drawn without a summary beside it. #}
+  {% set has_summary = nav.current | length > 1 %}
 
   {# Same bar as the standalone pages: the amU mark, the site name, and the
-     subtitle pushed to the right as their repository line is. #}
+     subtitle pushed to the right as their repository line is. It carries the
+     genres as tabs, and closes on the repository mark, where a reader of any
+     documentation site looks for the source — which is why the tree below no
+     longer carries a "Dépôt" rubric. #}
   <header class="masthead">
-    <button type="button" class="icon-btn" id="navToggle"
-            aria-label="Afficher ou masquer le sommaire du site"
-            aria-controls="sommaire" aria-expanded="true">
-      <span aria-hidden="true">☰</span>
-    </button>
     <a class="masthead-title" href="{{ SITEURL }}/index.html">
       <span class="logo">am<b>U</b></span> {{ SITENAME }}
     </a>
+    {# Each tab opens on the first page of its genre, which is the one its order
+       puts first — the reader is never dropped in the middle of a genre. #}
+    <nav class="masthead-tabs" aria-label="Genres de documentation">
+      {% for key, title, entries in nav.groups %}
+      {% set open = page is defined and page.nav_group == key %}
+      <a class="tab{% if open %} current{% endif %}" href="{{ SITEURL }}/{{ entries[0].url }}"
+         {% if open %}aria-current="true"{% endif %}>{{ title }}</a>
+      {% endfor %}
+    </nav>
     <p class="masthead-subtitle">{{ SITESUBTITLE }}</p>
+    <a class="masthead-repo" href="{{ REPO_URL }}" title="Code source sur GitHub">
+      <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+      </svg>
+      <span class="sr-only">Code source sur GitHub</span>
+    </a>
   </header>
 
   <div class="scrim" id="scrim" hidden></div>
 
-  <div class="layout">
-    <nav class="sidebar" id="sommaire" aria-label="Sommaire du site">
-      {% for key, title, folded, entries in nav.groups %}
-      {# A titled group folds as a whole, so a long one cannot push the rest of
-         the tree out of view. It is open whenever the reader is inside it,
-         whatever was stored. A group without a title is drawn as a plain list:
-         it holds the entry point, which no heading would help to find. #}
-      {% if title %}
-      {% set inside = page is defined and page.nav_group == key %}
-      <div class="nav-group{% if folded and not inside %} closed{% endif %}" id="groupe-{{ key }}">
-        <button type="button" class="nav-title group-toggle"
-                aria-expanded="{{ 'false' if folded and not inside else 'true' }}"
-                aria-controls="liste-{{ key }}">
-          <span class="group-caret" aria-hidden="true">▸</span>{{ title }}
-        </button>
-        <ul class="nav-list" id="liste-{{ key }}">
-          {% for entry in entries %}
-          {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
-          {% endfor %}
-        </ul>
-      </div>
-      {% else %}
+  <div class="layout{% if not has_summary %} solo{% endif %}">
+    {% if has_summary %}
+    {# The control of the summary sits in the page, level with the first line of
+       text and following the scroll — not in the identity band, which names the
+       site and does not command it. It is written here, before what it opens,
+       so that reaching it does not mean crossing the whole tree with the
+       keyboard; the columns are ordered by the stylesheet, which puts it back
+       between the summary and the text. #}
+    <button type="button" class="icon-btn nav-float" id="navToggle"
+            aria-label="Afficher ou masquer le sommaire du genre"
+            aria-controls="sommaire" aria-expanded="true">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+           stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+        <path d="M2.25 4h11.5M2.25 8h11.5M2.25 12h11.5"/>
+      </svg>
+    </button>
+
+    {# The pages of the open tab, and them alone: the tab carries the name of
+       the genre, which no heading needs to repeat here. #}
+    <nav class="sidebar" id="sommaire" aria-label="Sommaire du genre">
       <ul class="nav-list">
-        {% for entry in entries %}
+        {% for entry in nav.current %}
         {{ branch(SITEURL + '/' + entry.url, entry.nav_label, entry.slug, entry == page) }}
         {% endfor %}
       </ul>
-      {% endif %}
-      {% endfor %}
-
-      <p class="nav-title">Dépôt</p>
-      <ul class="nav-list">
-        <li><a href="{{ REPO_URL }}">Code source sur GitHub</a></li>
-      </ul>
     </nav>
+    {% endif %}
 
     <main id="contenu" class="content{% if page is defined and page.embedded %} embedded{% endif %}">
       {% block content %}{% endblock %}
@@ -136,7 +156,7 @@
        when the page has too few of them to be worth a summary. #}
     <aside class="toc" id="toc" aria-label="Sommaire de la page" hidden>
       <button type="button" class="toc-head" id="tocToggle" aria-expanded="true" aria-controls="tocList">
-        <span class="toc-caret" aria-hidden="true">▾</span> Sur cette page
+        <span class="toc-caret">{{ chevron() }}</span> Sur cette page
       </button>
       <ul class="toc-list" id="tocList"></ul>
     </aside>
