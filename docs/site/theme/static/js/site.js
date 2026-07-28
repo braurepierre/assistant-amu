@@ -1,11 +1,12 @@
 /* AssistantAMU documentation site — the behaviours the prose cannot carry on
-   its own: retracting the two summaries, following the reading position,
-   copying a command, and measuring the bar the rest is positioned from.
+   its own: switching the theme, retracting the two summaries, following the
+   reading position, copying a command, and measuring the bar the rest is
+   positioned from.
 
    No dependency and no build step. Everything degrades to a usable page when
-   the script does not run: the site summary is open, the page summary is
-   absent rather than empty, previous/next is rendered at build time, and the
-   heading anchors come from the Markdown toc extension. */
+   the script does not run: the theme stays light, the site summary is open,
+   the page summary is absent rather than empty, previous/next is rendered at
+   build time, and the heading anchors come from the Markdown toc extension. */
 
 (function () {
   "use strict";
@@ -38,6 +39,31 @@
     }
     measure();
     window.addEventListener("resize", measure);
+  }
+
+  /* --- Light and dark theme --------------------------------------------- */
+
+  /* An inline script in the head applies the stored choice before the
+     stylesheet loads — no flash of the wrong theme; this button only has to
+     switch it afterwards. Light is the default, and the attribute is removed
+     rather than set to "light", so the default never needs a value. */
+  function setUpThemeToggle() {
+    var toggle = document.getElementById("themeToggle");
+    if (!toggle) return;
+
+    function apply(dark) {
+      if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      else document.documentElement.removeAttribute("data-theme");
+      toggle.setAttribute("aria-pressed", dark ? "true" : "false");
+    }
+
+    apply(document.documentElement.getAttribute("data-theme") === "dark");
+
+    toggle.addEventListener("click", function () {
+      var dark = document.documentElement.getAttribute("data-theme") !== "dark";
+      apply(dark);
+      remember("amu.theme", dark ? "dark" : "light");
+    });
   }
 
   /* --- Site summary, retractable ---------------------------------------- */
@@ -250,6 +276,7 @@
   }
 
   setUpMastheadHeight();
+  setUpThemeToggle();
   setUpSidebar();
   setUpRubrics();
   setUpPageSummary();

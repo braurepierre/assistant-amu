@@ -40,6 +40,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
+  {# The stored theme lands on <html> before the stylesheet loads, so a reader
+     who chose dark never sees a light flash. Same localStorage caution as
+     site.js: a lost preference is not worth breaking the page for. #}
+  <script>
+    (function () {
+      try {
+        if (window.localStorage.getItem("amu.theme") === "dark")
+          document.documentElement.setAttribute("data-theme", "dark");
+      } catch (error) { /* ignore */ }
+    })();
+  </script>
   <link rel="stylesheet" href="{{ SITEURL }}/theme/css/site.css">
   <script src="{{ SITEURL }}/theme/js/site.js" defer></script>
 </head>
@@ -66,15 +77,13 @@
      genre and is drawn without a summary beside it. #}
   {% set has_summary = nav.current | length > 1 %}
 
-  {# Same bar as the standalone pages: the amU mark, the site name, and the
-     subtitle pushed to the right as their repository line is. It carries the
-     genres as tabs, and closes on the repository mark, where a reader of any
-     documentation site looks for the source — which is why the tree below no
-     longer carries a "Dépôt" rubric. #}
+  {# Same bar as the standalone pages: the site name, and the subtitle pushed
+     to the right as their repository line is. It carries the genres as tabs,
+     and closes on the repository mark, where a reader of any documentation
+     site looks for the source — which is why the tree below no longer carries
+     a "Dépôt" rubric. #}
   <header class="masthead">
-    <a class="masthead-title" href="{{ SITEURL }}/index.html">
-      <span class="logo">am<b>U</b></span> {{ SITENAME }}
-    </a>
+    <a class="masthead-title" href="{{ SITEURL }}/index.html">{{ SITENAME }}</a>
     {# Each tab opens on the first page of its genre, which is the one its order
        puts first — the reader is never dropped in the middle of a genre. #}
     <nav class="masthead-tabs" aria-label="Genres de documentation">
@@ -96,22 +105,37 @@
   <div class="scrim" id="scrim" hidden></div>
 
   <div class="layout{% if not has_summary %} solo{% endif %}">
-    {% if has_summary %}
-    {# The control of the summary sits in the page, level with the first line of
-       text and following the scroll — not in the identity band, which names the
-       site and does not command it. It is written here, before what it opens,
-       so that reaching it does not mean crossing the whole tree with the
-       keyboard; the columns are ordered by the stylesheet, which puts it back
-       between the summary and the text. #}
-    <button type="button" class="icon-btn nav-float" id="navToggle"
-            aria-label="Afficher ou masquer le sommaire du genre"
-            aria-controls="sommaire" aria-expanded="true">
-      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
-           stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-        <path d="M2.25 4h11.5M2.25 8h11.5M2.25 12h11.5"/>
-      </svg>
-    </button>
+    {# The controls of the reading surface sit in the page, level with the
+       first line of text and following the scroll — not in the identity band,
+       which names the site and does not command it. The stack stands in the
+       gutter between the tree and the text; on a page without a tree it keeps
+       the same place and holds the theme button alone. The summary control is
+       written before what it opens, so that reaching it does not mean crossing
+       the whole tree with the keyboard; the columns are ordered by the
+       stylesheet, which puts the stack back between the summary and the text. #}
+    <div class="nav-float">
+      {% if has_summary %}
+      <button type="button" class="icon-btn" id="navToggle"
+              aria-label="Afficher ou masquer le sommaire du genre"
+              aria-controls="sommaire" aria-expanded="true">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <path d="M2.25 4h11.5M2.25 8h11.5M2.25 12h11.5"/>
+        </svg>
+      </button>
+      {% endif %}
+      {# The brush of the Rust documentation: drawn in line, inked in
+         currentColor like every other icon of the theme. #}
+      <button type="button" class="icon-btn" id="themeToggle"
+              aria-label="Basculer entre le thème clair et le thème sombre"
+              aria-pressed="false">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M14.9 1.1a2.4 2.4 0 0 0-3.4 0L5.1 7.5a3.2 3.2 0 0 0-.9 2c0 .3-.1.5-.3.7l-2.6 2.6a.9.9 0 0 0 0 1.3l.6.6a.9.9 0 0 0 1.3 0l2.6-2.6c.2-.2.4-.3.7-.3.7 0 1.5-.3 2-.9l6.4-6.4a2.4 2.4 0 0 0 0-3.4Z"/>
+        </svg>
+      </button>
+    </div>
 
+    {% if has_summary %}
     {# The pages of the open tab, and them alone: the tab carries the name of
        the genre, which no heading needs to repeat here. #}
     <nav class="sidebar" id="sommaire" aria-label="Sommaire du genre">

@@ -6,9 +6,13 @@
    carry the same names, so the correspondence can be checked term by term.
    Changing one surface means reporting the change on the other.
 
-   The site is light only, as the standalone pages are: one identity across the
-   whole documentation rather than a scheme the prose follows and the diagrams
-   do not.
+   The site is light by default and carries a dark scheme under
+   [data-theme="dark"], set on <html> before this sheet loads and switched by
+   the brush button in the gutter. The embedded standalone pages follow it
+   through the overrides at the end of this sheet. Three surfaces keep their
+   light colours in either scheme — Cytoscape diagrams, charts and KaTeX
+   formulas, whose colours the page scripts set — and are framed as light
+   panels rather than half-restyled.
 
    Fonts come from the same CDN as the standalone pages, which lets the two share
    a cache entry, and fall back on the system stack: offline, the layout and the
@@ -26,6 +30,9 @@
   --blue: #143b8f;
   --blue-2: #2c6ecb;
   --blue-bg: #e9eefa;
+  /* The identity band keeps its navy in both schemes; --blue cannot carry it
+     because it also inks text, and turns light on dark surfaces. */
+  --brand: #143b8f;
   --yellow: #f6e400;
   --yellow-bg: #fcf7ce;
   --yellow-ink: #5a5200;
@@ -53,6 +60,33 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
+/* Dark scheme. Same names for the same roles: --ink stays the text colour,
+   --paper the page, --card the reading surface. The navy band and the yellow
+   rule keep the AMU identity; --blue turns light because it inks text and
+   icons. What is not redeclared — the yellow, the geometry, the fonts — holds
+   its :root value. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ink: #dce2f2;
+  --ink-soft: #b0bad8;
+  --paper: #0f1524;
+  --card: #171e33;
+  --line: #2b3554;
+  --blue: #9db8f2;
+  --blue-2: #7da6ec;
+  --blue-bg: #1e2a4c;
+  --brand: #122c66;
+  --yellow-bg: #35300e;
+  --yellow-ink: #e6da7a;
+  --muted: #8b95b6;
+
+  --code-comment: #8b95b6;
+  --code-string: #7fd0b0;
+  --code-keyword: #9db8f2;
+  --code-literal: #dfa06a;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -73,7 +107,7 @@ body {
   top: 0.5rem;
   z-index: 80;
   padding: 0.5rem 0.75rem;
-  background: var(--blue);
+  background: var(--brand);
   color: #fff;
   border-radius: 7px;
 }
@@ -90,7 +124,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 9px 20px;
-  background: var(--blue);
+  background: var(--brand);
   color: #fff;
   border-bottom: 3px solid var(--yellow);
   box-shadow: 0 2px 8px rgba(15, 31, 77, 0.15);
@@ -105,16 +139,6 @@ body {
   font-size: 14px;
   color: #fff;
   text-decoration: none;
-}
-
-.logo {
-  background: #fff;
-  color: var(--blue);
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: 0.4px;
-  padding: 3px 7px;
-  border-radius: 5px;
 }
 
 /* The genres, as tabs. The open one is underlined in white, inside the bar: the
@@ -497,13 +521,13 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
 }
 .colophon p { margin: 0; }
 
-/* --- Button of the site summary, scrim ----------------------------------- */
+/* --- Buttons of the gutter, scrim ---------------------------------------- */
 
-/* Posed on the page, without a frame: it commands the reading surface, and is
-   not a piece of the identity band. It stays level with the first line of the
-   text and follows the scroll, so the tree can be taken back at any point of a
-   long page. Retracted, the tree leaves its column and the button takes its
-   place at the left edge — where the reader last saw it. */
+/* Posed on the page, without a frame: they command the reading surface, and
+   are not pieces of the identity band. The stack stays level with the first
+   line of the text and follows the scroll, so the tree can be taken back at
+   any point of a long page. Retracted, the tree leaves its column and the
+   stack takes its place at the left edge — where the reader last saw it. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -524,20 +548,27 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
 .icon-btn:hover { background: var(--blue-bg); color: var(--blue); }
 .icon-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 
+/* The stack: the summary button when the page has a tree, the theme button
+   always — a page without a tree keeps the same gutter and the same place. */
 .nav-float {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 auto;
   align-self: flex-start;
   position: sticky;
   top: calc(var(--topbar) + 1rem);
   /* Level with the top edge of the reading card. */
   margin-top: 1.75rem;
-  /* Half the column gap on either side: the button stands in the gutter
+  /* Half the column gap on either side: the stack stands in the gutter
      between the tree and the text rather than opening a column of its own. */
   margin-left: -1rem;
   margin-right: -1rem;
   /* Above the drawer, which covers the text on a narrow screen. */
   z-index: 60;
 }
-body.nav-closed .nav-float { margin-left: 0; }
+body.nav-closed .nav-float,
+.layout.solo .nav-float { margin-left: 0; }
 
 /* Only ever shown under the drawer, on a narrow screen. */
 .scrim {
@@ -733,8 +764,8 @@ body.nav-closed .content,
     z-index: 50;
     width: 280px;
     max-height: none;
-    /* The top padding clears the button, which stays over the drawer. */
-    padding: 3.4rem 0.75rem 2rem 1rem;
+    /* The top padding clears the stack of two buttons over the drawer. */
+    padding: 5.2rem 0.75rem 2rem 1rem;
     background: var(--card);
     border-right: 1px solid var(--line);
     box-shadow: 6px 0 24px rgba(15, 31, 77, 0.18);
@@ -763,3 +794,113 @@ body.nav-closed .content,
   .tab { padding: 6px 0.7rem 5px; }
   .tab:first-child { padding-left: 0; }
 }
+
+/* --- Dark scheme, embedded pages ------------------------------------------ */
+
+/* The standalone pages carry their palette as variables scoped under .embed by
+   embed.py; redeclaring the set here is enough for everything var() reaches.
+   The sources under docs/ carry no dark rule and stay light opened directly:
+   the button belongs to the site. */
+[data-theme="dark"] .embed {
+  --ink: #dce2f2;
+  --ink-soft: #b0bad8;
+  --paper: #0f1524;
+  --card: #171e33;
+  --line: #2b3554;
+  --blue: #9db8f2;
+  --blue-2: #7da6ec;
+  --blue-bg: #1e2a4c;
+  --yellow-bg: #35300e;
+  --yellow-ink: #e6da7a;
+  --teal: #43c3a2;
+  --teal-bg: #132e28;
+  --coral: #ef8f6d;
+  --coral-bg: #3a1f16;
+  --muted: #8b95b6;
+}
+
+/* Inks those pages write as literals rather than variables, lifted for dark
+   surfaces. Each selector mirrors the page's own, prefixed: the prefix wins
+   the cascade without a single !important. */
+[data-theme="dark"] .embed .term { color: #9db8f2; }
+[data-theme="dark"] .embed .phase.idx { color: #b9c9f0; border-color: #31406e; }
+[data-theme="dark"] .embed .phase.req { color: #9adcc5; border-color: #245247; }
+[data-theme="dark"] .embed .chip-prefix { background: #242e4e; color: var(--ink-soft); }
+[data-theme="dark"] .embed .tag { border-color: #565020; }
+[data-theme="dark"] .embed .doc.hit .dt { color: #9adcc5; }
+[data-theme="dark"] .embed .answer p { color: #bfe8da; }
+[data-theme="dark"] .embed .answer.refuse p { color: #f2c1ad; }
+/* The citation chip keeps its bright yellow, so its ink stays dark. */
+[data-theme="dark"] .embed .cite { color: #5a5200; }
+[data-theme="dark"] .embed .mtag.sem { color: #b9c9f0; }
+[data-theme="dark"] .embed .mtag.rrf { color: #9adcc5; }
+[data-theme="dark"] .embed .pill.local { color: #b9c9f0; }
+[data-theme="dark"] .embed .pill.api { color: #9adcc5; }
+[data-theme="dark"] .embed .l-api { color: #9adcc5; }
+[data-theme="dark"] .embed .l-mid { color: #b9c9f0; }
+[data-theme="dark"] .embed .l-base { background: #242e4e; color: var(--ink-soft); }
+[data-theme="dark"] .embed .chip:hover { color: #b9c9f0; }
+[data-theme="dark"] .embed button.primary { background: #2c5bbf; border-color: #2c5bbf; }
+[data-theme="dark"] .embed button.primary:hover { background: #3b6ace; }
+[data-theme="dark"] .embed .bub.u { background: #2c5bbf; }
+[data-theme="dark"] .embed .deep { background: var(--card); }
+[data-theme="dark"] .embed #drawer .impl {
+  background: linear-gradient(90deg, var(--teal-bg), rgba(19, 46, 40, 0) 65%);
+}
+/* Bare code and the note box of the architecture page write their ink as a
+   literal; the neutral text colour serves both pages. */
+[data-theme="dark"] .embed code { color: var(--ink); }
+[data-theme="dark"] .embed .note { color: #b9c9f0; }
+
+/* --- Dark scheme, surfaces kept light ------------------------------------- */
+
+/* Cytoscape diagrams, charts and KaTeX formulas keep their light colours:
+   they are drawn by the page scripts, not by this sheet. Each becomes a light
+   panel with its frame, its corners and its margin — an inset the reader can
+   tell was chosen, not a rendering fault. */
+
+/* The whole figure — canvas, breadcrumb, legend, hint bar, hover tip — reads
+   from the variables of its nearest scope: redeclaring the light values on the
+   frame confines the light island to it. */
+[data-theme="dark"] .embed .figure {
+  --ink: #0f1f4d;
+  --ink-soft: #33406b;
+  --paper: #f4f6fb;
+  --card: #ffffff;
+  --line: #e1e5f0;
+  --blue-2: #2c6ecb;
+  --blue-bg: #e9eefa;
+  --muted: #6b7290;
+  color: var(--ink);
+}
+
+/* The recall curve: an SVG whose greys and blues are set by the page script. */
+[data-theme="dark"] .embed .recall-chart {
+  background: #ffffff;
+  border: 1px solid #cdd5e8;
+  border-radius: 10px;
+  padding: 12px 10px 6px;
+}
+
+/* The measure bars: light track, and the fills pinned to their light-scheme
+   colours — the lightened --blue and --teal would wash out under white text. */
+[data-theme="dark"] .embed .evalrow .track { background: #f4f6fb; border-color: #cdd5e8; }
+[data-theme="dark"] .embed .f-sem, [data-theme="dark"] .embed .f-e5 { background: #143b8f; }
+[data-theme="dark"] .embed .f-rrf, [data-theme="dark"] .embed .f-cam { background: #12836f; }
+[data-theme="dark"] .embed .f-bm, [data-theme="dark"] .embed .f-fla { background: #8892b0; }
+[data-theme="dark"] .embed .doc .track { background: #eef1f8; }
+[data-theme="dark"] .embed .sbar { background: #2c6ecb; }
+[data-theme="dark"] .embed .doc.hit .sbar { background: #12836f; }
+
+/* KaTeX renders in currentColor: the formula block stays a light panel and
+   pins its ink, fallback TeX source included. */
+[data-theme="dark"] .embed .deep-inner .formula {
+  background: #ffffff;
+  border-color: #cdd5e8;
+  color: #0f1f4d;
+}
+[data-theme="dark"] .embed .deep-inner .formula.raw { color: #33406b; }
+
+/* --- Dark scheme, site chrome --------------------------------------------- */
+
+[data-theme="dark"] .copy-btn.failed { color: #ef8f6d; border-color: #ef8f6d; }

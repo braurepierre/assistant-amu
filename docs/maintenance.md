@@ -9,7 +9,8 @@ n'est pas publié sur le site.
 
 `concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
 de build) qui explique ce que fait AssistantAMU, brique par brique,
-avec des démonstrations manipulables (chunking, requête RAG, réécriture). Chaque
+avec des démonstrations manipulables (découpage en fragments, requête RAG,
+réécriture). Chaque
 terme souligné en pointillé y ouvre sa fiche de glossaire. Elle s'ouvre
 directement dans un navigateur.
 
@@ -21,7 +22,7 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 > Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
 
-## Architecture et chaînes de traitement
+## Architecture du système
 
 `architecture-assistant-amu.html` répond à une autre question que la page
 pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
@@ -100,8 +101,8 @@ adresse sur le site ou vers le dépôt quand la cible n'est pas publiée — pui
 lance Pelican. Les deux répertoires produits, `content/` et `output/`, ne sont
 pas versionnés : ils sont reconstruits à chaque appel.
 
-**Intégration des pages autonomes.** Les trois — page pédagogique, organisation
-du code, glossaire — ne sont plus des pages à part : leur **contenu** devient le
+**Intégration des pages autonomes.** Les trois — page pédagogique, architecture
+du système, glossaire — ne sont plus des pages à part : leur **contenu** devient le
 corps d'une page du site, avec le bandeau, le sommaire du genre, le sommaire de
 page et la navigation précédent/suivant comme toutes les autres. Le lecteur ne
 quitte plus le site pour les lire, et la vue ne change pas.
@@ -121,20 +122,31 @@ plus tard à ces pages ne peut pas s'échapper sur l'habillage du site.
 **Les fichiers sources ne sont pas modifiés.** Ouverts directement depuis
 `docs/`, ils restent des pages autonomes — un fichier, aucun serveur.
 
+**Fiches de glossaire sur la page Mesures.** Dans `mesures.md`, un terme de
+glossaire est un lien vers `glossaire-assistant-amu.html#terme` ; le fichier
+source n'en dit pas plus. À la mise en scène, `stage_glossary_drawer`
+(`build_site.py`) empaquette le tiroir de la page pédagogique — fiches, balisage
+et script, recopiés entre les mêmes marqueurs que pour la page de glossaire,
+feuille confinée sous `.embed` comme le fait `embed.py` — dans
+`static/glossary_drawer.js`, et la page qui cite un terme charge ce script : la
+fiche s'ouvre alors sur place, sans changement de page. Sans JavaScript, les
+liens gardent leur comportement d'origine et mènent à la page de glossaire, dont
+le script ouvre la fiche depuis l'ancre.
+
 **Le rang que ces pages impriment devant leurs propres titres de section est
 retiré du sommaire du site** (`_SECTION_RANK` dans `build_site.py`). Il numérote
 un ordre de lecture *à l'intérieur* d'une page ; dans l'arbre, l'entrée voisine
 celles d'autres pages, et un « 07 » de tête s'y lirait comme un rang de l'arbre.
 
-**Ce qu'il faut vérifier après une modification de ces pages** : que la bannière,
-le tiroir du glossaire, les formules KaTeX et les schémas Cytoscape fonctionnent
-toujours dans la page publiée. Un sélecteur d'élément nu ajouté à leur feuille de
+**Vérifications après une modification de ces pages** : la bannière, le tiroir
+du glossaire, les formules KaTeX et les schémas Cytoscape doivent continuer de
+fonctionner dans la page publiée. Un sélecteur d'élément nu ajouté à leur feuille de
 style est confiné sans risque ; en revanche, un script qui interrogerait un
 élément du bandeau du site échouerait, ces deux mondes restant distincts.
 
 **Rangement par genre documentaire.** Le site classe d'abord les pages par ce que
 le lecteur vient faire, et non par sujet : « Prise en main » (présentation,
-démonstration), « Comprendre » (page pédagogique, organisation du code, mesures),
+démonstration), « Comprendre » (page pédagogique, architecture du système, mesures),
 « Référence d'API ». « Accueil » est un genre à lui seul, qui ne contient que le
 point d'entrée.
 
@@ -175,12 +187,13 @@ objet : le `README.md` est publié comme page « Présentation », et l'accueil 
 limite à orienter. Aucun chiffre de mesure ne figure sur l'accueil, pour ne pas
 créer une copie à tenir à jour.
 
-**Fonctions du navigateur.** `docs/site/theme/static/js/site.js` porte quatre
+**Fonctions du navigateur.** `docs/site/theme/static/js/site.js` porte cinq
 comportements, sans dépendance ni étape de construction :
 
 | Fonction | Détail |
 | :--- | :--- |
 | Hauteur du bandeau | Mesurée et reportée dans `--topbar`, dont tout ce qui colle sous la barre tire sa position. La valeur déclarée dans la feuille est celle d'un bandeau sur une ligne ; sous 56 rem les onglets en prennent une seconde et la barre grandit |
+| Bascule de thème | Bouton au pinceau dans la gouttière ; préférence conservée sous la clé `amu.theme`, appliquée avant le chargement de la feuille par le script en ligne du `<head>` du gabarit |
 | Sommaire du genre rétractable | Bouton posé dans la page à l'aplomb du sommaire, collant au défilement ; préférence conservée sous la clé `amu.nav`. Sous 56 rem, le sommaire devient un tiroir refermé par défaut, par le bouton, par le voile ou par la touche Échap |
 | Sommaire de la page | Construit à partir des `h2`/`h3`, rétractable (clé `amu.toc`), avec suivi de la position de lecture. Omis en dessous de trois titres, masqué sous 78 rem. **Un titre qui n'est qu'une signature de fonction en est écarté** : sur une page d'API, les lister toutes reproduirait la page au lieu de la résumer — modules et classes en portent la structure, les fonctions se lisent à l'intérieur |
 | Copie des blocs de code | Bouton révélé au survol de chaque bloc. Hors contexte sécurisé, repli sur `execCommand` |
@@ -190,15 +203,15 @@ Ce qui subsiste sans JavaScript : les onglets du bandeau et le sommaire du genre
 tous deux rendus à la construction, les ancres de titre, la navigation
 précédent/suivant — rendue par le gabarit à partir de `nav_order` — et la
 totalité du texte. Seuls disparaissent le sommaire de page, qui n'apparaît alors
-pas plutôt que d'apparaître vide, et les boutons de copie ; sous 56 rem, le
-tiroir s'ouvre alors quelques pixels trop haut, la hauteur du bandeau n'étant
-plus mesurée.
+pas plutôt que d'apparaître vide, les boutons de copie et la bascule de thème —
+le site reste alors clair ; sous 56 rem, le tiroir s'ouvre alors quelques pixels
+trop haut, la hauteur du bandeau n'étant plus mesurée.
 
 Le site n'a pas de recherche : il compte onze pages, dont l'accueil donne le
 tableau complet, et aucun genre n'en dépasse cinq.
 
-**Référence d'API.** Ses cinq rubriques portent **les noms que la page « Architecture et
-chaînes de traitement » donne aux cinq ensembles** du dépôt — socle commun, ingestion du corpus,
+**Référence d'API.** Ses cinq rubriques portent **les noms que la page « Architecture
+du système » donne aux cinq ensembles** du dépôt — socle commun, ingestion du corpus,
 recherche des passages, génération de la réponse, interface HTTP. Un lecteur qui
 a vu la carte doit retrouver les mêmes intitulés ici ; renommer d'un côté oblige
 à renommer de l'autre. Chaque page s'ouvre sur ce que fait son ensemble, en
@@ -244,9 +257,9 @@ surfaces suppose de reporter le changement sur l'autre.
 | Filets, texte atténué, arrondi | `--line` `#E1E5F0`, `--muted` `#6B7290`, `--radius` `12px` |
 | Titres, texte, code | *Sora*, *Public Sans*, *IBM Plex Mono* |
 
-Le bandeau reprend celui des pages autonomes : fond bleu, marque `amU` en pastille
-blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet — l'onglet
-ouvert est souligné de blanc, à l'intérieur de la barre. Le bandeau porte le nom
+Le bandeau reprend celui des pages autonomes : fond bleu, filet jaune en
+fermeture. Le jaune ne sert qu'à ce filet — l'onglet ouvert est souligné de
+blanc, à l'intérieur de la barre. Le bandeau porte le nom
 du site, les onglets de genre, le sous-titre, et la marque GitHub qui renvoie au
 dépôt — seul endroit où le site nomme son source, raison pour laquelle le sommaire
 ne porte plus de rubrique « Dépôt ». La marque garde un `title` et un libellé hors
@@ -271,7 +284,9 @@ et colle au défilement — l'arbre se reprend à n'importe quel endroit d'une p
 longue. Sommaire replié, l'arbre quitte sa colonne et le bouton en prend la place
 au bord gauche, là où le lecteur vient de le voir. Le gabarit l'écrit **avant**
 le sommaire et la feuille de style ordonne les quatre colonnes (`order`) : au
-clavier, on l'atteint sans traverser l'arbre entier.
+clavier, on l'atteint sans traverser l'arbre entier. Le bouton de thème se tient
+sous lui, dans la même pile (`.nav-float`) ; une page sans sommaire garde la
+pile, réduite à ce seul bouton.
 
 **Coloration des blocs de code.** L'extension `codehilite` pose les classes de
 Pygments ; la feuille du site n'habille que ce qui porte du sens — commentaire,
@@ -286,16 +301,40 @@ Les polices sont chargées depuis le même CDN par les deux surfaces, ce qui leu
 fait partager une entrée de cache, avec repli sur la pile système : hors ligne,
 la mise en page et les couleurs tiennent, seule la fonte change.
 
-**Le site est en thème clair uniquement**, comme les pages autonomes. La bascule
-sombre a été retirée : elle donnait une documentation dont la prose suivait le
-thème du système et dont les schémas ne le suivaient pas. Rétablir un thème
-sombre supposerait de le porter d'abord sur les deux pages autonomes, ce qui
-exposerait les schémas Cytoscape, les graphiques et KaTeX à des régressions sans
-rapport avec l'objet de ces pages.
+**Le site porte un thème sombre débrayable.** Le bouton au pinceau, posé sous le
+bouton du sommaire dans la gouttière — et seul à cet emplacement sur une page
+sans sommaire —, bascule entre les deux thèmes ; le défaut est le clair. La
+préférence est conservée sous la clé `amu.theme`, et un script en ligne dans le
+`<head>` du gabarit pose `data-theme="dark"` sur `<html>` avant le chargement de
+la feuille de style — aucun éclair de thème au chargement.
+
+Le jeu sombre est déclaré dans `site.css` sous `[data-theme="dark"]`, sous les
+mêmes noms de variables : encre `#DCE2F2`, fond de page `#0F1524`, carte
+`#171E33`, filets `#2B3554`, bleu de texte `#9DB8F2`, bleu de lien `#7DA6EC`,
+texte atténué `#8B95B6`, filet jaune inchangé. Le bandeau conserve son bleu par
+la variable `--brand` (`#143b8f` en clair, `#122C66` en sombre), séparée de
+`--blue` parce que celle-ci encre aussi du texte et s'éclaircit en sombre. Les
+couleurs Pygments ont leur pendant sombre sous les variables `--code-*`.
+
+**Le contenu embarqué suit le thème par des surcharges de `site.css`**
+(`[data-theme="dark"] .embed …`) : le jeu de variables des pages autonomes y est
+redéclaré, plus les encres que ces pages écrivent en dur. Chaque surcharge
+reprend le sélecteur de la page, préfixé — la spécificité suffit, sans
+`!important`. Les sources sous `docs/` ne portent aucune règle sombre :
+ouvertes directement, elles restent claires, le bouton appartenant au site.
+
+**Trois surfaces restent claires en thème sombre**, leurs couleurs étant fixées
+par les scripts des pages et non par la feuille : les schémas Cytoscape — les
+valeurs claires sont redéclarées sur `.figure`, qui devient un panneau clair
+encadré, bulle et fil d'Ariane compris —, les graphiques — courbe de rappel sur
+fond blanc encadré, pistes claires des barres de mesure et de similarité — et
+les formules KaTeX — bloc `.formula` sur fond blanc, encre foncée épinglée. Le
+cadre, l'arrondi et la marge donnent chacune à lire comme un choix, non comme
+un défaut d'affichage.
 
 ## Mise à jour de la page pédagogique
 
-Les faits qui bougent (corpus, recall, latences, k, tests…) sont centralisés à
+Les faits volatils (corpus, rappel, latences, k, tests…) sont centralisés à
 **un seul endroit** : le bloc `STATS` en tête du `<script>`, entre les marqueurs
 
 ```
@@ -331,20 +370,20 @@ Deux façons de le mettre à jour :
    et `config.py`. Il ne modifie **que** le bloc `STATS` — jamais les sections
    rédigées.
 
-D'où viennent les chiffres de `concepts.facts.yaml` : des **rapports datés** de
-`eval/reports/` (recall, sensibilité à k, réécriture) et de
+Provenance des chiffres de `concepts.facts.yaml` : les **rapports datés** de
+`eval/reports/` (rappel, sensibilité à k, réécriture) et
 `python -m assistant_amu.ingestion stats` (corpus). Les valeurs sont recopiées
 depuis ces rapports.
 
 ## Ajout d'une rubrique à la page pédagogique
 
-Le contenu conceptuel est rédigé à la main : il ne se génère pas. Pour rester
+Le contenu conceptuel est rédigé à la main ; il n'est pas généré. Pour rester
 cohérent avec le reste de la page :
 
 1. **Section** — dupliquer un bloc `<section id="sN">` avec son `sec-num`, son
    titre et ses cartes. Réutiliser les classes existantes (`.card`, `.evalrow`,
    `.recall-chart`, `.grid2`…) pour conserver l'unité visuelle.
-2. **Sidebar** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
+2. **Sommaire latéral** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
    groupe. Le surlignage au défilement (scroll-spy) s'en charge automatiquement.
 3. **Glossaire** — si la rubrique introduit un terme, ajouter une entrée dans
    l'objet `G`, entre les marqueurs `GLOSSARY`. Elle apparaît d'elle-même dans
@@ -371,7 +410,8 @@ cohérent avec le reste de la page :
 4. **Chiffres** — si la rubrique affiche des mesures, les ajouter à
    `concepts.facts.yaml` (+ `data-stat="…"` dans le HTML) et régénérer.
 
-Pour « e5 vs CamemBERT » précisément : la comparaison est déjà supportée
-(`embedder.py` gère les deux familles ; `eval/evaluate.py --embedding-model
-dangvantuan/sentence-camembert-base`). Une fois mesurée → un rapport daté dans
-`eval/reports/` → nouvelle section + chiffres dans `concepts.facts.yaml`.
+Pour la comparaison « e5 / CamemBERT » précisément : elle est déjà prise en
+charge (`embedder.py` gère les deux familles ; `eval/evaluate.py
+--embedding-model dangvantuan/sentence-camembert-base`). Une fois la mesure
+effectuée, un rapport daté est déposé dans `eval/reports/`, puis une nouvelle
+section et ses chiffres sont ajoutés à `concepts.facts.yaml`.
