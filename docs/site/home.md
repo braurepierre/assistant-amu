@@ -12,17 +12,17 @@ bruts et les branches d'expérimentation sont dans le dépôt.
 ## Parcours de lecture
 
 Le bandeau range les pages par usage : **Prise en main** pour installer et
-faire tourner le système, **Comprendre** pour son fonctionnement et ses
+exécuter le système, **Comprendre** pour son fonctionnement et ses
 résultats, **Référence d'API** pour les signatures. Chaque onglet ouvre le
 sommaire de son genre. Le tableau suit le même ordre, qui est aussi celui de la
 navigation précédent/suivant — laquelle traverse les onglets.
 
 | Page | Objet |
 | :--- | :--- |
-| [Présentation](presentation.html) | Architecture, installation, exécution, contrats d'API, périmètre et limites. Point d'entrée pour installer et faire tourner le système. |
+| [Présentation](presentation.html) | Choix de l'architecture, installation, exécution, métriques de référence, périmètre et limites. Point d'entrée pour installer et exécuter le système. |
 | [Démonstration](demonstration.html) | Parcours de bout en bout avec des requêtes prêtes à l'emploi, y compris les cas de refus et le multi-tour. |
 | [Page pédagogique](concepts-assistant-amu.html) | Le fonctionnement d'un système RAG brique par brique, avec des démonstrations manipulables. Chaque terme souligné y ouvre sa fiche. |
-| [Architecture et chaînes de traitement](architecture-assistant-amu.html) | L'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas à deux niveaux. |
+| [Architecture du système](architecture-assistant-amu.html) | L'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas à deux niveaux. |
 | [Mesures et évaluation](mesures.html) | Tous les chiffres du projet : rappel par méthode de recherche, comparaison des encodeurs, contextualisation de l'index, latences, refus. Tables par question et limites de chaque étude. |
 | [Glossaire](glossaire-assistant-amu.html) | Les termes de toute la rubrique « Comprendre », en nuage filtrable : définition du concept, mise en œuvre dans le dépôt, fichier correspondant. |
 | [Référence d'API](api-noyau.html) | Signatures et docstrings des cinq ensembles du paquet, extraites du source par analyse statique. |

@@ -13,9 +13,8 @@ L'ensemble de ces documents est également publié sous forme de site, construit
 | [`docs/mesures.md`](docs/mesures.md) | **Mesures et évaluation** — tous les chiffres du projet : rappel par méthode, comparaison des encodeurs, contextualisation de l'index, latences, refus. Tables par question et limites de chaque étude. |
 | [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture). Chaque terme souligné y ouvre sa fiche. Page autonome, à ouvrir directement dans un navigateur. |
 | [`docs/glossaire-assistant-amu.html`](docs/glossaire-assistant-amu.html) | **Glossaire** — les termes de toute la documentation, de l'architecture aux mesures, en nuage filtrable ; définition du concept, mise en œuvre dans le dépôt et fichier correspondant. Page autonome, produite depuis la page pédagogique. |
-| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Architecture et chaînes de traitement** — l'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas manipulables à deux niveaux. |
+| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Architecture du système** — l'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas manipulables à deux niveaux. |
 | [`DEMO.md`](DEMO.md) | Parcours de démonstration de bout en bout, requêtes prêtes à l'emploi. |
-| [`prompts/CHANGELOG.md`](prompts/CHANGELOG.md) | Ingénierie de prompt — chaque itération des trois prompts système avec sa raison et le cas de test qui l'a motivée. |
 | [`docs/maintenance.md`](docs/maintenance.md) | Guide de maintenance de la documentation : origine des chiffres, régénération, construction du site. Destiné au contributeur. |
 | [`eval/reports/`](eval/reports/) | Rapports bruts produits par le harnais d'évaluation, un par mesure. |
 
@@ -23,31 +22,9 @@ L'ensemble de ces documents est également publié sous forme de site, construit
 
 ## Choix de l'architecture
 
-Pour un corpus de cette taille (< ~200 000 tokens), l'insertion de l'intégralité des documents dans le prompt système (*in-context learning* avec mise en cache) est une alternative documentée au RAG. Le RAG a été retenu pour trois raisons : la citation exacte des passages sources — fonction centrale du produit — suppose un découpage en fragments ; la fenêtre de contexte du backend local est limitée (voir *Gestion du contexte Ollama*) ; l'envoi récurrent d'un contexte volumineux induit des coûts d'API et une latence d'inférence CPU incompatibles avec les contraintes du projet.
+Pour un corpus de cette taille (< ~200 000 tokens), l'insertion de l'intégralité des documents dans le prompt système (*in-context learning* avec mise en cache) est une alternative documentée au RAG. Le RAG a été retenu pour trois raisons : la citation exacte des passages sources — fonction centrale du produit — suppose un découpage en fragments ; la fenêtre de contexte du backend local est limitée — Ollama tronque sans erreur ce qui dépasse son paramètre `num_ctx`, porté à 8 192 tokens dans ce projet ; l'envoi récurrent d'un contexte volumineux induit des coûts d'API et une latence d'inférence CPU incompatibles avec les contraintes du projet.
 
 Le pipeline est écrit en Python pur, chaque composant restant explicite ; un portage LangChain existe sur une branche d'expérimentation, à des fins de comparaison.
-
----
-
-## Architecture du système
-
-```text
-TRAITEMENT ET INDEXATION (hors ligne)
-sources.yaml ──> Téléchargement ──> Extraction (pdfplumber/bs4) ──> Nettoyage ──> Chunking (≤ 500 tk, chevauchement : 50)
-     └──> Vectorisation ("passage: " + texte, e5-small) ──> Stockage ChromaDB (distance cosinus)
-     └──> [Évaluation] Génération de l'index BM25 en mémoire à partir des mêmes fragments
-
-PIPELINE DE REQUÊTE (temps réel)
-Requête utilisateur ──> Vectorisation ("query: " + question) ──> Recherche k-NN ChromaDB
-     └──> Construction du prompt RAG (consignes système + contexte XML + requête)
-     └──> Inférence via LLMBackend ──> Génération de la réponse et restitution des références
-```
-
-### Contraintes techniques et résolutions
-
-* **Formatage des préfixes E5** — les modèles de la famille E5 requièrent les préfixes `"query: "` pour les requêtes et `"passage: "` pour les documents ; leur absence dégrade silencieusement la qualité des représentations vectorielles. Le module `embedder.py` gère ces spécificités au moyen d'une table {famille de modèles → préfixes} et désactive tout préfixe pour les modèles non concernés.
-* **Espace métrique ChromaDB** — la collection est initialisée avec `metadata={"hnsw:space": "cosine"}`, afin de remplacer la métrique euclidienne L2 appliquée par défaut par ChromaDB.
-* **Gestion du contexte Ollama** — Ollama tronque silencieusement, sans erreur, les prompts dépassant la variable `num_ctx` (2048 ou 4096 tokens par défaut) plutôt que la capacité réelle du modèle. Cette variable est portée à `OLLAMA_NUM_CTX=8192` afin de prévenir toute perte d'information lors de l'injection des contextes.
 
 ---
 
@@ -120,6 +97,8 @@ python eval/contextual_retrieval_experiment.py                   # Comparaison b
 
 *Pour basculer d'un backend à l'autre, modifier la variable `LLM_BACKEND` (`mistral` ou `ollama`) dans le fichier `.env`.*
 
+Les trois points d'entrée du service — `/ask` (traitement d'une requête), `/ingest` (ajout d'un document au corpus), `/health` (état des services) — sont décrits par le schéma OpenAPI exposé sur `/docs` et par la référence d'API du site de documentation. La recherche multi-tour procède par condensation de requête ; sans historique de conversation, `/ask` reproduit exactement le comportement mono-tour.
+
 Le parcours de démonstration complet — interface conversationnelle, multi-tour, refus hors-corpus — est décrit dans [`DEMO.md`](DEMO.md).
 
 ### Exécution par conteneur
@@ -134,8 +113,8 @@ L'image embarque les dépendances et le modèle d'embeddings ; l'index vectoriel
 docker compose run --rm api python -m assistant_amu.ingestion index
 ```
 
-Le backend LLM n'est pas conteneurisé : il est soit externe (API Mistral), soit installé sur la machine hôte, que le conteneur atteint par `host.docker.internal` (embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image). Renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut si une instance est active sur l'hôte. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
-TROP LONG
+Le backend LLM n'est pas conteneurisé — embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image. Renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut, que le conteneur atteint sur l'hôte par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
+
 ### Construction du site de documentation
 
 ```bash
@@ -144,18 +123,6 @@ uv run --no-project --with-requirements docs/site/requirements.txt \
 ```
 
 Le site compose les documents existants du dépôt. Procédure détaillée : [`docs/maintenance.md`](docs/maintenance.md).
-
----
-DOUBLON DOCUMENTATION ?
-## Contrats d'interface API
-
-| Point d'entrée | Méthode | Description | Réponses / Codes HTTP |
-| :--- | :--- | :--- | :--- |
-| `/ask` | `POST` | Traitement complet d'une requête `{question, k}` | `{answer, sources[], model, retrieved_chunks, condensed_question}`<br/>`503 Service Unavailable` si le backend est injoignable. |
-| `/ingest` | `POST` | Ingestion d'un document en multipart (`file`, `title`, `url?`, `category?`) | `{document_id, chunks_added}`<br/>`409 Conflict` en cas de doublon. |
-| `/health` | `GET` | Contrôle de l'état des services et métriques | `{chroma, llm_backend, documents, chunks}` |
-
-La recherche multi-tour procède par condensation de requête ; en l'absence d'historique de conversation (`history`), `/ask` reproduit exactement le comportement mono-tour.
 
 ---
 
