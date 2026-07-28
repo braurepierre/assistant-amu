@@ -2,8 +2,9 @@
 # → http://127.0.0.1:8000/ (démonstration) · /docs (contrats) · /health (état).
 #
 # Le backend LLM n'est pas conteneurisé (PRD §6.1) : renseigner MISTRAL_API_KEY
-# dans .env pour l'API, ou laisser le défaut `ollama` si un Ollama tourne sur
-# l'hôte. L'index vectoriel vit dans le volume `chroma`, pas dans l'image.
+# dans .env pour le backend par défaut, ou poser LLM_BACKEND=ollama si un Ollama
+# tourne sur l'hôte. L'index vectoriel vit dans le volume `chroma`, pas dans
+# l'image.
 services:
   api:
     build: .

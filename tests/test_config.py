@@ -33,10 +33,20 @@ def _clean_env(monkeypatch):
         monkeypatch.delenv(var, raising=False)
 
 
-def test_defaults_select_ollama():
+def test_defaults_select_mistral(monkeypatch):
+    # The default backend is the hosted API, which needs a key: supplied here so
+    # the test exercises the defaults rather than the fail-fast below.
+    monkeypatch.setenv("MISTRAL_API_KEY", "test-key")
     settings = load_settings()
     assert isinstance(settings, Settings)
-    assert settings.llm_backend == "ollama"
+    assert settings.llm_backend == "mistral"
+    assert settings.mistral_model == "mistral-small-latest"
+    assert settings.backend_name == "mistral/mistral-small-latest"
+
+
+def test_shared_defaults_hold_for_either_backend(monkeypatch):
+    monkeypatch.setenv("LLM_BACKEND", "ollama")
+    settings = load_settings()
     assert settings.ollama_model == "mistral"
     assert settings.ollama_num_ctx == 8192  # PRD piège n°3
     assert settings.top_k == 5
@@ -55,6 +65,12 @@ def test_mistral_backend_requires_api_key(monkeypatch):
     monkeypatch.setenv("LLM_BACKEND", "mistral")  # key stays unset (F5)
     with pytest.raises(ConfigError):
         load_settings()
+
+
+def test_default_backend_without_key_fails_at_startup():
+    """The default needs a key, and says so before the first question (F5)."""
+    with pytest.raises(ConfigError):
+        load_settings()  # no LLM_BACKEND, no MISTRAL_API_KEY
 
 
 def test_malformed_int_raises(monkeypatch):

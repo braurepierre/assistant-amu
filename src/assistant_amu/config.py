@@ -102,7 +102,11 @@ def load_settings() -> Settings:
     Raises:
         ConfigError: if a value is malformed or an invalid backend is selected.
     """
-    backend = _get_str("LLM_BACKEND", "ollama").lower()
+    # Default backend: the hosted API. The local one answers in minutes on CPU,
+    # which no interactive surface can wait for; this one answers in seconds.
+    # Without a key the call below fails at startup rather than on the first
+    # question — set LLM_BACKEND=ollama to run without an account.
+    backend = _get_str("LLM_BACKEND", "mistral").lower()
     if backend not in VALID_BACKENDS:
         raise ConfigError(
             f"LLM_BACKEND must be one of {VALID_BACKENDS}, got {backend!r}."
