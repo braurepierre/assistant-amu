@@ -74,8 +74,7 @@ RESERVED_TOKENS = 1_200
 # instruction and what the model does is visible rather than absorbed.
 MAX_CONTEXT_WORDS = 25
 
-# The system prompt lives in prompts/ like the RAG and condensation ones, and its
-# iterations are logged in prompts/CHANGELOG.md (PRD §11.10).
+# The system prompt lives in prompts/ like the RAG and condensation ones.
 CONTEXT_SYSTEM = (PROJECT_ROOT / "prompts" / "context_system.md").read_text(
     encoding="utf-8"
 ).strip()

@@ -52,6 +52,7 @@ CLAUDE.md
 # documentation itself, not behind a reference to one of these.
 PRD-AssistantAMU-V1_3.md
 JOURNAL.md
+prompts/CHANGELOG.md
 docs/revue-2026-07-26_contextual_retrieval.md
 
 # Espace de travail local de Claude Code (worktrees, environnements virtuels) —
