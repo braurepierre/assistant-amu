@@ -256,14 +256,14 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
 <div id="topbar">
   <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand">AssistantAMU — architecture d'un système RAG</span>
+  <span class="brand">AssistantAMU — architecture d'un système RAG documentaire</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 
 <header class="hero">
   <div class="in">
     <p class="eyebrow">Assistant documentaire RAG · corpus public d'Aix-Marseille Université</p>
-    <h1>AssistantAMU : anatomie d'un système RAG documentaire</h1>
+    <h1>Architecture d'un système RAG documentaire</h1>
     <p class="sub">Cette page présente la chaîne de traitement complète, du corpus de documents institutionnels jusqu'à la réponse <button class="term" data-term="refus">sourcée — ou au refus explicite</button>. Chaque terme <span style="border-bottom:1.5px dotted #6E80B8">souligné en pointillé</span> ouvre une fiche en deux temps : la définition du concept, puis sa mise en œuvre dans le dépôt. Les entrées marquées <span class="mono" style="color:#E9A088">ƒ</span> offrent en outre un approfondissement mathématique. Toutes ces fiches sont réunies dans le <a href="glossaire-assistant-amu.html">glossaire</a>.</p>
     <div class="hero-tokens" id="heroTokens" aria-hidden="true"></div>
   </div>
@@ -928,7 +928,7 @@ var G={
   r:["chunking","embedding","rrf","jeux"],f:"ingestion/contextualize.py"},
  jeux:{t:"Jeux de questions (facile, dur)",c:"Évaluation",
   def:["Deux jeux d'évaluation, distingués par la <em>forme</em> des questions et non par leur difficulté de fond. Le jeu dit facile emploie le vocabulaire des documents ; le jeu dit dur réunit les formulations conversationnelles, celles où la question ne partage aucun mot avec le passage qui y répond.","Séparer les deux est ce qui rend une mesure interprétable : une méthode peut gagner sur l'un et perdre sur l'autre, et une moyenne des deux masquerait précisément le mode d'échec que l'on cherche à corriger."],
-  impl:["Le jeu facile compte 50 questions, le jeu dur 25. La plupart des études du projet sont rejouées sur les deux, ce qui fait apparaître des renversements — la recherche lexicale devance la sémantique sur le jeu facile et s'effondre sur le jeu dur."],
+  impl:["Le jeu facile compte 50 questions, le jeu dur 25. La plupart des études du projet sont rejouées sur les deux, ce qui fait apparaître des renversements : à k = 5, la recherche sémantique devance BM25 d'une question sur le jeu facile (0,86 contre 0,84) et lui cède trois questions sur le jeu dur (0,72 contre 0,84)."],
   r:["recall","seuil","rewrite"],f:"eval/questions.yaml · eval/hard_questions.yaml"},
  seuil:{t:"Seuil de significativité",c:"Évaluation",
   def:["Écart minimal en deçà duquel deux mesures sont tenues pour équivalentes. Sur un jeu de taille modeste, une question de plus ou de moins déplace le résultat d'un pas visible sans rien dire de la méthode : sans seuil, on commente du bruit.","Le seuil se fixe <b>avant</b> de mesurer, faute de quoi il se choisit en fonction du résultat que l'on souhaite obtenir."],
