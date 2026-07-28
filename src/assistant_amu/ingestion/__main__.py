@@ -4,6 +4,7 @@ Commands:
   stats         Run extract -> clean -> chunk over the corpus and print counts.
   dump          Print N random chunks with metadata for visual inspection.
   index         Embed the corpus chunks into ChromaDB (idempotent; F3, dedup F2).
+  export        Pack the vector store into one archive, to ship to a host.
   search        Retrieve the top-k chunks for a question (manual relevance check, F4).
   contextualize Build the Contextual Retrieval index in a parallel collection (§5.3.1).
 """
@@ -13,7 +14,9 @@ from __future__ import annotations
 import argparse
 import random
 import sys
+import tarfile
 import textwrap
+from pathlib import Path
 
 from .contextualize import CACHE_PATH
 from .download import RAW_DIR, SOURCES_YAML, load_sources
@@ -95,6 +98,34 @@ def cmd_index(args: argparse.Namespace) -> int:
     print(report.summary())
     print(f"indexed: +{added} new chunks (was {before}, now {store.count()} in collection)")
     print(f"distinct documents in collection: {store.document_count()}")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    """Pack the vector store into one archive, for a host that has no volume.
+
+    The index is not versioned and is not built in the image: it needs the
+    downloaded corpus, which is not versioned either, so building it at image
+    build time would mean fetching third-party sites and letting two builds of
+    the same commit differ. It travels as an archive instead — produced here,
+    published once, unpacked at deployment (``docker/entrypoint.sh``).
+    """
+    from ..config import get_settings
+
+    source = Path(args.path) if args.path else get_settings().chroma_path
+    if not source.is_dir():
+        print(f"introuvable : {source}", file=sys.stderr)
+        return 2
+
+    destination = Path(args.output)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # `arcname="."` keeps the archive relative to the store, so unpacking into
+    # CHROMA_PATH restores it wherever that points.
+    with tarfile.open(destination, "w:gz") as archive:
+        archive.add(source, arcname=".")
+
+    size = destination.stat().st_size
+    print(f"{destination} — {size / 1_048_576:.1f} Mo depuis {source}")
     return 0
 
 
@@ -204,6 +235,15 @@ def main(argv: list[str] | None = None) -> int:
         "--collection", default=None, help="target collection (default: the production one)"
     )
     p_index.set_defaults(func=cmd_index)
+
+    p_export = sub.add_parser("export", help="pack the vector store into one archive")
+    p_export.add_argument(
+        "--output", default="chroma_db.tar.gz", help="archive to write (default: chroma_db.tar.gz)"
+    )
+    p_export.add_argument(
+        "--path", default=None, help="store to pack (default: CHROMA_PATH from the settings)"
+    )
+    p_export.set_defaults(func=cmd_export)
 
     p_ctx = sub.add_parser(
         "contextualize", help="build the Contextual Retrieval index (parallel collection)"

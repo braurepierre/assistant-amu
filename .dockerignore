@@ -25,8 +25,13 @@ __pycache__/
 build/
 dist/
 
-# Documentation et rapports : hors périmètre de l'exécution
-docs/
+# Rapports et tests : hors périmètre de l'exécution
 eval/reports/
 tests/
 CLAUDE.md
+
+# docs/ entre dans le contexte : l'étape « site » construit le site de
+# documentation, que l'image sert sous /site. Seuls ses produits en sont exclus,
+# reconstruits à chaque image.
+docs/site/content/
+docs/site/output/

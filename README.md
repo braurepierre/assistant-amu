@@ -104,14 +104,24 @@ Le parcours de démonstration complet — interface conversationnelle, multi-tou
 ### Exécution par conteneur
 
 ```bash
-docker compose up --build          # http://127.0.0.1:8000/ · /docs · /health
+docker compose up --build          # http://127.0.0.1:8000/ · /site/ · /docs · /health
 ```
 
-L'image embarque les dépendances et le modèle d'embeddings ; l'index vectoriel réside dans un volume, dont l'alimentation requiert un corpus téléchargé :
+L'image embarque les dépendances, le modèle d'embeddings et le site de documentation, construit à part et servi sous `/site` — c'est ce qui donne au conteneur le panneau de l'assistant. L'index vectoriel, lui, n'y est pas : le construire à l'image demanderait le corpus téléchargé, non versionné, donc le réseau à la construction et deux images différentes pour un même commit.
+
+Il réside donc dans le volume, alimenté soit par l'ingestion :
 
 ```bash
 docker compose run --rm api python -m assistant_amu.ingestion index
 ```
+
+soit, pour un hébergeur sans stockage persistant, par une archive produite une fois et récupérée au démarrage :
+
+```bash
+python -m assistant_amu.ingestion export --output chroma_db.tar.gz   # ~13 Mo
+```
+
+Publier l'archive, puis renseigner `INDEX_ARCHIVE_URL` : le point d'entrée du conteneur la déballe quand le volume est vide, et ne fait rien sinon. Sans cette variable, ni index restauré ni erreur — le service démarre et `/health` signale une collection vide.
 
 Le backend LLM n'est pas conteneurisé — embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image. Renseigner `MISTRAL_API_KEY` pour le backend par défaut, ou poser `LLM_BACKEND=ollama`, que le conteneur atteint sur l'hôte par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
 

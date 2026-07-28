@@ -7,9 +7,30 @@
 #   docker run --rm -p 8000:8000 -v assistant-amu-data:/data assistant-amu
 #   → http://127.0.0.1:8000/  (page de démonstration)  ·  /docs  ·  /health
 #
-# L'index vectoriel n'est pas dans l'image (il se régénère depuis le corpus) :
-# il vit dans le volume /data. Pour le construire, monter corpus/raw/ puis
-# lancer l'ingestion dans le conteneur — voir README, « Exécution par conteneur ».
+# L'index vectoriel n'est pas dans l'image : le construire ici demanderait le
+# corpus téléchargé, non versionné, donc le réseau à la construction et deux
+# images différentes pour un même commit. Il voyage en archive — produite par
+# `python -m assistant_amu.ingestion export`, publiée une fois, récupérée au
+# démarrage par docker/entrypoint.sh quand le volume est vide.
+#
+# Le site de documentation, lui, se construit ici : il ne dépend que du dépôt.
+# C'est ce qui donne au conteneur son /site, et donc le panneau de l'assistant.
+
+# --- Étape 1 : le site de documentation -------------------------------------
+# Isolée pour que Pelican et ses dépendances ne rejoignent pas l'image finale.
+FROM python:3.12-slim AS site
+WORKDIR /build
+COPY docs/site/requirements.txt ./docs/site/requirements.txt
+RUN pip install --no-cache-dir -r docs/site/requirements.txt
+# La référence d'API est extraite du source par analyse statique (docs/site/
+# apiref.py) : les sources sont lues, jamais importées, donc aucune dépendance
+# d'exécution n'est nécessaire ici.
+COPY docs ./docs
+COPY src ./src
+COPY README.md DEMO.md ./
+RUN python docs/site/build_site.py --output /site
+
+# --- Étape 2 : l'image d'exécution ------------------------------------------
 FROM python:3.12-slim
 
 # uv épinglé à la version de développement : même résolveur des deux côtés.
@@ -65,6 +86,16 @@ COPY eval ./eval
 COPY corpus/sources.yaml ./corpus/sources.yaml
 COPY demo.html README.md ./
 
+# 4. Le site construit à l'étape 1, à l'emplacement que l'application monte sous
+#    /site (SITE_OUTPUT dans api/main.py). Page et API partagent alors une
+#    origine : le panneau de l'assistant appelle /ask sans configuration CORS.
+COPY --from=site /site ./docs/site/output
+
+# 5. Restauration de l'index avant le service. Sans INDEX_ARCHIVE_URL, le point
+#    d'entrée ne fait rien et le service démarre sur ce que porte le volume.
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 RUN mkdir -p /data && useradd --create-home --uid 10001 amu && chown -R amu /data /app
 USER amu
 VOLUME ["/data"]
@@ -75,4 +106,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD python -c "import httpx,sys; sys.exit(0 if httpx.get('http://127.0.0.1:8000/health', timeout=4).status_code == 200 else 1)"
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["uvicorn", "assistant_amu.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
