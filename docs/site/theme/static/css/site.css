@@ -200,6 +200,32 @@ body {
 .masthead-repo:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; opacity: 1; }
 .masthead-repo svg { display: block; }
 
+/* The assistant is opened from the bar, on every page. Drawn as a button and
+   not as a mark: it commands something, where the repository mark leads
+   somewhere. Rendered hidden and revealed by site.js — a control that does
+   nothing is worse than no control. */
+.masthead-assistant {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  margin-left: 14px;
+  padding: 5px 11px 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.masthead-assistant[hidden] { display: none; }
+.masthead-assistant:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.48); }
+.masthead-assistant:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.masthead-assistant svg { display: block; }
+
 /* Carried by the markup, not by the layout: read aloud, never drawn. */
 .sr-only {
   position: absolute;
@@ -741,6 +767,278 @@ body.nav-closed .content,
   font-weight: 600;
 }
 
+/* --- Assistant panel ------------------------------------------------------ */
+
+/* A drawer coming from the right, over the page and not beside it: the reader
+   keeps in view the paragraph that raised the question while the answer is
+   written. No scrim, for the same reason — the text behind stays readable and
+   scrollable. Full height, and the whole width as soon as the screen is too
+   narrow to hold both. */
+.assistant {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  width: min(100vw, 39rem);
+  height: 100vh;
+  height: 100dvh;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  box-shadow: -10px 0 30px rgba(15, 31, 77, 0.16);
+  /* Closed: off to the right and out of the accessibility tree, without being
+     removed from the flow — the transform is what animates. */
+  visibility: hidden;
+  transform: translateX(100%);
+  transition: transform 0.22s ease, visibility 0.22s;
+}
+/* Until site.js runs. Without it the panel would be markup no control opens. */
+.assistant[hidden] { display: none; }
+.assistant.open { visibility: visible; transform: none; }
+@media (prefers-reduced-motion: reduce) { .assistant { transition: none; } }
+
+/* The same band as the site, closed by the same rule: the panel is a surface of
+   this site and not a widget dropped onto it. */
+.assistant-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  padding-left: 18px;
+  background: var(--brand);
+  color: #fff;
+  border-bottom: 3px solid var(--yellow);
+}
+
+.assistant-name {
+  margin: 0 auto 0 0;
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.assistant-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.assistant-icon:hover { background: rgba(255, 255, 255, 0.24); }
+.assistant-icon:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.assistant-icon svg { display: block; }
+
+.assistant-thread {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The opening state, centred in the thread it will be replaced by. */
+.assistant-blank { margin: auto 0; }
+.assistant-blank h2 {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.assistant-blank p {
+  margin: 0 0 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.assistant-blank .assistant-seeds-label {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* One click sends the question: a suggestion that only fills the field asks the
+   reader to validate a choice they have already made. */
+.assistant-seeds { display: grid; gap: 8px; }
+.assistant-seed {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.assistant-seed:hover { border-color: var(--blue-2); background: var(--blue-bg); }
+.assistant-seed:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 2px; }
+
+/* The question is short and goes in a bubble; the answer carries paragraphs,
+   citations and sources, and takes the width of the panel. A cited paragraph is
+   not a bubble. */
+.assistant-q {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.55rem 0.8rem;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+[data-theme="dark"] .assistant-q { color: #0f1524; }
+
+/* What the pipeline actually searched, when it differs from what was typed:
+   the condensation of a follow-up, and the rewritten query. Placed under the
+   question, before the answer, because it belongs to the question. */
+.assistant-reform {
+  align-self: flex-end;
+  max-width: 85%;
+  margin-top: -8px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.assistant-a {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px 12px 12px 4px;
+  background: var(--paper);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+.assistant-a p { margin: 0 0 0.7rem; }
+.assistant-a p:last-child { margin-bottom: 0; }
+
+/* The citation mark, in the sentence it belongs to. This is what the panel is
+   there to show: an assertion is attached to a passage, not to a page. */
+.assistant-cite {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--yellow-bg);
+  color: var(--yellow-ink);
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 600;
+}
+
+.assistant-sources {
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+.assistant-sources summary {
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--blue-2);
+}
+.assistant-src {
+  margin-top: 0.6rem;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--blue-bg);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.assistant-src-head { font-weight: 600; }
+.assistant-src-score { font-family: var(--font-mono); font-weight: 400; color: var(--muted); }
+.assistant-src-excerpt { color: var(--ink-soft); }
+
+.assistant-typing { display: inline-flex; gap: 5px; padding: 3px 0; }
+.assistant-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue-2);
+  animation: assistant-blink 1s infinite;
+}
+.assistant-typing span:nth-child(2) { animation-delay: 0.18s; }
+.assistant-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes assistant-blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .assistant-typing span { animation: none; opacity: 0.6; }
+}
+
+.assistant-error { color: var(--ink); }
+.assistant-error b { color: var(--blue); }
+
+.assistant-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+}
+.assistant-composer textarea {
+  flex: 1 1 auto;
+  max-height: 8rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  resize: none;
+}
+.assistant-composer textarea:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 1px; }
+
+.assistant-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+[data-theme="dark"] .assistant-send { color: #0f1524; }
+.assistant-send:disabled { opacity: 0.45; cursor: default; }
+.assistant-send:focus-visible { outline: 2px solid var(--blue-2); outline-offset: 2px; }
+.assistant-send svg { display: block; }
+
+/* Which instance answers, and whether one answers at all. A reader has to know
+   what they are talking to. */
+.assistant-foot {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.5rem 1rem 0.65rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* --- Narrow screens ------------------------------------------------------ */
 
 /* The page summary is the first column to go: it repeats what scrolling
@@ -783,7 +1081,12 @@ body.nav-closed .content,
      the site is. */
   .masthead { flex-wrap: wrap; padding-bottom: 0; }
   .masthead-subtitle { display: none; }
-  .masthead-repo { order: 2; margin-left: auto; }
+  /* The two controls close the first line together. The assistant keeps its
+     icon and drops its label: the bar has no room for a word the panel repeats
+     as soon as it opens. */
+  .masthead-assistant { order: 2; margin-left: auto; padding: 5px 8px; }
+  .masthead-assistant span { display: none; }
+  .masthead-repo { order: 3; margin-left: 6px; }
   .masthead-tabs {
     order: 3;
     flex-basis: 100%;

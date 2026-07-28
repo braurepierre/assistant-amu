@@ -94,6 +94,19 @@
       {% endfor %}
     </nav>
     <p class="masthead-subtitle">{{ SITESUBTITLE }}</p>
+    {# The panel is opened from here, on every page: the assistant is what the
+       site documents, and a reader must be able to try it where the claim is
+       made. Hidden until the script runs — without it the button would be a
+       control that does nothing. #}
+    <button type="button" class="masthead-assistant" id="assistantOpen" hidden
+            aria-controls="assistant" aria-expanded="false">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 9.5a2 2 0 0 1-2 2H6l-3.5 2.75V4.5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 2 2Z"/>
+        <path d="M5.75 6.25h4.5M5.75 8.5h2.75"/>
+      </svg>
+      <span>Assistant</span>
+    </button>
     <a class="masthead-repo" href="{{ REPO_URL }}" title="Code source sur GitHub">
       <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
@@ -189,5 +202,64 @@
   <footer class="colophon">
     <p>{{ SITENAME }} — documentation construite avec Pelican, publiée sur Read the Docs.</p>
   </footer>
+
+  {# The assistant panel. Its markup is rendered at build time rather than
+     injected, so the page it belongs to is one document; the script only opens
+     it, fills the thread and calls the API. `data-api` is empty by default: the
+     panel then calls the origin it is served from, which is this application
+     when the site is mounted under /site. Set ASSISTANT_API_URL to point it
+     elsewhere — a separate origin then requires CORS on the API. #}
+  <div class="assistant" id="assistant" role="dialog" aria-labelledby="assistantName"
+       data-api="{{ ASSISTANT_API_URL|default('', true) }}" hidden>
+    <div class="assistant-head">
+      <p class="assistant-name" id="assistantName">AssistantAMU</p>
+      <button type="button" class="assistant-icon" id="assistantReset"
+              aria-label="Recommencer la conversation" title="Recommencer la conversation">
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13.5 8a5.5 5.5 0 1 1-1.7-3.95"/><path d="M13.5 2v3.2h-3.2"/>
+        </svg>
+      </button>
+      <button type="button" class="assistant-icon" id="assistantClose"
+              aria-label="Fermer l'assistant" title="Fermer">
+        <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="assistant-thread" id="assistantThread">
+      {# The opening state. Removed as soon as a question is asked, and rebuilt
+         by the reset button. #}
+      <div class="assistant-blank" id="assistantBlank">
+        <h2>Scolarité et vie étudiante à Aix-Marseille Université</h2>
+        <p>Les réponses sont construites à partir des documents publics indexés et citent
+           leurs sources. Hors de ce corpus, l'assistant refuse de répondre plutôt que
+           d'inventer.</p>
+        <p class="assistant-seeds-label">Exemples de questions</p>
+        <div class="assistant-seeds">
+          <button type="button" class="assistant-seed">Comment demander une césure à l'université ?</button>
+          <button type="button" class="assistant-seed">Qu'est-ce que la CVEC ?</button>
+          <button type="button" class="assistant-seed">Qu'est-ce que le régime spécial d'études (RSE) ?</button>
+          <button type="button" class="assistant-seed">Comment s'inscrire administrativement en ligne (IA web) ?</button>
+        </div>
+      </div>
+    </div>
+
+    <form class="assistant-composer" id="assistantForm">
+      <label class="sr-only" for="assistantInput">Question à l'assistant</label>
+      <textarea id="assistantInput" rows="1" maxlength="500" autocomplete="off"
+                placeholder="Poser une question sur la scolarité…"></textarea>
+      <button type="submit" class="assistant-send" id="assistantSend" aria-label="Envoyer la question">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 8h11M8.5 3.5 13 8l-4.5 4.5"/>
+        </svg>
+      </button>
+    </form>
+
+    <p class="assistant-foot" id="assistantFoot" role="status"></p>
+  </div>
 </body>
 </html>

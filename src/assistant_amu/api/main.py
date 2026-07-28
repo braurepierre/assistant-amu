@@ -16,6 +16,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from ..config import PROJECT_ROOT, get_settings
 from ..generation.llm import LLMBackend, LLMBackendError, build_backend
@@ -41,6 +42,7 @@ get_settings()
 
 INGESTED_MANIFEST = PROJECT_ROOT / "corpus" / "ingested.jsonl"
 DEMO_PAGE = PROJECT_ROOT / "demo.html"
+SITE_OUTPUT = PROJECT_ROOT / "docs" / "site" / "output"
 _EXTENSIONS = {".pdf": "pdf", ".html": "html", ".htm": "html"}
 
 app = FastAPI(
@@ -179,6 +181,20 @@ def health(
         documents=documents,
         chunks=chunks,
     )
+
+
+# The documentation site, served by this application when it has been built.
+#
+# The assistant panel of the site calls /ask from the page it is on. Served here,
+# page and API share an origin: no CORS configuration, and none of the private
+# network rules a browser applies to an HTTPS page calling a local address. The
+# site remains readable without this application — opened from the filesystem or
+# published on its own, its panel simply reports that no instance answers.
+#
+# Mounted at import time, so a site rebuilt while the server runs is picked up by
+# a restart, not on the fly.
+if SITE_OUTPUT.is_dir():
+    app.mount("/site", StaticFiles(directory=SITE_OUTPUT, html=True), name="site")
 
 
 def _append_manifest(doc_id: str, title: str, url: str | None, category: str | None) -> None:

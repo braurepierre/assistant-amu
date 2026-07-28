@@ -61,6 +61,13 @@ TIMEZONE = "Europe/Paris"
 LOCALE = ("fr_FR.UTF-8", "fr_FR", "French_France")
 REPO_URL = "https://github.com/braurepierre/assistant-amu"
 
+# Where the assistant panel sends its questions. Empty means the origin the page
+# is served from, which is the API itself when the built site is mounted under
+# /site (see assistant_amu/api/main.py) — same origin, so no CORS to configure.
+# A full address here points the panel at another instance, which then has to
+# allow this origin.
+ASSISTANT_API_URL = ""
+
 # --- Navigation -------------------------------------------------------------
 
 # Genres of document, in reading order: the ``nav_group`` its pages carry and

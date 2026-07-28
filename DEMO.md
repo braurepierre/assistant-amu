@@ -35,7 +35,13 @@ $env:LLM_BACKEND = "mistral"
   répond en citant ses sources `[S1]`, et affiche en multi-tour la mention
   « ↳ compris comme : … » (condensation de la requête). Les questions des exemples ci-dessous
   se saisissent directement.
-- **B. API / Swagger** → **http://127.0.0.1:8000/docs**
+- **B. Panneau du site de documentation** → **http://127.0.0.1:8000/site/**
+  Le bouton « Assistant » du bandeau ouvre un tiroir de conversation sur
+  n'importe quelle page. Il faut avoir construit le site au préalable
+  (`python docs/site/build_site.py`), et redémarrer l'API si le site n'existait
+  pas encore à son démarrage. Le pied du panneau indique l'instance qui répond,
+  ou l'absence d'instance.
+- **C. API / Swagger** → **http://127.0.0.1:8000/docs**
   `POST /ask` → **Try it out** → coller l'un des corps JSON ci-dessous → **Execute**.
 
 ---

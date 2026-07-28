@@ -113,7 +113,7 @@ L'image embarque les dépendances et le modèle d'embeddings ; l'index vectoriel
 docker compose run --rm api python -m assistant_amu.ingestion index
 ```
 
-Le backend LLM n'est pas conteneurisé — embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image. Renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut, que le conteneur atteint sur l'hôte par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
+Le backend LLM n'est pas conteneurisé — embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image. Renseigner `MISTRAL_API_KEY` pour le backend par défaut, ou poser `LLM_BACKEND=ollama`, que le conteneur atteint sur l'hôte par `host.docker.internal`. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
 
 ### Construction du site de documentation
 
@@ -122,7 +122,7 @@ uv run --no-project --with-requirements docs/site/requirements.txt \
     python docs/site/build_site.py       # site écrit dans docs/site/output/
 ```
 
-Le site compose les documents existants du dépôt. Procédure détaillée : [`docs/maintenance.md`](docs/maintenance.md).
+Le site compose les documents existants du dépôt. Une fois construit, l'API le sert sous `/site` : le bouton « Assistant » du bandeau y ouvre un panneau de conversation sur la même origine, sans configuration supplémentaire. Le site publié sans API reste lisible — le panneau annonce alors qu'aucune instance ne répond. Procédure détaillée : [`docs/maintenance.md`](docs/maintenance.md).
 
 ---
 

@@ -145,6 +145,48 @@ fonctionner dans la page publiée. Un sélecteur d'élément nu ajouté à leur 
 style est confiné sans risque ; en revanche, un script qui interrogerait un
 élément du bandeau du site échouerait, ces deux mondes restant distincts.
 
+## Panneau de l'assistant
+
+Le bandeau porte, sur toutes les pages, un bouton « Assistant » qui ouvre un
+tiroir de conversation. Le site documente un assistant : le lecteur doit pouvoir
+l'essayer là où l'affirmation est faite.
+
+**Origine unique.** Le panneau interroge `/prepare` puis `/ask` sur l'origine
+depuis laquelle la page est servie. L'application monte le site construit sous
+`/site` (`SITE_OUTPUT` dans `api/main.py`), de sorte que la page et l'API
+partagent cette origine :
+
+    python docs/site/build_site.py
+    python -m uvicorn assistant_amu.api.main:app --host 127.0.0.1 --port 8000
+    # → http://127.0.0.1:8000/site/
+
+C'est ce qui dispense l'API d'une configuration CORS, et le navigateur des règles
+de réseau privé qu'il applique à une page HTTPS appelant une adresse locale. Le
+montage n'a lieu que si le répertoire existe, et il est lu au démarrage : un site
+reconstruit pendant que le serveur tourne est servi tel quel, un site construit
+après le démarrage demande un redémarrage. Pour viser une autre instance,
+renseigner `ASSISTANT_API_URL` dans `pelicanconf.py` — l'API visée doit alors
+autoriser l'origine du site, ce qu'elle ne fait pas aujourd'hui.
+
+**Dégradation.** Le bouton et le panneau sont rendus masqués et révélés par
+`site.js` : une page dont le script ne s'exécute pas n'affiche pas une commande
+sans effet. À l'ouverture, le panneau appelle `/health` ; si rien ne répond, il
+l'annonce en pied et désactive la saisie, et il réessaie à l'ouverture suivante.
+Le site publié sans API — sur Read the Docs, ou ouvert depuis le système de
+fichiers — se comporte ainsi sans rien casser.
+
+**Ce que le panneau montre, et pourquoi.** Les marques `[S1]` sont surlignées
+dans la phrase qu'elles appuient, et le dépliant « Sources citées » donne pour
+chacune son document, sa page, son score et son extrait. C'est la démonstration
+elle-même : rattacher une affirmation à un passage, non à une page. La ligne
+« compris comme » n'apparaît que si la condensation d'une question de suite en
+change le texte ; une ligne qui répète la question apprend à ne plus la lire.
+
+**Ce que le panneau ne porte pas.** Les réglages `k` et « réécriture » de
+`demo.html` sont des instruments de mesure et restent dans la page de
+démonstration. Aucun échange n'est enregistré : la mention correspondante ne sera
+écrite que lorsqu'un enregistrement existera.
+
 **Rangement par genre documentaire.** Le site classe d'abord les pages par ce que
 le lecteur vient faire, et non par sujet : « Prise en main » (présentation,
 démonstration), « Comprendre » (page pédagogique, architecture du système, mesures),
