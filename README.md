@@ -97,7 +97,7 @@ python eval/contextual_retrieval_experiment.py                   # Comparaison b
 
 *Pour basculer d'un backend à l'autre, modifier la variable `LLM_BACKEND` (`mistral` ou `ollama`) dans le fichier `.env`.*
 
-Les trois points d'entrée du service — `/ask` (traitement d'une requête), `/ingest` (ajout d'un document au corpus), `/health` (état des services) — sont décrits par le schéma OpenAPI exposé sur `/docs` et par la référence d'API du site de documentation. La recherche multi-tour procède par condensation de requête ; sans historique de conversation, `/ask` reproduit exactement le comportement mono-tour.
+Les points d'entrée du service — `/ask` (traitement d'une requête), `/health` (état des services) — sont décrits par le schéma OpenAPI exposé sur `/docs` et par la référence d'API du site de documentation. `/ingest` (ajout d'un document au corpus) n'est servi que si `ENABLE_INGEST` le demande : il écrit dans la collection que `/ask` interroge et n'authentifie personne, alors que le corpus se construit hors ligne. Désactivé, il répond 404 et ne figure pas au schéma. La recherche multi-tour procède par condensation de requête ; sans historique de conversation, `/ask` reproduit exactement le comportement mono-tour.
 
 Le parcours de démonstration complet — interface conversationnelle, multi-tour, refus hors-corpus — est décrit dans [`DEMO.md`](DEMO.md).
 

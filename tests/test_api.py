@@ -5,7 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from assistant_amu.api.main import app, get_backend, get_store
+from assistant_amu.api.main import app, get_backend, get_store, require_ingest_enabled
+from assistant_amu.api.schemas import MAX_HISTORY_ITEMS, MAX_MESSAGE_CHARS
 from assistant_amu.generation.llm import LLMBackendError
 from assistant_amu.generation.rag import REFUSAL
 from assistant_amu.models import RetrievedChunk
@@ -187,6 +188,38 @@ def test_openapi_docs_available(client_and_fakes):
     assert client.get("/openapi.json").status_code == 200
 
 
+def test_ask_refuses_an_oversized_history_message(client_and_fakes):
+    """`question` was capped and `history` was not: a single message could weigh
+    anything at all, and reached the model after validation."""
+    client, _, _ = client_and_fakes
+    response = client.post(
+        "/ask",
+        json={
+            "question": "Et la cesure ?",
+            "history": [{"role": "user", "content": "x" * (MAX_MESSAGE_CHARS + 1)}],
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_ask_refuses_too_many_history_messages(client_and_fakes):
+    client, _, _ = client_and_fakes
+    turns = [{"role": "user", "content": "q"} for _ in range(MAX_HISTORY_ITEMS + 1)]
+    response = client.post("/ask", json={"question": "Et la cesure ?", "history": turns})
+    assert response.status_code == 422
+
+
+def test_ask_accepts_a_conversation_at_the_cap(client_and_fakes):
+    """The cap refuses abuse, not use: a long real conversation still answers."""
+    client, _, _ = client_and_fakes
+    turns = [
+        {"role": "user" if index % 2 == 0 else "assistant", "content": "q"}
+        for index in range(MAX_HISTORY_ITEMS)
+    ]
+    response = client.post("/ask", json={"question": "Et la cesure ?", "history": turns})
+    assert response.status_code == 200
+
+
 # --- /ingest: monkeypatch the tokenizer (offline) and manifest path (no repo write) ---
 
 @pytest.fixture
@@ -196,7 +229,19 @@ def ingest_client(client_and_fakes, monkeypatch, tmp_path):
         lambda *a, **k: (lambda text: len(text.split())),
     )
     monkeypatch.setattr("assistant_amu.api.main.INGESTED_MANIFEST", tmp_path / "ingested.jsonl")
+    # The endpoint is off unless a deployment asks for it; these tests exercise
+    # what it does when asked. That it is off otherwise is tested on its own.
+    app.dependency_overrides[require_ingest_enabled] = lambda: None
     return client_and_fakes
+
+
+def test_ingest_is_absent_unless_enabled(client_and_fakes):
+    """Default deployment: the endpoint is not there, and does not say why."""
+    client, _, _ = client_and_fakes
+    response = client.post(
+        "/ingest", files={"file": ("doc.html", _HTML, "text/html")}, data={"title": "X"}
+    )
+    assert response.status_code == 404
 
 
 _HTML = b"<html><body><main><h1>Titre</h1><p>La cesure est une suspension des etudes.</p></main></body></html>"

@@ -132,7 +132,10 @@ Question hors du corpus : le système refuse au lieu d'inventer.
 
 - **`GET /health`** → état de ChromaDB, du backend LLM, nombre de documents et de fragments.
 - **`POST /ingest`** (multipart) → ajoute un document (`file` + `title`) sans
-  réindexer l'existant ; `409` si le document est déjà présent.
+  réindexer l'existant ; `409` si le document est déjà présent. **Non servi par
+  défaut** : il écrit dans la collection que `/ask` interroge et n'authentifie
+  personne. Poser `ENABLE_INGEST=1` pour l'ouvrir ; sinon il répond `404` et
+  n'apparaît pas sur `/docs`.
 
 ---
 

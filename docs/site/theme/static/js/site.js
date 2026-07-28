@@ -303,6 +303,10 @@
 
     var api = (panel.getAttribute("data-api") || "").replace(/\/+$/, "");
     var history = [];   // {role, content} — the multi-turn context /ask expects
+    /* The pipeline condenses on the last six turns and the schema refuses more
+       than twelve, so sending the whole thread would grow a request nothing
+       reads. Twelve messages is six turns: what the pipeline actually uses. */
+    var HISTORY_SENT = 12;
     var open = false;
     var live = false;   // an instance answered /health
     var probing = false;
@@ -388,7 +392,7 @@
         '<span class="assistant-typing"><span></span><span></span><span></span></span>');
       busy(true);
 
-      var context = history.length ? history.slice() : null;
+      var context = history.length ? history.slice(-HISTORY_SENT) : null;
 
       /* /prepare resolves the retrieval query without generating, so the panel
          can show it before the answer arrives. Best effort: when it fails, the

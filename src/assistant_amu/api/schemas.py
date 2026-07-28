@@ -12,17 +12,30 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+# What one turn of a conversation may weigh, and how many turns a request may
+# carry. Without these the request body is unbounded where `question` and `k`
+# are not: the pipeline keeps only the last MAX_HISTORY_MESSAGES entries, but
+# truncation happens *after* the body has been read, validated and held in
+# memory, and a single message of several megabytes still reaches the model.
+# The caps are set above what a real conversation produces — a question is
+# capped at 500 characters and an answer runs to a few paragraphs — so they
+# refuse abuse without refusing use.
+MAX_MESSAGE_CHARS = 4000
+MAX_HISTORY_ITEMS = 24
+
+
 class HistoryMessage(BaseModel):
     role: Literal["user", "assistant"]
-    content: str = Field(min_length=1)
+    content: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     k: int = Field(default=5, ge=1, le=10)
     # V2 (optional, backward-compatible): omitted => V1 single-turn behaviour.
-    # Beyond the last 6 turns the pipeline truncates silently (§7.7).
-    history: list[HistoryMessage] | None = None
+    # Beyond the last 6 turns the pipeline truncates silently (§7.7); the cap
+    # here is wider, so an ordinary conversation is never refused for its length.
+    history: list[HistoryMessage] | None = Field(default=None, max_length=MAX_HISTORY_ITEMS)
     # Query rewriting before retrieval (§5.3.5, measured in eval/). "raw" is the
     # V1 default (identity, no extra backend call); "strip" is a deterministic
     # heuristic; "llm" costs one extra backend call and is non-deterministic.
@@ -49,7 +62,7 @@ class PrepareRequest(BaseModel):
     """Resolve the retrieval query (condensation + rewrite) without generating."""
 
     question: str = Field(min_length=1, max_length=500)
-    history: list[HistoryMessage] | None = None
+    history: list[HistoryMessage] | None = Field(default=None, max_length=MAX_HISTORY_ITEMS)
     rewrite: Literal["raw", "strip", "llm"] = "raw"
 
 

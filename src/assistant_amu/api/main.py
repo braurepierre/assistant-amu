@@ -132,7 +132,31 @@ def prepare(request: PrepareRequest, pipeline: RagPipeline = Depends(get_pipelin
     )
 
 
-@app.post("/ingest", response_model=IngestResponse)
+def require_ingest_enabled() -> None:
+    """Answer 404 for /ingest unless the deployment asked for it.
+
+    The endpoint writes to the collection ``/ask`` searches, and authenticates
+    nobody: reachable publicly, anyone could add a document that later answers
+    would quote like any other — same layout, same score — which is exactly the
+    claim the assistant is built to make. It is therefore off by default rather
+    than put behind a token: nothing in the project calls it, the corpus is
+    built offline, and a token would have to be configured, carried and rotated
+    for a function no one uses.
+
+    404 rather than 403: a disabled endpoint is one that is not there.
+    """
+    if not get_settings().enable_ingest:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+
+@app.post(
+    "/ingest",
+    response_model=IngestResponse,
+    dependencies=[Depends(require_ingest_enabled)],
+    # The schema follows the configuration read at startup: a deployment that
+    # does not serve /ingest does not document it either.
+    include_in_schema=get_settings().enable_ingest,
+)
 def ingest(
     file: UploadFile = File(...),
     title: str = Form(...),

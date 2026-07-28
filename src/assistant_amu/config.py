@@ -47,6 +47,24 @@ def _get_int(name: str, default: int) -> int:
         ) from exc
 
 
+_TRUE = frozenset({"1", "true", "yes", "on"})
+_FALSE = frozenset({"0", "false", "no", "off"})
+
+
+def _get_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    if raw in _TRUE:
+        return True
+    if raw in _FALSE:
+        return False
+    raise ConfigError(
+        f"Environment variable {name} must be one of "
+        f"{sorted(_TRUE | _FALSE)}, got {raw!r}."
+    )
+
+
 def _get_float(name: str, default: float) -> float:
     raw = os.environ.get(name, "").strip()
     if not raw:
@@ -87,6 +105,14 @@ class Settings:
     # Chunking (PRD §7.2).
     chunk_max_tokens: int
     chunk_overlap: int
+
+    # HTTP surface. ``/ingest`` writes to the corpus the assistant then cites,
+    # and authenticates nobody: served publicly, anyone could add a document
+    # that answers would go on to quote like any other. It is therefore off
+    # unless a deployment asks for it. The corpus is built offline
+    # (``python -m assistant_amu.ingestion index``), so nothing in the project
+    # needs it on.
+    enable_ingest: bool
 
     @property
     def backend_name(self) -> str:
@@ -134,6 +160,7 @@ def load_settings() -> Settings:
         top_k=_get_int("TOP_K", 5),
         chunk_max_tokens=_get_int("CHUNK_MAX_TOKENS", 500),
         chunk_overlap=_get_int("CHUNK_OVERLAP", 50),
+        enable_ingest=_get_bool("ENABLE_INGEST", False),
     )
 
     # Fail fast: the API backend is unusable without a key (PRD F5).
