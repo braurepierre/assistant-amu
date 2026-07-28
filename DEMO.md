@@ -24,9 +24,12 @@ l'état une fois l'API lancée : `GET /health` doit renvoyer `documents: 18` et
 ## Lancement de l'API en local
 
 ```powershell
-$env:LLM_BACKEND = "mistral"
 .venv\Scripts\python.exe -m uvicorn assistant_amu.api.main:app --host 127.0.0.1 --port 8000
 ```
+
+Mistral est le backend par défaut : rien à poser dans l'environnement, la clé
+de `.env` suffit. Pour servir aussi le panneau, construire le site avant le
+lancement — le montage de `/site` est lu au démarrage.
 
 ## Interfaces de démonstration
 
