@@ -10,10 +10,12 @@ daté est généré dans `eval/reports/` à chaque exécution ; les tables par
 question s'y lisent.
 
 Deux conventions valent pour toute la page. Les méthodes mesurées ici — fusion
-RRF, réécriture de requête, *Contextual Retrieval* — ne sont pas intégrées au
-pipeline `/ask`, qui reste purement sémantique. Un écart n'est retenu qu'à
-partir de trois questions, seuil fixé avant les mesures (granularité du jeu de
-50 questions : 1/50 = 0,02).
+RRF, réécriture de requête,
+[*Contextual Retrieval*](glossaire-assistant-amu.html#contextuel) — ne sont pas
+intégrées au pipeline `/ask`, qui reste purement sémantique. Un écart n'est
+retenu qu'à partir de trois questions,
+[seuil](glossaire-assistant-amu.html#seuil) fixé avant les mesures (granularité
+du jeu de 50 questions : 1/50 = 0,02).
 
 ---
 
@@ -102,9 +104,11 @@ Script : `eval/embedder_comparison.py` ; rapport :
 
 Chaque fragment est préfixé, avant l'embedding et l'indexation BM25, d'une
 phrase générée par le LLM le situant dans son document (méthode Anthropic,
-septembre 2024). L'index est constitué dans une collection parallèle ; mesures
-sur les deux jeux de questions, le jeu « dur » réunissant les formulations
-conversationnelles.
+septembre 2024 — [fiche du
+glossaire](glossaire-assistant-amu.html#contextuel)). L'index est constitué dans
+une collection parallèle ; mesures sur les deux
+[jeux de questions](glossaire-assistant-amu.html#jeux), le jeu « dur »
+réunissant les formulations conversationnelles.
 
 | Jeu de questions | Méthode | Référence | Index contextuel |
 | :--- | :--- | :---: | :---: |

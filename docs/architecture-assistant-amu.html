@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssistantAMU — organisation du code et chaînes de traitement</title>
+<title>AssistantAMU — architecture et chaînes de traitement</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
 <!-- Cytoscape : rendu et disposition des schémas. Hors ligne, chaque schéma
@@ -57,7 +57,6 @@ section{margin-top:56px;scroll-margin-top:72px}
   #sideOverlay.show{display:block}
 }
 .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
-.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--blue);border:1px solid var(--blue);border-radius:99px;padding:2px 10px;white-space:nowrap}
 section h2{font-size:22px;font-weight:600}
 .lead{color:var(--ink-soft);margin:6px 0 20px;max-width:680px}
 code{font-family:"IBM Plex Mono",monospace;font-size:13px;background:var(--blue-bg);padding:1px 5px;border-radius:4px;color:#22307A}
@@ -107,14 +106,14 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
 <div id="topbar">
   <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — organisation du code</span>
+  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — architecture et traitements</span>
   <span class="repo mono">assistant-amu · src/assistant_amu</span>
 </div>
 
 <header class="hero">
   <div class="in">
     <p class="eyebrow">Assistant documentaire RAG · corpus public d'Aix-Marseille Université</p>
-    <h1>Organisation du code et chaînes de traitement</h1>
+    <h1>Architecture et chaînes de traitement</h1>
     <p class="sub">Cette page présente l'organisation du dépôt et les deux chaînes de traitement qui le font fonctionner : celle qui transforme des documents en index, et celle qui transforme une question en réponse sourcée. Les concepts du RAG eux-mêmes sont traités par la page pédagogique. Survoler une étape d'un schéma en donne le détail.</p>
   </div>
 </header>
@@ -122,9 +121,9 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 <div class="layout">
 <aside id="sidebar" class="sidebar">
   <nav aria-label="Sommaire">
-    <a href="#s1" data-sec="s1">01 · Organisation du code</a>
-    <a href="#s2" data-sec="s2">02 · Chaîne d'ingestion</a>
-    <a href="#s3" data-sec="s3">03 · Chaîne de réponse</a>
+    <a href="#s1" data-sec="s1">Organisation du code</a>
+    <a href="#s2" data-sec="s2">Chaîne d'ingestion</a>
+    <a href="#s3" data-sec="s3">Chaîne de réponse</a>
   </nav>
 </aside>
 <div id="sideOverlay"></div>
@@ -132,7 +131,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 <main>
 
 <section id="s1">
-  <div class="sec-head"><span class="sec-num">01</span><h2>Organisation du code</h2></div>
+  <div class="sec-head"><h2>Organisation du code</h2></div>
   <p class="lead">Le code se répartit en cinq ensembles. Les dépendances vont toutes dans le même sens : un ensemble ne connaît que ceux situés en dessous de lui. C'est ce qui permet d'utiliser l'ingestion ou la recherche seules, sans démarrer l'interface.</p>
 
   <div class="figure">
@@ -153,7 +152,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </section>
 
 <section id="s2">
-  <div class="sec-head"><span class="sec-num">02</span><h2>Chaîne d'ingestion</h2></div>
+  <div class="sec-head"><h2>Chaîne d'ingestion</h2></div>
   <p class="lead">Elle transforme une liste d'adresses en un index interrogeable. Elle s'exécute à la demande, jamais pendant qu'un utilisateur pose une question.</p>
 
   <div class="figure">
@@ -184,7 +183,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </section>
 
 <section id="s3">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Chaîne de réponse</h2></div>
+  <div class="sec-head"><h2>Chaîne de réponse</h2></div>
   <p class="lead">Elle transforme une question en réponse sourcée. Deux sorties mènent au refus : lorsque la recherche ne remonte aucun passage, et lorsque le modèle constate que les passages fournis ne portent pas la réponse.</p>
 
   <div class="figure">

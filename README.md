@@ -11,8 +11,9 @@ L'ensemble de ces documents est également publié sous forme de site, construit
 | Document | Objet |
 | :--- | :--- |
 | [`docs/mesures.md`](docs/mesures.md) | **Mesures et évaluation** — tous les chiffres du projet : rappel par méthode, comparaison des encodeurs, contextualisation de l'index, latences, refus. Tables par question et limites de chaque étude. |
-| [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture) et un glossaire relié aux fichiers du code. Page autonome, à ouvrir directement dans un navigateur. |
-| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Organisation du code et chaînes de traitement** — l'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas manipulables à deux niveaux. |
+| [`docs/concepts-assistant-amu.html`](docs/concepts-assistant-amu.html) | **Page pédagogique** — ce que fait le système, brique par brique, avec des démonstrations manipulables (découpage, requête RAG, réécriture). Chaque terme souligné y ouvre sa fiche. Page autonome, à ouvrir directement dans un navigateur. |
+| [`docs/glossaire-assistant-amu.html`](docs/glossaire-assistant-amu.html) | **Glossaire** — les termes de toute la documentation, de l'architecture aux mesures, en nuage filtrable ; définition du concept, mise en œuvre dans le dépôt et fichier correspondant. Page autonome, produite depuis la page pédagogique. |
+| [`docs/architecture-assistant-amu.html`](docs/architecture-assistant-amu.html) | **Architecture et chaînes de traitement** — l'organisation du dépôt en cinq ensembles, la chaîne d'ingestion et la chaîne de réponse, en schémas manipulables à deux niveaux. |
 | [`DEMO.md`](DEMO.md) | Parcours de démonstration de bout en bout, requêtes prêtes à l'emploi. |
 | [`prompts/CHANGELOG.md`](prompts/CHANGELOG.md) | Ingénierie de prompt — chaque itération des trois prompts système avec sa raison et le cas de test qui l'a motivée. |
 | [`docs/maintenance.md`](docs/maintenance.md) | Guide de maintenance de la documentation : origine des chiffres, régénération, construction du site. Destiné au contributeur. |

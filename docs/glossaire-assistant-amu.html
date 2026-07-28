@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssistantAMU — architecture d'un système RAG documentaire</title>
+<title>AssistantAMU — glossaire</title>
+<!-- Page produite par docs/build_glossaire.py depuis
+     docs/concepts-assistant-amu.html. Ne pas modifier à la main : les fiches,
+     la feuille de style et le tiroir sont recopiés de cette page-là. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
 <!-- KaTeX : rendu des formules des blocs « En savoir plus ». Hors ligne, la
@@ -253,299 +256,61 @@ pre.code .c{color:#7E89B8}pre.code .s{color:#9FE1CB}pre.code .k{color:#8FA6E8}
 
 footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;text-align:center;font-size:13px;color:var(--muted)}
 </style>
+<style>
+/* Propre à cette page. La feuille reprise ci-dessus dessine une colonne de
+   navigation que cette page n'a pas : sans elle, le texte se recentre. */
+.layout>main{margin:0 auto}
+#s0{margin-top:36px}
+/* Le champ de recherche, posé au-dessus du nuage. */
+.finder{position:relative;max-width:420px;margin:0 0 22px}
+.finder input{padding-left:38px}
+.finder .glass{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;display:flex}
+.finder input:focus+.glass{color:var(--blue-2)}
+.chip[hidden]{display:none}
+.tally{margin:16px 0 0;font-size:13px;color:var(--muted)}
+/* Porté par le balisage, jamais dessiné : lu par un lecteur d'écran. */
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+</style>
 </head>
 <body>
 
 <div id="topbar">
-  <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — architecture d'un système RAG</span>
+  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — glossaire</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 
 <header class="hero">
   <div class="in">
     <p class="eyebrow">Assistant documentaire RAG · corpus public d'Aix-Marseille Université</p>
-    <h1>AssistantAMU : anatomie d'un système RAG documentaire</h1>
-    <p class="sub">Cette page présente la chaîne de traitement complète, du corpus de documents institutionnels jusqu'à la réponse <button class="term" data-term="refus">sourcée — ou au refus explicite</button>. Chaque terme <span style="border-bottom:1.5px dotted #6E80B8">souligné en pointillé</span> ouvre une fiche en deux temps : la définition du concept, puis sa mise en œuvre dans le dépôt. Les entrées marquées <span class="mono" style="color:#E9A088">ƒ</span> offrent en outre un approfondissement mathématique. Toutes ces fiches sont réunies dans le <a href="glossaire-assistant-amu.html">glossaire</a>.</p>
-    <div class="hero-tokens" id="heroTokens" aria-hidden="true"></div>
+    <h1>Glossaire</h1>
+    <p class="sub">Les termes employés par la documentation du projet, de l'architecture du système jusqu'aux mesures. Chaque fiche sépare la <b>définition</b> du concept de sa <b>mise en œuvre</b> dans le dépôt, rattachée au fichier correspondant. Les entrées marquées <span class="mono" style="color:#E9A088">ƒ</span> offrent en outre un approfondissement mathématique.</p>
   </div>
 </header>
 
 <div class="layout">
-<aside id="sidebar" class="sidebar">
-  <nav aria-label="Sommaire">
-    <div class="grp">Introduction</div>
-    <a href="#s0" data-sec="s0">Vue d'ensemble</a>
-    <div class="grp">Chaîne de traitement</div>
-    <a href="#s1" data-sec="s1">Choix architectural</a>
-    <a href="#s2" data-sec="s2">Indexation</a>
-    <a href="#s3" data-sec="s3">Pipeline de requête</a>
-    <div class="grp">Évaluation et qualité</div>
-    <a href="#s4" data-sec="s4">Évaluation</a>
-    <a href="#s5" data-sec="s5">Réécriture de requête</a>
-    <a href="#s6" data-sec="s6">Comparaison des encodeurs</a>
-    <a href="#s7" data-sec="s7">Contextualisation des fragments</a>
-    <div class="grp">Ingénierie</div>
-    <a href="#s8" data-sec="s8">Backends et contraintes</a>
-    <a href="#s9" data-sec="s9">Conversation multi-tour</a>
-    <a href="#s10" data-sec="s10">Pile logicielle</a>
-    <div class="grp">Référence</div>
-  </nav>
-</aside>
-<div id="sideOverlay"></div>
-
 <main>
 
 <section id="s0">
-  <div class="sec-head"><h2>Vue d'ensemble : une architecture en deux phases</h2></div>
-  <p class="lead">AssistantAMU repose sur une architecture <button class="term" data-term="rag">RAG</button> (<em>Retrieval-Augmented Generation</em>) : la connaissance n'est pas inscrite <em>dans</em> le modèle par ré-entraînement, elle lui est <em>fournie</em> au moment de la question. Le système se décompose en deux phases — une phase hors ligne qui construit l'index documentaire, une phase en temps réel qui produit la réponse.</p>
-  <div class="phases">
-    <div class="phase idx">
-      <b>Phase 1 · Indexation (hors ligne)</b>
-      <div class="flow">sources.yaml → <button class="term" data-term="extract">download / extract</button> → <button class="term" data-term="clean">clean</button> → <button class="term" data-term="chunking">chunk</button> (≤ 500 tokens, chevauchement 50) → <button class="term" data-term="embedding">embed</button> (« passage: », <button class="term" data-term="e5">e5‑small</button>) → <button class="term" data-term="chromadb">ChromaDB</button> (<button class="term" data-term="cosine">métrique cosinus</button>)</div>
-    </div>
-    <div class="phase req">
-      <b>Phase 2 · Requête (temps réel)</b>
-      <div class="flow">question → embed (« query: ») → ChromaDB <button class="term" data-term="topk">top‑k</button> → <button class="term" data-term="prompt">prompt RAG</button> (règles, &lt;sources&gt;, question) → <button class="term" data-term="backend">modèle</button> → réponse <button class="term" data-term="citation">avec citations</button> ou <button class="term" data-term="refus">refus</button></div>
-    </div>
+  <div class="finder">
+    <label class="sr-only" for="finder">Filtrer les termes</label>
+    <input type="text" id="finder" placeholder="Filtrer les termes…" autocomplete="off"
+           spellcheck="false" aria-describedby="tally">
+    <span class="glass" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor"
+           stroke-width="1.7" stroke-linecap="round">
+        <circle cx="7" cy="7" r="4.5"/><path d="M10.4 10.4 14 14"/>
+      </svg>
+    </span>
   </div>
-  <p class="hint">Corpus de production : <b><span data-stat="corpus.docs">18</span> documents exploitables → <span data-stat="corpus.chunks">316</span> fragments</b> (établissement central et composantes ALLSH, Droit, Sciences, IUT). Le calendrier universitaire, disponible uniquement en version numérisée, est exclu faute de couche textuelle — la <button class="term" data-term="ocr">reconnaissance optique de caractères</button> est hors périmètre. Les volumétries et les intitulés de documents sont réels ; les scores de similarité et le texte des réponses présentés dans les démonstrations sont illustratifs.</p>
-</section>
-
-<section id="s1">
-  <div class="sec-head"><h2>Choix architectural : RAG plutôt que contexte intégral</h2></div>
-  <p class="lead">Un <button class="term" data-term="llm">LLM</button> interrogé seul produit une réponse plausible, pas nécessairement exacte : c'est le phénomène d'<button class="term" data-term="hallucination">hallucination</button>. Pour un corpus inférieur à ~200 000 tokens, l'insertion de l'intégralité des documents dans le <button class="term" data-term="prompt">prompt</button> constitue une alternative légitime. L'architecture RAG a néanmoins été retenue, pour quatre raisons explicitées ci-dessous.</p>
-  <div class="grid2">
-    <div class="piege"><div class="n">1</div><h3>Maîtrise de l'ingénierie</h3><p>L'objectif technique du projet est la maîtrise complète du pipeline RAG : chaque étape est implémentée en Python avant tout recours à un framework.</p></div>
-    <div class="piege"><div class="n">2</div><h3>Contrainte d'infrastructure</h3><p><button class="term" data-term="ollama">Ollama</button> expose le modèle <span class="mono">mistral</span> avec une fenêtre de contexte réduite par défaut (<button class="term" data-term="numctx">num_ctx</button>) : le corpus complet ne peut y être injecté.</p></div>
-    <div class="piege"><div class="n">3</div><h3>Coût et latence</h3><p>La transmission d'un contexte volumineux à chaque requête est incompatible avec une inférence sur CPU et avec les quotas d'un accès gratuit à l'API.</p></div>
-    <div class="piege"><div class="n">4</div><h3>Traçabilité native</h3><p>Les deux propriétés centrales du produit — la <button class="term" data-term="citation">citation passage par passage</button> et le <button class="term" data-term="refus">refus explicite hors corpus</button> — découlent directement de l'architecture RAG.</p></div>
-  </div>
-  <p class="hint">Règle produit inscrite dans le <button class="term" data-term="prompt">prompt système</button> : répondre <b>exclusivement</b> à partir des extraits fournis, référencer chaque affirmation par <span class="cite">[S1]</span> <span class="cite">[S2]</span>, et formuler à défaut un refus littéral. La <button class="term" data-term="refus">fidélité aux sources</button> constitue un objectif mesurable, et non une intention.</p>
-</section>
-
-<section id="s2">
-  <div class="sec-head"><h2>Indexation : du document au vecteur</h2></div>
-  <p class="lead">Chaque document traverse une chaîne de transformation. Cliquez sur une étape pour en afficher la définition ; le découpage en fragments (<button class="term" data-term="chunking"><em>chunking</em></button>) est manipulable dans l'encart ci-dessous.</p>
-  <div class="pipe" id="pipe">
-    <div class="stage" data-term="extract"><b>extract</b><span>pdfplumber / BeautifulSoup</span></div>
-    <div class="arrowrow">→</div>
-    <div class="stage" data-term="clean"><b>clean</b><span>en‑têtes, sommaires, espaces</span></div>
-    <div class="arrowrow">→</div>
-    <div class="stage" data-term="chunking"><b>chunk</b><span>≤ 500 tokens · chevauchement 50</span></div>
-    <div class="arrowrow">→</div>
-    <div class="stage" data-term="embedding"><b>embed</b><span>« passage: » + e5‑small</span></div>
-    <div class="arrowrow">→</div>
-    <div class="stage" data-term="chromadb"><b>ChromaDB</b><span>index cosinus</span></div>
-  </div>
-
-  <div class="card" style="margin-top:18px">
-    <p style="margin:0 0 6px;font-weight:600;font-size:15px">Découpage en fragments <span class="tag">chunk.py</span></p>
-    <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink-soft)">Le texte est segmenté sur des frontières de phrases, sans jamais dépasser le budget de tokens alloué — préfixe <span class="chip-prefix">passage: </span>inclus. Un <button class="term" data-term="chunking">chevauchement</button> reprend la fin d'un fragment au début du suivant (surligné en jaune) afin de préserver le contexte à la jointure.</p>
-    <div class="controls">
-      <label>max_tokens : <span class="val" id="mtVal">70</span>
-        <input type="range" id="mt" min="30" max="140" value="70" step="5"></label>
-      <label>overlap : <span class="val" id="ovVal">14</span>
-        <input type="range" id="ov" min="0" max="40" value="14" step="2"></label>
-    </div>
-    <textarea id="chunkIn" rows="4">La césure est une période durant laquelle l'étudiant suspend temporairement ses études. Elle dure un ou deux semestres et l'étudiant conserve son statut. La demande se dépose auprès de la composante, avec l'accord du responsable de formation. Pendant la césure, l'étudiant peut réaliser un projet personnel, un stage, un service civique ou une expérience à l'étranger. À l'issue de la césure, l'étudiant retrouve de droit sa place dans la formation.</textarea>
-    <div class="chunks" id="chunkOut"></div>
-  </div>
-  <p class="hint">Le compteur de tokens employé dans cette démonstration est simplifié (≈ 1,3 token par mot) ; en production, le décompte s'appuie sur le <button class="term" data-term="tokenizer">tokenizer</button> réel d'<button class="term" data-term="e5">e5‑small</button>. La marge de sécurité s'explique par la troncature silencieuse du modèle au‑delà de 512 tokens.</p>
-</section>
-
-<section id="s3">
-  <div class="sec-head"><h2>Pipeline de requête en temps réel</h2></div>
-  <p class="lead">Cette phase constitue le cœur du système. La question est <button class="term" data-term="embedding">vectorisée</button> (préfixe « query: »), puis comparée par <button class="term" data-term="cosine">similarité cosinus</button> à l'ensemble des fragments indexés. Les <button class="term" data-term="topk">k meilleurs passages</button> sont retenus et injectés dans le <button class="term" data-term="prompt">prompt</button> ; le modèle rédige alors une réponse citant ses sources — ou formule un refus. Sélectionnez une question pour observer le comportement du corpus.</p>
-  <div class="card">
-    <div class="qbtns">
-      <button onclick="ask(0)">Comment demander une césure ?</button>
-      <button onclick="ask(1)">Qu'est-ce que le RSE ?</button>
-      <button onclick="ask(2)">Qu'est-ce que la CVEC ?</button>
-      <button class="oob" onclick="ask(3)">Quelle heure est-il ? <span style="color:var(--coral)">(hors corpus)</span></button>
-    </div>
-    <div id="docs"></div>
-    <div class="promptbox" id="promptbox"></div>
-    <div class="answer" id="ans">
-      <p class="who" id="answho">Réponse du modèle · ancrée dans les sources</p>
-      <p id="anstxt"></p>
-    </div>
-  </div>
-  <p class="hint">Les barres représentent la similarité cosinus entre la question et chaque fragment. Les <b>deux meilleurs</b> (surlignés) sont injectés sous forme de balises <span class="mono">&lt;source id="S1" …&gt;</span> : le modèle ne peut citer que ce qui lui a été transmis. La 4<sup>e</sup> question, extérieure au corpus, déclenche le <button class="term" data-term="refus">refus littéral</button> — l'exemple est repris tel quel du prompt système. Corpus (7 documents affichés sur <span data-stat="corpus.docs">18</span>) et intitulés réels ; scores et réponses illustratifs.</p>
-</section>
-
-<section id="s4">
-  <div class="sec-head"><h2>Évaluation : mesurer plutôt que présumer</h2></div>
-  <p class="lead">Comment établir la qualité de la récupération ? Un <button class="term" data-term="harness">harnais d'évaluation reproductible</button> mesure le <button class="term" data-term="recall">taux de rappel à k</button> (<em>recall@k</em>, proxy du <em>context recall</em> au sens du référentiel <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">50</span> questions annotées, et produit un rapport Markdown daté.</p>
-  <div class="card">
-    <div class="evalrow"><span class="lbl">sémantique</span><div class="track"><div class="fill f-sem" data-w="86">0,86</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="bm25">BM25</button></span><div class="track"><div class="fill f-bm" data-w="84">0,84</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="rrf">RRF</button></span><div class="track"><div class="fill f-rrf" data-w="86">0,86</div></div></div>
-    <p class="hint" style="margin-top:14px">Mesure de référence (corpus de <span data-stat="corpus.docs">18</span> documents / <span data-stat="corpus.chunks">316</span> fragments, k = <span data-stat="k_default">5</span>), sur le jeu porté de 16 à <span data-stat="eval_questions">50</span> questions le 26 juillet. La recherche sémantique reste <b>en tête à k = 5</b> : le pipeline <span class="mono">/ask</span> demeure <b>strictement sémantique</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, non intégrées</b> — au même titre que la <button class="term" data-term="rewrite">réécriture de requête</button> présentée ci‑dessous.</p>
-  </div>
-
-  <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Sensibilité à k : justification du choix k = 5<span class="tag">eval/reports · recall_sensitivity_k</span></p>
-    <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft)">Le <button class="term" data-term="recall">taux de rappel</button> de chaque méthode en fonction du nombre de passages récupérés. Le compromis se lit directement sur la courbe.</p>
-    <div id="recallChart" class="recall-chart" role="img" aria-label="Courbe du taux de rappel : sémantique 0,80→0,86, RRF 0,74→0,92, BM25 0,70→0,88, pour k de 2 à 8"></div>
-    <p class="hint" style="margin-top:4px"><b>À k = 8, la fusion RRF dépasse le sémantique pur</b> (0,92 contre 0,86, soit 3 questions sur 50 — un écart significatif). Sur l'ancien jeu de 16 questions, les deux plafonnaient à égalité (0,88) : un jeu trop petit ne pouvait pas voir cet écart. En V1, <span class="mono">/ask</span> reste à <b>k = 5</b> (où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF si k était relevé en production.</p>
-
-    <p style="margin:20px 0 6px;font-weight:600;font-size:15px">Divergences entre méthodes : sémantique ↔ BM25 ↔ RRF</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les questions pour lesquelles une seule méthode remonte le fragment attendu : c'est précisément là que se joue l'arbitrage en faveur d'une approche hybride. Quatre parmi les neuf désaccords mesurés à k = 5.</p>
-    <div class="disagree">
-      <div class="dis"><div class="dq">« Puis-je interrompre mes études un an puis les reprendre ? »</div><span class="mtag sem">sémantique seul</span></div>
-      <div class="dis"><div class="dq">« Auprès de qui se signaler pour un régime spécial à la faculté de droit ? »</div><span class="mtag rrf">BM25 seul</span></div>
-      <div class="dis"><div class="dq">« Quelles pièces justificatives pour l'inscription en ligne ? »</div><span class="mtag rrf">BM25 seul</span></div>
-      <div class="dis"><div class="dq">« Comment se connecter à la plateforme d'inscription en ligne ? »</div><span class="mtag sem">sémantique seul</span></div>
-    </div>
-    <p class="hint" style="margin-top:10px">Le mécanisme est stable : une question <em>reformulée</em> sans le vocabulaire du corpus (« interrompre mes études » au lieu de « césure ») ne se retrouve que par le <button class="term" data-term="cosine">sens</button> ; un terme rare ou composé (« pièces justificatives », « se signaler ») ne se retrouve que par la recherche lexicale (<button class="term" data-term="bm25">BM25</button>). Ni l'une ni l'autre méthode ne domine partout, ce qui justifie de <b>conserver la RRF disponible</b> en vue d'une éventuelle bascule hybride.</p>
-  </div>
-  <p class="hint">Transparence des mesures : le résultat du 23 juillet (0,81 → 0,94 sur 16 questions) procédait d'un raffinement <em>diagnostiqué</em> — correction d'une annotation trop stricte (q03), comblement d'une lacune documentaire (ajout des PDF « Cadrage M3C »). Celui-ci (0,86 sur 50 questions) n'est pas un recul : c'est un jeu d'évaluation trois fois plus grand, couvrant des documents et des tournures que l'ancien ne testait pas.</p>
-</section>
-
-<section id="s5">
-  <div class="sec-head"><h2>Réécriture de requête <span class="tag">rewrite.py · mesurée</span></h2></div>
-  <p class="lead">Une formulation conversationnelle (« Parle‑moi de… ») déplace le vecteur de la question vers le bruit et fait manquer le document pertinent ; augmenter k n'y remédie pas, car le problème se situe au niveau de la <em>requête</em> elle-même. La stratégie <span class="mono">strip</span> supprime l'ouverture impérative. <b>Déterministe</b>, elle laisse intactes les questions définitionnelles (« Qu'est‑ce que… ») et ne peut donc entraîner aucune régression.</p>
-  <div class="card">
-    <div class="qbtns">
-      <button onclick="doStrip(0)">Parle-moi des régimes spéciaux</button>
-      <button onclick="doStrip(1)">Je voudrais des infos sur le contrôle des connaissances</button>
-      <button onclick="doStrip(2)">Peux-tu m'expliquer la césure ?</button>
-      <button onclick="doStrip(3)">Qu'est-ce que la CVEC ?</button>
-    </div>
-    <input type="text" id="stripIn" value="Parle-moi des régimes spéciaux" aria-label="Requête à réécrire">
-    <div style="margin-top:10px"><button class="primary" onclick="doStrip()">Appliquer la stratégie strip</button></div>
-    <div class="reform-out">
-      <div class="box"><div class="lb">Requête d'origine</div><div class="tx" id="stripBefore">—</div></div>
-      <div class="ar">→</div>
-      <div class="box after"><div class="lb">Requête transmise à la recherche</div><div class="tx" id="stripAfter">—</div></div>
-    </div>
-    <p class="hint" id="stripNote" style="margin-top:12px"></p>
-  </div>
-  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,72</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence (désormais 50 questions). La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,84 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — et son solde sur le jeu facile est proche de zéro (5 questions cassées à k = 3, dont « Comment demander une césure ? », compensées à k = 5). Mais elle reste <b>non déterministe</b> et coûte <b>un appel au backend par requête</b>, là où <span class="mono">strip</span> est gratuite et reproductible : l'arbitrage se joue sur ce que doit coûter une requête, pas seulement sur le rappel. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
-</section>
-
-<section id="s6">
-  <div class="sec-head"><h2>Comparaison des encodeurs : e5, CamemBERT, FlauBERT <span class="tag">embedder_comparison.py · mesurée</span></h2></div>
-  <p class="lead">Le choix de l'<button class="term" data-term="embedding">encodeur</button> détermine ce que la recherche sémantique est <em>capable</em> de retrouver. Plutôt que de le fonder sur la réputation des modèles, il est mesuré : les <b>mêmes</b> fragments sont ré-encodés par trois modèles francophones, puis évalués sur les <b>mêmes</b> <span data-stat="eval_questions">50</span> questions annotées. Les collections de test sont éphémères ; la collection de production n'est jamais modifiée.</p>
-  <div class="card">
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="e5">e5-small</button></span><div class="track"><div class="fill f-e5" data-w="86">0,86</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">CamemBERT</button></span><div class="track"><div class="fill f-cam" data-w="76">0,76</div></div></div>
-    <div class="evalrow"><span class="lbl"><button class="term" data-term="camembert">FlauBERT</button></span><div class="track"><div class="fill f-fla" data-w="76">0,76</div></div></div>
-    <p class="hint" style="margin-top:14px">Taux de rappel sémantique à k = <span data-stat="k_default">5</span>. <b>e5 mène nettement</b> (<span data-stat="embedders.e5.r5">0,86</span>) devant CamemBERT et FlauBERT, à égalité (<span data-stat="embedders.camembert.r5">0,76</span>). À k = 3 l'écart se creuse encore (e5 <span data-stat="embedders.e5.r3">0,82</span> contre <span data-stat="embedders.camembert.r3">0,66</span>) ; à k = 8 les trois modèles se rejoignent à <span data-stat="embedders.e5.r8">0,86</span> — ce n'est plus CamemBERT qui prend l'avantage, c'est lui qui rattrape son retard.</p>
-  </div>
-
-  <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Un résultat corrigé par l'élargissement du jeu de test</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Sur 16 questions (23 juillet), CamemBERT affichait 1,00 à k = 8 contre 0,94 pour e5 — de quoi le croire supérieur en apparence.</p>
-    <div class="disagree">
-      <div class="dis"><div class="dq">Jeu de 16 questions, k = 8</div><span class="mtag rrf">CamemBERT 1,00 vs e5 0,94</span></div>
-      <div class="dis"><div class="dq">Jeu de 50 questions, k = 8</div><span class="mtag sem">e5 et CamemBERT à égalité, 0,86</span></div>
-      <div class="dis"><div class="dq">Jeu de 50 questions, k = 3</div><span class="mtag sem">e5 devant de 16 points</span></div>
-    </div>
-    <p class="hint" style="margin-top:10px">L'écart de 1,00 contre 0,94 tenait à <b>une seule question sur seize</b> — exactement la granularité du jeu (1/16 ≈ 0,06), le plancher de bruit de la mesure. En le portant à 50 questions (granularité 1/50 = 0,02), l'écart s'inverse : e5 domine largement à k = 3 et k = 5, et les modèles ne se rejoignent qu'à k = 8, où CamemBERT compense sa faiblesse initiale plutôt qu'il ne dépasse e5. FlauBERT décroche pour sa part sur les <b>sigles</b> (LANSAD, FOAD) autant que sur les questions paraphrasées.</p>
-  </div>
-
-  <p class="hint"><b>Décision : e5 est conservé — avec une confirmation, pas seulement une intuition.</b> À rappel équivalent ou supérieur, le modèle est deux fois plus compact (384 dimensions contre 768), donc plus rapide sur CPU, et déjà déployé. La mesure initiale semblait indiquer qu'un élargissement de k rendrait CamemBERT préférable ; la mesure élargie montre que ce n'était pas le cas — un jeu de 16 questions ne pouvait tout simplement pas trancher. Contrainte technique rencontrée : la variante <em>cased</em> de référence de FlauBERT ne se charge pas sous sentence-transformers 5.6.1, son tokenizer Moses n'exposant pas <code>basic_tokenizer</code> ; la mesure porte donc sur la variante <em>uncased</em>.</p>
-</section>
-
-<section id="s7">
-  <div class="sec-head"><h2>Contextualisation des fragments <span class="tag">contextualize.py · mesurée</span></h2></div>
-  <p class="lead">Un fragment isolé est souvent muet. « L'article 12 précise que la demande doit être déposée avant le 31 mars » ne nomme ni le règlement dont il provient, ni son sujet : aucune question portant sur la césure ne peut le retrouver. La méthode consiste à préfixer chaque fragment d'une phrase, produite par le modèle de langage, qui le situe dans son document — <b>avant</b> l'encodage et avant l'indexation lexicale. Elle est construite dans une collection parallèle : le pipeline <span class="mono">/ask</span> n'est pas modifié.</p>
-  <div class="card">
-    <div class="reform-out">
-      <div class="box"><div class="lb">Fragment indexé tel quel</div><div class="tx">Les usagers doivent adopter un comportement respectueux des autres personnes ainsi que des locaux et matériels mis à leur disposition.</div></div>
-      <div class="ar">→</div>
-      <div class="box after"><div class="lb">Fragment précédé de son contexte</div><div class="tx"><b>Charte des étudiants et stagiaires d'AMU, partie « II. ENGAGEMENT DE L'USAGER SIGNATAIRE » : respect des personnes et lutte contre le harcèlement et le bizutage.</b> Les usagers doivent adopter un comportement respectueux…</div></div>
-    </div>
-    <p class="hint" style="margin-top:12px">Une phrase de <span data-stat="contextual.context_words">25</span> mots en moyenne, produite document par document et conservée dans un cache adressé par le contenu du fragment.</p>
-  </div>
-
-  <table class="cmp" style="margin-top:16px">
-    <tr><th>Jeu de questions</th><th>Méthode</th><th>Référence</th><th>Index contextuel</th></tr>
-    <tr><td>Dur — <span data-stat="hard_questions">25</span> formulations conversationnelles (k=3)</td><td>sémantique</td><td data-stat="contextual.recall.hard_semantic3_base">0,48</td><td><b data-stat="contextual.recall.hard_semantic3_ctx">0,80</b></td></tr>
-    <tr><td>Facile — <span data-stat="eval_questions">50</span> formulations définitionnelles (k=5)</td><td>sémantique</td><td><b data-stat="contextual.recall.easy_semantic5_base">0,86</b></td><td data-stat="contextual.recall.easy_semantic5_ctx">0,82</td></tr>
-    <tr><td>Facile — <span data-stat="eval_questions">50</span> formulations définitionnelles (k=5)</td><td>RRF</td><td data-stat="contextual.recall.easy_rrf5_base">0,86</td><td><b data-stat="contextual.recall.easy_rrf5_ctx">0,94</b></td></tr>
-  </table>
-  <p class="hint">À 500 tokens, la contextualisation <b>améliore</b> la recherche : son meilleur gain est de <b>8 questions</b> sur les formulations conversationnelles en recherche sémantique à k = 3 — le mode d'échec qu'elle vise — et sa pire perte, <b>2 questions</b> sur les formulations définitionnelles à k = 5, reste sous le seuil de signification de 3 questions. Ces deux chiffres sont des <em>extrema</em> tirés de configurations différentes, non un solde : sur les douze cellules mesurées, la somme des écarts vaut <b>+18 questions</b>, huit cellules gagnent, trois perdent. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises. <b>La fusion RRF ne perd rien</b> : sur le jeu facile élargi à 50 questions, elle gagne <b>4 questions</b> à k = 5 — la composante BM25 compense ce que le sémantique seul cède.</p>
-
-  <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions, sans lesquelles ces chiffres ne vaudraient rien</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Ce sont elles, plus que le résultat, qui font l'intérêt de l'expérience.</p>
-    <p class="hint" style="margin-top:0"><b>Le comptage ne doit pas se donner raison tout seul.</b> L'évaluation exige la présence de mots-clés <em>dans le fragment récupéré</em>, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe : compter sur le texte contextualisé validerait « la phrase de contexte dit <em>césure</em> » comme une réussite de recherche. Le texte d'origine est donc conservé puis restauré après classement — le contexte sert à <b>trouver</b> le fragment, jamais à <b>prouver</b> qu'on l'a trouvé.</p>
-    <p class="hint"><b>Le préfixe consomme le budget de tokens — et la troncature n'est pas toute l'histoire.</b> Le découpage vise 500 tokens par fragment contre une fenêtre d'encodeur de 512 : <span data-stat="contextual.over_window">23</span> fragments sortaient de cette fenêtre après contextualisation, contre aucun avant. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où plus rien ne déborde. Le gain sémantique <b>résiste</b> (jeu dur à k=3 : +4 questions, contre +8 à 500 tokens — même sens, ampleur moindre). Mais élargir le jeu facile a révélé autre chose : <b>la réponse de BM25 à la contextualisation dépend du budget de découpage</b> — quasi neutre à 500 tokens, elle se dégrade nettement à 440 sur le jeu dur (−4 questions à k=3). Ce n'est plus un artefact de troncature à écarter : c'est un comportement de BM25 qui reste à comprendre.</p>
-  </div>
-
-  <p class="hint"><b>Décision : à ce stade, <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée et documentée avant d'être branchée. Reste à trancher laquelle des populations de requêtes doit être servie en priorité, à comprendre la sensibilité de BM25 au découpage, et si une contextualisation <em>sélective</em>, limitée aux fragments réellement décontextualisés, ne prendrait pas le meilleur des deux mondes. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : 25 et 50 questions ne sauraient les confirmer ni les infirmer.</p>
-</section>
-
-<section id="s8">
-  <div class="sec-head"><h2>Backends d'inférence et contraintes techniques neutralisées</h2></div>
-  <p class="lead">Le système est <button class="term" data-term="backend">indépendant du modèle de langage</button> : le même code s'adresse à un modèle <b>local</b> ou à une <b>API</b>, la commutation s'effectuant par variable d'environnement. Trois contraintes silencieuses — identifiées puis neutralisées — expliquent pourquoi le pipeline ne fonctionnait initialement qu'en partie, sans qu'aucune erreur ne soit remontée.</p>
-  <table class="cmp">
-    <tr><th>Backend</th><th>Modèle</th><th>Latence par requête</th><th>Refus hors corpus</th></tr>
-    <tr><td><span class="pill api">API</span> <button class="term" data-term="mistral">Mistral</button></td><td><span class="mono" data-stat="backends.mistral.model">mistral-small-latest</span></td><td data-stat="backends.mistral.latency">~3 s / question</td><td><span data-stat="backends.mistral.refusals">4/4</span> corrects</td></tr>
-    <tr><td><span class="pill local">local</span> <button class="term" data-term="ollama">Ollama</button></td><td><span class="mono" data-stat="backends.ollama.model">mistral 7B (CPU)</span></td><td data-stat="backends.ollama.latency">&gt; 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3</td><td><span data-stat="backends.ollama.refusals">4/4</span> corrects</td></tr>
-  </table>
-  <div class="grid2" style="margin-top:16px">
-    <div class="piege"><div class="n">contrainte n° 1</div><h3>Préfixes E5</h3><p>Les modèles de la famille <button class="term" data-term="e5">E5</button> exigent les préfixes <code>query: </code> et <code>passage: </code>. En leur absence, les performances se dégradent <b>sans qu'aucune erreur ne soit levée</b>. Une table {famille → préfixes} centralise cette règle.</p></div>
-    <div class="piege"><div class="n">contrainte n° 2</div><h3>Métrique ChromaDB</h3><p><button class="term" data-term="chromadb">Chroma</button> indexe en <b>distance L2 par défaut</b>. La collection est explicitement créée avec <code>{"hnsw:space":"cosine"}</code>, conformément à des embeddings normalisés.</p></div>
-    <div class="piege"><div class="n">contrainte n° 3</div><h3>Fenêtre de contexte Ollama</h3><p><button class="term" data-term="numctx">Ollama</button> tronque le prompt à la valeur de <code>num_ctx</code> (fréquemment 2048 ou 4096), et non à la capacité réelle du modèle, <b>sans émettre d'erreur</b> — des sources sont alors perdues. La valeur est fixée explicitement à 8192.</p></div>
-  </div>
-  <p class="hint">Les défaillances de backend (délai dépassé, connexion, authentification, quota) sont normalisées en <span class="mono">LLMBackendError</span> et traduites par l'API en réponse <b>503</b> ; aucune trace d'exécution n'est exposée à l'utilisateur.</p>
-</section>
-
-<section id="s9">
-  <div class="sec-head"><h2>Version 2 : conversation multi‑tour par condensation</h2></div>
-  <p class="lead">Une question de suivi (« Et comment la demander ? ») est inexploitable isolément : la recherche vectorielle échouerait. La <button class="term" data-term="condensation">condensation</button> reformule le tour en question <b>autonome</b> à partir de l'historique, <em>avant</em> la phase de recherche. L'endpoint <span class="mono">/prepare</span> expose cette reformulation afin d'en afficher un aperçu sous la question.</p>
-  <div class="card">
-    <div class="dlg">
-      <div class="bub u">Qu'est-ce que la césure ?</div>
-      <div class="bub a">La césure est une suspension temporaire des études, d'un ou deux semestres, statut conservé. <span class="cite">[S1]</span></div>
-      <div class="bub u">Et comment la demander ?</div>
-      <div class="cond">↳ compris comme : « Comment demander une césure ? »</div>
-      <div class="bub a">La demande se dépose auprès de la composante, avec l'accord du responsable de formation. <span class="cite">[S1]</span></div>
-    </div>
-  </div>
-  <p class="hint">La V2 demeure rétrocompatible : en l'absence de <span class="mono">history</span>, <span class="mono">/ask</span> reproduit <b>exactement</b> le comportement V1. La reformulation, calculée une seule fois par <span class="mono">/prepare</span>, est réutilisée par <span class="mono">/ask</span> : l'aperçu ne peut donc jamais différer de la requête effectivement recherchée.</p>
-
-  <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Enseignements de l'évaluation conversationnelle <span class="tag">eval · mode conversation</span></p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesure établie sur <span data-stat="conversation.scenarios">3</span> scénarios et <span data-stat="conversation.turns">6</span> tours : taux de rappel de <b><span data-stat="conversation.recall">3/6</span></b>. Une valeur basse, et l'observation la plus instructive de cette page — à condition d'identifier précisément ce qu'elle mesure.</p>
-    <p class="hint" style="margin-top:0">La condensation, quant à elle, <b>fonctionne</b> : le dialogue ci‑dessus est authentique. Le résultat de 3/6 provient de deux causes distinctes, qu'il convient de séparer.</p>
-    <p class="hint" style="margin-top:8px"><b>1 · Une faiblesse réelle de la récupération.</b> Sur la requête relative aux modalités de la césure, les <span data-stat="k_default">5</span> passages remontés proviennent <em>tous</em> de la page d'une seule composante (l'IUT), tandis que la page institutionnelle « La césure à AMU » — celle qui porte la réponse — demeure hors du top‑k. Cause aggravante mesurée : <b><span data-stat="chunk_hygiene.under50_pct">11,7</span> %</b> des entrées de l'index comptent moins de 50 caractères (« FAQ », « Césure », « Bonus » — des fragments de navigation devenus unités indexées), pour une médiane de <span data-stat="chunk_hygiene.median_chars">786</span> caractères. Or un fragment très court, quasi identique à une requête brève, obtient une <button class="term" data-term="cosine">similarité</button> élevée : il occupe une position du top‑k sans apporter d'information.</p>
-    <p class="hint" style="margin-top:8px"><b>2 · Un artefact de la métrique.</b> Un tour annoté comme « répondable » <b>refuse à juste titre</b> — le corpus ne comporte aucune règle de césure propre à la composante Droit — mais un <button class="term" data-term="refus">refus</button> vide les sources par conception. Il est donc comptabilisé mécaniquement comme un échec de rappel, alors qu'il correspond au comportement <em>attendu</em>.</p>
-    <p class="hint" style="margin-top:8px">Le diagnostic initial — « les annotations sont trop strictes » — s'est révélé <b>erroné</b> après examen du contenu réel des fragments. Il est consigné comme tel dans le journal du projet : un jeu de scénarios encore à l'état d'ébauche, et un résultat que l'on choisit d'expliquer plutôt que de dissimuler.</p>
-  </div>
-</section>
-
-<section id="s10">
-  <div class="sec-head"><h2>Pile logicielle du projet</h2></div>
-  <p class="lead">De l'interface API jusqu'au socle d'exécution, chaque couche s'appuie sur la précédente. Cette représentation constitue la carte du dépôt.</p>
-  <div class="card">
-    <div class="layer l-api"><button class="term" data-term="fastapi">FastAPI</button><span><span class="mono">POST /ask · /prepare · /ingest · GET /health</span> et la page de démonstration servie sur <span class="mono">/</span></span></div>
-    <div class="layer l-mid"><button class="term" data-term="pipeline">RagPipeline</button><span>Orchestration : prepare (condensation et réécriture) → récupération des k passages → prompt → génération</span></div>
-    <div class="layer l-mid"><button class="term" data-term="sbert">sentence-transformers</button> + <button class="term" data-term="chromadb">ChromaDB</button><span>Embeddings <button class="term" data-term="e5">e5‑small</button> · base vectorielle cosinus persistante</span></div>
-    <div class="layer l-api"><button class="term" data-term="backend">Ollama · Mistral</button><span>Génération, commutable par la variable <span class="mono">LLM_BACKEND</span></span></div>
-    <div class="layer l-base"><b>Python 3.12 (uv)</b><span>Socle d'exécution · <span data-stat="tests">90</span> tests pytest, dont aucun n'appelle un modèle réel ni le réseau</span></div>
-    <pre class="code"><span class="c"># Une question traitée de bout en bout, en trois lignes</span>
-<span class="k">from</span> assistant_amu.generation.rag <span class="k">import</span> RagPipeline
-
-pipe = RagPipeline.from_settings()
-res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"</span>, k=<span class="s">5</span>)
-<span class="c"># res.answer  -> réponse citant [S1], [S2]…</span>
-<span class="c"># res.sources -> les fragments réellement utilisés (vide en cas de refus)</span></pre>
-  </div>
-  <p class="hint">Un <button class="term" data-term="langchain">portage LangChain</button> du pipeline de requête est disponible sur une branche dédiée, afin de comparer ce que le framework abstrait à ce qu'il coûte en lisibilité et en contrôle. L'équivalence n'est pas postulée mais <b>mesurée</b> : les mêmes <span data-stat="langchain_parity.questions">20</span> questions rejouées dans les deux implémentations, avec la même base vectorielle, le même prompt et le même backend, produisent <b><span data-stat="langchain_parity.refusals">19/20</span></b> de parité sur les refus (dont les 4 questions hors corpus), <span data-stat="langchain_parity.citations">15/20</span> sur les citations, et un recouvrement lexical moyen de <span data-stat="langchain_parity.overlap">0,75</span>. L'unique divergence relève de la <em>génération</em> sur une question limite, non du câblage du pipeline.</p>
-  <p class="hint">Ce que LangChain n'abstrait <b>pas</b>, et qu'il faut implémenter dans tous les cas : la chaîne renvoie une simple chaîne de caractères, là où <span class="mono">/ask</span> doit produire un résultat structuré — sources citées, refus vidant les sources, erreur de backend traduite en <span class="mono">503</span>. Les préfixes <button class="term" data-term="e5">E5</button> restent par ailleurs à la charge du développeur, l'encodeur générique du framework ne les appliquant pas.</p>
+  <div class="chips" id="chips"></div>
+  <p class="tally" id="tally" role="status"></p>
 </section>
 
 </main>
 </div>
 
 <footer>
-  Support pédagogique du projet <b>AssistantAMU</b> · architecture, volumétries et intitulés de corpus réels · scores de similarité et texte des réponses illustratifs, à visée explicative.
-  <div id="updatedStamp" style="margin-top:8px;font-size:12px;opacity:.8"></div>
+  Glossaire du projet <b>AssistantAMU</b> · produit depuis la page pédagogique, qui en est la source.
 </footer>
 
 <!-- DRAWER:START — recopié tel quel par docs/build_glossaire.py -->
@@ -583,130 +348,6 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
 <!-- DRAWER:END -->
 
 <script>
-/* ============================================================================
-   STATS — faits volatils du projet, SOURCE UNIQUE DE VÉRITÉ pour cette page.
-   Ne pas éditer à la main entre les marqueurs STATS:START / STATS:END :
-   éditer docs/concepts.facts.yaml puis lancer `python docs/build_concepts.py`
-   (qui relit aussi config.py + git). Détails : docs/maintenance.md.
-   ============================================================================ */
-/* STATS:START */
-var STATS = {
-  "updated": "2026-07-26",
-  "commit": "e6c6157",
-  "corpus": {
-    "docs": 18,
-    "chunks": 316
-  },
-  "eval_questions": 50,
-  "hard_questions": 25,
-  "k_default": 5,
-  "embedding_model": "intfloat/multilingual-e5-small",
-  "tests": 142,
-  "recall_at_5": {
-    "semantic": 0.86,
-    "bm25": 0.84,
-    "rrf": 0.86
-  },
-  "recall_curve": {
-    "k": [
-      2,
-      3,
-      5,
-      8
-    ],
-    "semantic": [
-      0.8,
-      0.82,
-      0.86,
-      0.86
-    ],
-    "rrf": [
-      0.74,
-      0.82,
-      0.86,
-      0.92
-    ],
-    "bm25": [
-      0.7,
-      0.78,
-      0.84,
-      0.88
-    ]
-  },
-  "embedders": {
-    "e5": {
-      "r3": 0.82,
-      "r5": 0.86,
-      "r8": 0.86
-    },
-    "camembert": {
-      "r3": 0.66,
-      "r5": 0.76,
-      "r8": 0.86
-    },
-    "flaubert": {
-      "r3": 0.68,
-      "r5": 0.76,
-      "r8": 0.86
-    }
-  },
-  "rewrite_hard_recall5": {
-    "raw": 0.72,
-    "strip": 0.88
-  },
-  "contextual": {
-    "context_words": 25,
-    "over_window": 23,
-    "recall": {
-      "hard_semantic3_base": 0.48,
-      "hard_semantic3_ctx": 0.8,
-      "easy_semantic5_base": 0.86,
-      "easy_semantic5_ctx": 0.82,
-      "easy_rrf5_base": 0.86,
-      "easy_rrf5_ctx": 0.94
-    }
-  },
-  "conversation": {
-    "scenarios": 3,
-    "turns": 6,
-    "recall": "3/6"
-  },
-  "chunk_hygiene": {
-    "under50_pct": "11.7",
-    "median_chars": 786
-  },
-  "langchain_parity": {
-    "questions": 20,
-    "refusals": "19/20",
-    "citations": "15/20",
-    "overlap": 0.75
-  },
-  "backends": {
-    "mistral": {
-      "model": "mistral-small-latest",
-      "latency": "~3 s / question",
-      "refusals": "4/4"
-    },
-    "ollama": {
-      "model": "mistral 7B (CPU)",
-      "latency": "> 120 s à num_ctx 8192 · ~190 s en repli 4096/k=3",
-      "refusals": "4/4"
-    }
-  }
-};
-/* STATS:END */
-
-/* ============================================================================
-   GLOSSAIRE — chaque entrée se lit en deux temps :
-     def[]  : le concept en lui-même, indépendamment du projet ;
-     math{} : approfondissement repliable « En savoir plus » (marqué ƒ) ;
-     impl[] : ce qu'AssistantAMU en fait, et le fichier où cela se lit (f).
-
-   Ce bloc est la source unique du glossaire. docs/build_glossaire.py le recopie
-   tel quel entre ses marqueurs pour produire docs/glossaire-assistant-amu.html,
-   qui en dresse la liste complète ; ici, il sert les fiches que les termes du
-   texte ouvrent. Après modification, relancer ce script.
-   ============================================================================ */
 /* GLOSSARY:START */
 var G={
  rag:{t:"RAG",c:"Concept central",
@@ -1020,295 +661,52 @@ document.addEventListener('click',function(e){
 });
 /* DRAWER:END */
 
-document.querySelectorAll('.stage').forEach(function(s){
-  s.addEventListener('click',function(){openTerm(s.getAttribute('data-term'));});
-  s.style.cursor='pointer';
-});
-/* ---------- hero animation : la pile d'indexation ---------- */
-var heroStages=["sources.yaml","download","extract","clean","chunk","« passage: »","e5-small","ChromaDB"];
-document.getElementById('heroTokens').innerHTML=heroStages.map(function(s,i){
-  var arrow=i<heroStages.length-1?'<span class="ar" style="animation-delay:'+(i*180+90)+'ms">→</span>':'';
-  return '<span class="tk" style="animation-delay:'+(i*180)+'ms">'+s+'</span>'+arrow;
+/* ---------- nuage de termes et filtre ----------
+   Le filtre porte sur l'intitulé et sur la catégorie : « évaluation » retrouve
+   ainsi les cinq fiches de cette famille, qu'aucun intitulé ne nomme. La
+   comparaison est faite sans accents ni casse — « requete » trouve « requête ».
+*/
+function fold(s){
+  s=String(s).toLowerCase();
+  return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;
+}
+var KEYS=Object.keys(G);
+document.getElementById('chips').innerHTML=KEYS.map(function(k){
+  return '<button class="chip" data-find="'+fold(G[k].t+' '+G[k].c)
+       + '" onclick="openTerm(\''+k+'\')">'+G[k].t+fx(G[k])+'</button>';
 }).join('');
 
-/* ---------- chunking demo ---------- */
-function approxTokens(t){var w=t.trim().split(/\s+/).filter(Boolean).length;return Math.max(1,Math.round(w*1.3));}
-var PREFIX_TOK=2; // "passage: " ~ 2 tokens
-function splitSentences(t){return t.replace(/\s+/g,' ').trim().match(/[^.!?]+[.!?]*/g)||[t];}
-function chunkText(text,maxTok,overlap){
-  var budget=maxTok-PREFIX_TOK;
-  var sents=splitSentences(text).map(function(s){return s.trim();}).filter(Boolean);
-  var chunks=[],cur=[],curTok=0;
-  for(var i=0;i<sents.length;i++){
-    var st=approxTokens(sents[i]);
-    if(cur.length && curTok+st>budget){
-      chunks.push(cur.slice());
-      // overlap: carry trailing sentences within the overlap budget
-      var tail=[],tt=0;
-      for(var j=cur.length-1;j>=0;j--){var jt=approxTokens(cur[j]);if(tt+jt>overlap)break;tail.unshift(cur[j]);tt+=jt;}
-      cur=tail.slice();curTok=tt;
-    }
-    cur.push(sents[i]);curTok+=st;
-  }
-  if(cur.length)chunks.push(cur);
-  return chunks;
-}
-function renderChunks(){
-  var text=document.getElementById('chunkIn').value;
-  var mt=+document.getElementById('mt').value, ov=+document.getElementById('ov').value;
-  document.getElementById('mtVal').textContent=mt;document.getElementById('ovVal').textContent=ov;
-  if(ov>=mt-PREFIX_TOK)ov=mt-PREFIX_TOK-2;
-  var chunks=chunkText(text,mt,ov);
-  var prevTail=[];
-  var html=chunks.map(function(sents,idx){
-    var overlapSet={};
-    if(idx>0){prevTail.forEach(function(s){overlapSet[s]=1;});}
-    var body=sents.map(function(s){return overlapSet[s]?'<span class="ov">'+s+'</span>':s;}).join(' ');
-    // compute this chunk's tail for the next one
-    var tail=[],tt=0;for(var j=sents.length-1;j>=0;j--){var jt=approxTokens(sents[j]);if(tt+jt>ov)break;tail.unshift(sents[j]);tt+=jt;}
-    prevTail=tail;
-    var full='passage: '+sents.join(' ');
-    return '<div class="chunk"><div class="ch-h"><span>fragment n° '+(idx+1)+'</span><span>'+approxTokens(full)+' tokens, préfixe inclus</span></div>'+
-      '<div class="ch-t"><span class="chip-prefix">passage: </span>'+body+'</div></div>';
-  }).join('');
-  document.getElementById('chunkOut').innerHTML=html;
-}
-document.getElementById('mt').addEventListener('input',renderChunks);
-document.getElementById('ov').addEventListener('input',renderChunks);
-document.getElementById('chunkIn').addEventListener('input',renderChunks);
-renderChunks();
-
-/* ---------- RAG query demo ---------- */
-var DOCS=[
- {t:"La césure à AMU",c:"reglement-scolarite"},
- {t:"Charte des étudiants et stagiaires d'AMU",c:"reglement-scolarite"},
- {t:"Régime spécial d'études (RSE)",c:"reglement-scolarite"},
- {t:"Droit — Régimes spéciaux d'études",c:"composante"},
- {t:"Droits d'inscription et aides financières",c:"guide-etudiant"},
- {t:"ALLSH — Cadrage M3C Master 2025-2026",c:"composante"},
- {t:"Guide de l'inscription administrative en ligne (IA web)",c:"guide-etudiant"}
-];
-var QUERIES=[
- {q:"Comment demander une césure à l'université ?",
-  s:[0.89,0.71,0.34,0.31,0.28,0.22,0.41],
-  a:"La demande de césure se dépose auprès de la composante, avec l'accord du responsable de formation ; l'étudiant suspend ses études pour un ou deux semestres tout en conservant son statut [S1]. Les droits et le cadre de la césure sont rappelés dans la charte des étudiants [S2].",
-  refuse:false},
- {q:"Qu'est-ce que le régime spécial d'études (RSE) ?",
-  s:[0.30,0.38,0.90,0.82,0.33,0.44,0.21],
-  a:"Le régime spécial d'études (RSE) est un aménagement de la scolarité — emploi du temps, modalités de contrôle, dispense d'assiduité — destiné notamment aux étudiants salariés, chargés de famille, en situation de handicap ou sportifs de haut niveau [S1]. Chaque composante en précise les conditions et les pièces à fournir [S2].",
-  refuse:false},
- {q:"Qu'est-ce que la CVEC ?",
-  s:[0.24,0.35,0.29,0.22,0.86,0.31,0.55],
-  a:"La Contribution de vie étudiante et de campus (CVEC) est une contribution obligatoire à régler avant l'inscription administrative ; son attestation est exigée pour finaliser l'inscription [S1]. Le justificatif est demandé lors de l'inscription en ligne (IA web) [S2].",
-  refuse:false},
- {q:"Quelle heure est-il ?",
-  s:[0.12,0.09,0.08,0.10,0.11,0.07,0.09],
-  a:"Je ne trouve pas cette information dans les documents disponibles.",
-  refuse:true}
-];
-function renderDocs(){
-  document.getElementById('docs').innerHTML=DOCS.map(function(d,i){
-    return '<div class="doc" id="doc'+i+'"><div class="head"><div><div class="dt">'+d.t+'</div>'+
-      '<div class="cat">'+d.c+'</div></div><span class="sc">—</span></div>'+
-      '<div class="track"><div class="sbar"></div></div></div>';
-  }).join('');
-}
-renderDocs();
-function ask(qi){
-  var d=QUERIES[qi];
-  var docs=document.querySelectorAll('#docs .doc');
-  var order=d.s.map(function(v,i){return [v,i];}).sort(function(a,b){return b[0]-a[0];});
-  var top=[order[0][1],order[1][1]];
-  document.getElementById('ans').style.display='none';
-  document.getElementById('promptbox').style.display='none';
-  docs.forEach(function(doc,i){
-    doc.classList.remove('hit');
-    doc.querySelector('.sbar').style.width=(d.s[i]*100).toFixed(0)+'%';
-    doc.querySelector('.sc').textContent=d.s[i].toFixed(2);
+var chips=[].slice.call(document.querySelectorAll('#chips .chip'));
+var tally=document.getElementById('tally');
+function filter(){
+  var q=fold(document.getElementById('finder').value.trim());
+  var shown=0;
+  chips.forEach(function(c){
+    var hit=!q||c.getAttribute('data-find').indexOf(q)!==-1;
+    c.hidden=!hit;
+    if(hit)shown++;
   });
-  setTimeout(function(){ if(!d.refuse) top.forEach(function(i){docs[i].classList.add('hit');}); },600);
-  // build the prompt preview
-  setTimeout(function(){
-    var pb=document.getElementById('promptbox');
-    if(d.refuse){
-      pb.innerHTML='<span class="c"># aucun fragment pertinent (scores faibles) — la requête est néanmoins soumise :</span>\n'+
-        '<span class="k">système</span> : répondre EXCLUSIVEMENT d\'après &lt;sources&gt;, sinon refuser littéralement.\n'+
-        '<span class="k">utilisateur</span> : &lt;sources&gt; … &lt;/sources&gt;\n\nQuestion : '+d.q;
-    }else{
-      var s1=DOCS[top[0]], s2=DOCS[top[1]];
-      pb.innerHTML='<span class="k">système</span> : répondre EXCLUSIVEMENT d\'après &lt;sources&gt;, référencer par [S1] / [S2], sinon refuser.\n'+
-        '<span class="k">utilisateur</span> :\n&lt;sources&gt;\n'+
-        '  &lt;source id=<span class="s">"S1"</span> titre=<span class="s">"'+s1.t+'"</span>&gt; … &lt;/source&gt;\n'+
-        '  &lt;source id=<span class="s">"S2"</span> titre=<span class="s">"'+s2.t+'"</span>&gt; … &lt;/source&gt;\n'+
-        '&lt;/sources&gt;\n\nQuestion : '+d.q;
-    }
-    pb.style.display='block';
-  },1000);
-  // answer
-  setTimeout(function(){
-    var ans=document.getElementById('ans'),who=document.getElementById('answho');
-    ans.className='answer'+(d.refuse?' refuse':'');
-    who.textContent=d.refuse?'Refus · information absente du corpus':'Réponse du modèle · ancrée dans les sources';
-    document.getElementById('anstxt').innerHTML=d.a.replace(/\[(S\d+)\]/g,'<span class="cite">$1</span>');
-    ans.style.display='block';
-  },1500);
+  tally.textContent=!q
+    ? shown+' termes'
+    : (shown===0?'Aucun terme ne correspond à « '+document.getElementById('finder').value.trim()+' »'
+                :shown+' terme'+(shown>1?'s':'')+' sur '+chips.length);
 }
+document.getElementById('finder').addEventListener('input',filter);
 
-/* ---------- eval bars (animate) ---------- */
-function animateEval(){
-  document.querySelectorAll('.evalrow .fill').forEach(function(f){
-    f.style.width=f.getAttribute('data-w')+'%';
-  });
+/* Une fiche s'appelle par l'adresse — glossaire-assistant-amu.html#contextuel —
+   ce qui permet à un autre document de renvoyer à un terme précis plutôt qu'au
+   nuage entier. La clé inconnue est ignorée : la page reste celle du nuage. */
+function openFromHash(){
+  var k=decodeURIComponent(location.hash.replace(/^#/,''));
+  if(k&&G[k])openTerm(k);
 }
-var evalDone=false;
-window.addEventListener('scroll',function(){
-  if(evalDone)return;
-  var sec=document.getElementById('s4');
-  if(sec.getBoundingClientRect().top<window.innerHeight*0.8){evalDone=true;animateEval();}
+window.addEventListener('hashchange',openFromHash);
+openFromHash();
+/* Échap vide le champ avant de fermer le tiroir, qui est déjà fermé. */
+document.getElementById('finder').addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&this.value){e.stopPropagation();this.value='';filter();}
 });
-
-/* ---------- STATS -> DOM (source unique de vérité, câblée depuis le bloc STATS) ---------- */
-/* Typographie française : la virgule est le séparateur décimal. */
-function fr(n,d){return n.toFixed(d).replace('.',',');}
-var MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-function dateFr(iso){
-  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');
-  if(!m)return iso;
-  var j=parseInt(m[3],10);
-  return (j===1?'1er':j)+' '+MOIS[parseInt(m[2],10)-1]+' '+m[1];
-}
-/* Chemins STATS portant un score : toujours deux décimales (0,94 · 1,00). */
-var SCORE_PATH=/^(recall_at_5\.|recall_curve\.|embedders\.|rewrite_hard_recall5\.|contextual\.recall\.|langchain_parity\.overlap$)/;
-function fmtStat(v,path){
-  if(typeof v==='number'){
-    if(path&&SCORE_PATH.test(path))return fr(v,2);
-    return Number.isInteger(v)?String(v):fr(v,2);
-  }
-  if(typeof v==='string')return v.replace(/^(\d+)\.(\d+)$/,'$1,$2');
-  return v;
-}
-function resolveStat(path){
-  return path.split('.').reduce(function(o,k){return (o==null)?undefined:o[k];},STATS);
-}
-function applyStats(){
-  document.querySelectorAll('[data-stat]').forEach(function(el){
-    var path=el.getAttribute('data-stat');
-    var v=resolveStat(path);
-    if(v!==undefined&&v!==null)el.textContent=fmtStat(v,path);
-  });
-  [['.f-sem',STATS.recall_at_5.semantic],['.f-bm',STATS.recall_at_5.bm25],['.f-rrf',STATS.recall_at_5.rrf],
-   ['.f-e5',STATS.embedders.e5.r5],['.f-cam',STATS.embedders.camembert.r5],['.f-fla',STATS.embedders.flaubert.r5]].forEach(function(b){
-    var el=document.querySelector(b[0]);if(!el)return;
-    el.setAttribute('data-w',Math.round(b[1]*100));
-    el.textContent=fr(b[1],2);
-  });
-  var stamp=document.getElementById('updatedStamp');
-  if(stamp)stamp.textContent='État du projet au '+dateFr(STATS.updated)+((STATS.commit&&STATS.commit!=='local')?' · commit '+STATS.commit:'');
-}
-applyStats();
-
-/* ---------- recall@k curve (SVG, chiffres réels depuis STATS.recall_curve) ---------- */
-function buildRecallChart(){
-  var el=document.getElementById('recallChart');if(!el)return;
-  var rc=STATS.recall_curve,ks=rc.k;
-  var series=[
-    {name:'sémantique',color:'#143b8f',v:rc.semantic},
-    {name:'RRF',color:'#12836F',v:rc.rrf},
-    {name:'BM25',color:'#8892B0',v:rc.bm25}
-  ];
-  var W=660,H=300,padL=46,padR=118,padT=18,padB=46;
-  var plotW=W-padL-padR,plotH=H-padT-padB;
-  var xi=function(i){return padL+i*(plotW/(ks.length-1));};
-  var yv=function(r){return padT+(1-(r-0.6)/0.4)*plotH;};
-  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">';
-  for(var g=0.6;g<=1.0001;g+=0.1){
-    var y=yv(g);
-    svg+='<line x1="'+padL+'" y1="'+y+'" x2="'+(padL+plotW)+'" y2="'+y+'" stroke="#E1E5F0" stroke-width="1"/>';
-    svg+='<text x="'+(padL-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6B7290">'+fr(g,1)+'</text>';
-  }
-  var bx=xi(2);
-  svg+='<line x1="'+bx+'" y1="'+padT+'" x2="'+bx+'" y2="'+(padT+plotH)+'" stroke="#143b8f" stroke-width="1" stroke-dasharray="4 4" opacity="0.35"/>';
-  svg+='<text x="'+bx+'" y="'+(padT-5)+'" text-anchor="middle" font-size="10.5" fill="#143b8f">k = 5 · valeur retenue</text>';
-  ks.forEach(function(k,i){svg+='<text x="'+xi(i)+'" y="'+(padT+plotH+21)+'" text-anchor="middle" font-size="11.5" fill="#33406B">k = '+k+'</text>';});
-  svg+='<text x="'+(padL+plotW/2)+'" y="'+(H-7)+'" text-anchor="middle" font-size="11" fill="#6B7290">passages récupérés (k)</text>';
-  series.forEach(function(s){
-    var pts=s.v.map(function(r,i){return xi(i)+','+yv(r);}).join(' ');
-    svg+='<polyline points="'+pts+'" fill="none" stroke="'+s.color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-    s.v.forEach(function(r,i){svg+='<circle cx="'+xi(i)+'" cy="'+yv(r)+'" r="3.5" fill="'+s.color+'"/>';});
-    var last=s.v[s.v.length-1];
-    svg+='<text x="'+(xi(ks.length-1)+9)+'" y="'+(yv(last)+4)+'" font-size="12" font-weight="600" fill="'+s.color+'">'+s.name+' '+fr(last,2)+'</text>';
-  });
-  svg+='</svg>';
-  el.innerHTML=svg;
-}
-buildRecallChart();
-
-/* ---------- sidebar : scroll-spy + tiroir mobile ---------- */
-(function(){
-  var links=[].slice.call(document.querySelectorAll('.sidebar a[data-sec]'));
-  var map={};links.forEach(function(a){map[a.getAttribute('data-sec')]=a;});
-  var spy=new IntersectionObserver(function(entries){
-    entries.forEach(function(e){
-      if(e.isIntersecting){
-        links.forEach(function(a){a.classList.remove('active');});
-        var a=map[e.target.id];if(a)a.classList.add('active');
-      }
-    });
-  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
-  document.querySelectorAll('main section[id]').forEach(function(s){spy.observe(s);});
-  var sb=document.getElementById('sidebar'),ov=document.getElementById('sideOverlay'),mb=document.getElementById('menuBtn');
-  function close(){sb.classList.remove('open');ov.classList.remove('show');}
-  if(mb)mb.addEventListener('click',function(){sb.classList.add('open');ov.classList.add('show');});
-  if(ov)ov.addEventListener('click',close);
-  links.forEach(function(a){a.addEventListener('click',close);});
-})();
-
-/* ---------- strip demo (porté de rewrite.py) ---------- */
-var OPENERS=[
- "parle[- ]?moi","parlez[- ]?moi","dis[- ]?moi","dites[- ]?moi",
- "explique[- ]?moi","expliquez[- ]?moi","raconte[- ]?moi","racontez[- ]?moi",
- "montre[- ]?moi","montrez[- ]?moi",
- "donne[- ]?moi(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails|précisions))?",
- "donnez[- ]?moi(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails|précisions))?",
- "j['’]?\\s*aimerais(?:\\s+(?:bien|savoir|en\\s+savoir\\s+plus|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
- "je\\s+voudrais(?:\\s+(?:bien|savoir|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
- "je\\s+souhaite(?:rais)?(?:\\s+(?:savoir|avoir|obtenir))?(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
- "je\\s+cherche(?:\\s+(?:des|quelques)?\\s*(?:informations|infos|renseignements|détails))?",
- "je\\s+veux(?:\\s+savoir)?",
- "peux[- ]?tu(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner|renseigner|indiquer|en\\s+dire\\s+plus))?",
- "pouvez[- ]?vous(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner|renseigner|indiquer))?",
- "pourrais[- ]?tu(?:\\s+m['’]?e?)?(?:\\s+(?:parler|expliquer|dire|donner))?",
- "as[- ]?tu\\s+des\\s+(?:informations|infos)(?:\\s+sur)?",
- "aurais[- ]?tu\\s+des\\s+(?:informations|infos)(?:\\s+sur)?"
-];
-var CONNECTIVE="(?:\\s+(?:sur|concernant|au\\s+sujet\\s+de|à\\s+propos\\s+de|de\\s+la|de\\s+l['’]|de|du|des|d['’]))?";
-var OPENER_RE=new RegExp("^\\s*(?:"+OPENERS.join("|")+")"+CONNECTIVE+"(?:\\s+|$)","i");
-var LEAD_ART_RE=new RegExp("^\\s*(?:les|le|la|l['’]|un|une|des|du|de\\s+la|de\\s+l['’]|de|d['’])\\s+","i");
-function stripQuery(q){
-  var s=q.replace(OPENER_RE,"");
-  if(s===q)return {out:q,changed:false};
-  s=s.replace(LEAD_ART_RE,"");
-  s=s.trim().replace(/^[?.!,;:]+|[?.!,;:]+$/g,"").trim();
-  return {out:s||q,changed:true};
-}
-var STRIP_EX=["Parle-moi des régimes spéciaux",
- "Je voudrais des infos sur le contrôle des connaissances",
- "Peux-tu m'expliquer la césure ?",
- "Qu'est-ce que la CVEC ?"];
-function doStrip(exi){
-  var q= (typeof exi==='number') ? STRIP_EX[exi] : document.getElementById('stripIn').value;
-  document.getElementById('stripIn').value=q;
-  var r=stripQuery(q);
-  document.getElementById('stripBefore').textContent='« '+q+' »';
-  document.getElementById('stripAfter').textContent='« '+r.out+' »';
-  var note=document.getElementById('stripNote');
-  if(r.changed){
-    note.innerHTML='Ouverture conversationnelle supprimée : la requête transmise à la recherche est désormais un groupe nominal factuel, sensiblement plus proche du document pertinent.';
-  }else{
-    note.innerHTML='<span class="identity">Question définitionnelle : aucune ouverture à supprimer, la requête demeure <b>inchangée</b>.</span> C\'est la garantie de non-régression de la stratégie <span class="mono">strip</span>.';
-  }
-}
-doStrip(0);
+filter();
 </script>
 </body>
 </html>

@@ -39,6 +39,21 @@ jobs:
       - name: pytest
         run: uv run --no-sync pytest -q
 
+  glossaire:
+    name: glossaire à jour
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # docs/glossaire-assistant-amu.html est produit depuis la page pédagogique,
+      # qui porte les fiches, et versionné : modifier l'objet `G` sans relancer
+      # le script publierait un glossaire périmé sans que rien ne le signale.
+      # Le script n'emploie que la bibliothèque standard, et — contrairement à
+      # build_concepts.py — n'inscrit dans la page ni date ni SHA de commit :
+      # rien ne la périme d'elle-même, la comparaison est donc utilisable ici.
+      - name: Vérifier que le glossaire suit sa source
+        run: python docs/build_glossaire.py --check
+
   image:
     name: image Docker
     runs-on: ubuntu-latest

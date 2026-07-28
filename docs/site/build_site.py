@@ -127,7 +127,7 @@ API_PAGES = [
 
 # Where the reader situates the set they are reading about.
 API_MAP_LINK = (
-    "Place de cet ensemble dans le dépôt : [Organisation du code et chaînes de "
+    "Place de cet ensemble dans le dépôt : [Architecture et chaînes de "
     "traitement](architecture-assistant-amu.html)."
 )
 
@@ -137,6 +137,7 @@ API_MAP_LINK = (
 STANDALONE_PAGES = [
     DOCS_DIR / "concepts-assistant-amu.html",
     DOCS_DIR / "architecture-assistant-amu.html",
+    DOCS_DIR / "glossaire-assistant-amu.html",
 ]
 
 # Published as pages of the site, content and all: their body becomes the body
@@ -151,12 +152,25 @@ STANDALONE_META = {
         "understand",
         "40",
     ),
+    # "Organisation du code" named only half of what the page shows, and read as
+    # a matter of file layout. "Architecture du système" would have collided with
+    # the section of that name inside the presentation, which the tree lists too.
     "architecture-assistant-amu.html": (
         "architecture-assistant-amu",
-        "Organisation du code et chaînes de traitement",
-        "Organisation du code",
+        "Architecture et chaînes de traitement",
+        "Architecture et traitements",
         "understand",
         "50",
+    ),
+    # Last of its genre: the glossary closes "Comprendre" because it covers the
+    # whole of it — the concepts of the pedagogical page as well as those the
+    # measurements bring in.
+    "glossaire-assistant-amu.html": (
+        "glossaire-assistant-amu",
+        "Glossaire",
+        "Glossaire",
+        "understand",
+        "65",
     ),
 }
 
@@ -165,6 +179,7 @@ STANDALONE_META = {
 LINK_MAP = {
     "docs/concepts-assistant-amu.html": "concepts-assistant-amu.html",
     "docs/architecture-assistant-amu.html": "architecture-assistant-amu.html",
+    "docs/glossaire-assistant-amu.html": "glossaire-assistant-amu.html",
     "docs/mesures.md": "mesures.html",
     "DEMO.md": "demonstration.html",
     "README.md": "presentation.html",
@@ -185,6 +200,12 @@ _INLINE_MARKS = re.compile(r"[`*]")
 
 # The section list of a standalone page, read from the sidebar it already has.
 _STANDALONE_ENTRY = re.compile(r'<a href="#(?P<id>[^"]+)" data-sec="[^"]*">(?P<label>[^<]+)</a>')
+
+# The rank a standalone page prints beside its own section titles. It numbers a
+# reading order inside one page, which the site tree does not show: there, the
+# entry sits under its page among the entries of other pages, and a leading "07"
+# would be read as a rank in the tree rather than in the page.
+_SECTION_RANK = re.compile(r"^\s*\d+\s*[·.\-–—]\s*")
 
 # Filled while staging, written next to this script and read back by
 # pelicanconf.py: the templates need the sections of *every* page to draw the
@@ -279,7 +300,7 @@ def stage_standalone_pages() -> None:
         # Their sections come from the summary they carry, so the site tree and
         # the page can never list different things.
         NAV_SECTIONS[slug] = [
-            {"id": match.group("id"), "label": match.group("label").strip()}
+            {"id": match.group("id"), "label": _SECTION_RANK.sub("", match.group("label")).strip()}
             for match in _STANDALONE_ENTRY.finditer(html)
         ]
 

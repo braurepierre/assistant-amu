@@ -9,8 +9,9 @@ n'est pas publié sur le site.
 
 `concepts-assistant-amu.html` est une page autonome (aucun serveur, aucune étape
 de build) qui explique ce que fait AssistantAMU, brique par brique,
-avec des démonstrations manipulables (chunking, requête RAG, réécriture) et un
-glossaire relié aux fichiers du code. Elle s'ouvre directement dans un navigateur.
+avec des démonstrations manipulables (chunking, requête RAG, réécriture). Chaque
+terme souligné en pointillé y ouvre sa fiche de glossaire. Elle s'ouvre
+directement dans un navigateur.
 
 Deux ressources sont chargées depuis un CDN — les polices et **KaTeX**, qui
 compose les formules des blocs « En savoir plus ». Hors ligne, la page reste
@@ -20,7 +21,7 @@ entièrement lisible : les formules retombent sur leur source TeX en monospace
 > Support pédagogique / de présentation — **hors périmètre produit**.
 > Aucune dépendance runtime, non branché dans l'application.
 
-## Organisation du code et chaînes de traitement
+## Architecture et chaînes de traitement
 
 `architecture-assistant-amu.html` répond à une autre question que la page
 pédagogique : non pas ce qu'est un système RAG, mais comment ce dépôt est
@@ -46,6 +47,38 @@ Cette page ne porte **aucun chiffre de mesure** : elle n'a donc pas de bloc
 changement de structure — un module déplacé, une dépendance ajoutée, une
 responsabilité transférée d'une classe à une autre.
 
+## Glossaire
+
+`glossaire-assistant-amu.html` réunit les fiches de toute la rubrique
+« Comprendre » — celles des concepts du RAG comme celles qu'introduisent les
+mesures — en un nuage que filtre un champ de recherche. Le filtre porte sur
+l'intitulé **et** sur la catégorie, sans accents ni casse : « evaluation »
+retrouve les sept fiches de cette famille, qu'aucun intitulé ne nomme.
+
+**Cette page est produite, non rédigée.** Les fiches vivent dans
+`concepts-assistant-amu.html`, où elles servent les termes soulignés du texte.
+Deux copies dériveraient ; un fichier `.js` partagé coûterait aux deux pages ce
+qui fait leur intérêt — être un fichier qui s'ouvre dans un navigateur, sans
+serveur. `docs/build_glossaire.py` recopie donc **verbatim**, entre marqueurs,
+quatre régions de la page pédagogique :
+
+| Région | Marqueurs | Raison |
+| :--- | :--- | :--- |
+| Feuille de style | `<style>` … `</style>`, en entier | Les deux pages ne peuvent pas diverger d'aspect ; les règles inutilisées ne coûtent rien |
+| Balisage du tiroir | `<!-- DRAWER:START -->` … `:END` | Une fiche s'ouvre de la même façon des deux côtés |
+| Fiches | `/* GLOSSARY:START */` … `:END` | L'objet `G`, source unique |
+| Script du tiroir | `/* DRAWER:START */` … `:END` | `openTerm`, `renderMath`, `toggleDeep` |
+
+Le script n'écrit lui-même que ce que la page de glossaire a et que l'autre n'a
+pas : sa bannière, son chapeau, le champ de recherche et le nuage.
+
+```bash
+python docs/build_glossaire.py            # écrire la page
+python docs/build_glossaire.py --check    # sortie 1 si elle est périmée
+```
+
+Un marqueur supprimé à la main arrête le script au lieu de produire une demi-page.
+
 ## Site de documentation
 
 `site/` construit un site à partir des documents qui existent déjà dans le
@@ -67,10 +100,11 @@ adresse sur le site ou vers le dépôt quand la cible n'est pas publiée — pui
 lance Pelican. Les deux répertoires produits, `content/` et `output/`, ne sont
 pas versionnés : ils sont reconstruits à chaque appel.
 
-**Intégration des pages autonomes.** Elles ne sont plus des pages à part : leur
-**contenu** devient le corps d'une page du site, avec le bandeau, le sommaire en
-arbre, le sommaire de page et la navigation précédent/suivant comme toutes les
-autres. Le lecteur ne quitte plus le site pour les lire, et la vue ne change pas.
+**Intégration des pages autonomes.** Les trois — page pédagogique, organisation
+du code, glossaire — ne sont plus des pages à part : leur **contenu** devient le
+corps d'une page du site, avec le bandeau, le sommaire du genre, le sommaire de
+page et la navigation précédent/suivant comme toutes les autres. Le lecteur ne
+quitte plus le site pour les lire, et la vue ne change pas.
 
 Le travail est fait par `docs/site/embed.py`, à la mise en scène :
 
@@ -87,28 +121,39 @@ plus tard à ces pages ne peut pas s'échapper sur l'habillage du site.
 **Les fichiers sources ne sont pas modifiés.** Ouverts directement depuis
 `docs/`, ils restent des pages autonomes — un fichier, aucun serveur.
 
+**Le rang que ces pages impriment devant leurs propres titres de section est
+retiré du sommaire du site** (`_SECTION_RANK` dans `build_site.py`). Il numérote
+un ordre de lecture *à l'intérieur* d'une page ; dans l'arbre, l'entrée voisine
+celles d'autres pages, et un « 07 » de tête s'y lirait comme un rang de l'arbre.
+
 **Ce qu'il faut vérifier après une modification de ces pages** : que la bannière,
 le tiroir du glossaire, les formules KaTeX et les schémas Cytoscape fonctionnent
 toujours dans la page publiée. Un sélecteur d'élément nu ajouté à leur feuille de
 style est confiné sans risque ; en revanche, un script qui interrogerait un
 élément du bandeau du site échouerait, ces deux mondes restant distincts.
 
-**Rangement par genre documentaire.** Le sommaire classe d'abord les pages par
-ce que le lecteur vient faire, et non par sujet : « Prise en main » (présentation,
+**Rangement par genre documentaire.** Le site classe d'abord les pages par ce que
+le lecteur vient faire, et non par sujet : « Prise en main » (présentation,
 démonstration), « Comprendre » (page pédagogique, organisation du code, mesures),
-« Référence d'API ». L'accueil reste hors groupe.
+« Référence d'API ». « Accueil » est un genre à lui seul, qui ne contient que le
+point d'entrée.
 
-Les groupes sont déclarés dans `NAV_GROUPS` (`docs/site/pelicanconf.py`), qui
-fixe leur ordre, leur intitulé et leur état d'ouverture ; chaque page porte sa
-clé de groupe et son rang dans `PROSE_PAGES`, `STANDALONE_META` ou `API_PAGES`
-(`docs/site/build_site.py`). Le rang `nav_order` est **global, non par groupe** :
-le gabarit aplatit les groupes dans l'ordre de `NAV_GROUPS` pour en tirer la
-navigation précédent/suivant, si bien que l'ordre de lecture proposé est par
-construction celui qu'affiche l'arbre. Ajouter un groupe demande une ligne dans
-`NAV_GROUPS` et sa clé sur les pages concernées ; un groupe vide n'est pas
-dessiné, et un groupe sans intitulé est rendu comme une liste simple.
+**Les genres sont les onglets du bandeau, et le sommaire ne liste que l'onglet
+ouvert.** L'onglet mène à la première page de son genre, celle que son rang place
+en tête : le lecteur n'est jamais déposé au milieu. Un genre dont le sommaire
+tiendrait en une seule entrée est dessiné sans sommaire du tout — c'est le cas de
+l'accueil, où le texte occupe alors toute la largeur.
 
-**Sommaire du site en arbre.** Toutes les pages, et pas seulement les deux
+Les genres sont déclarés dans `NAV_GROUPS` (`docs/site/pelicanconf.py`), qui fixe
+leur ordre et leur intitulé ; chaque page porte sa clé de genre et son rang dans
+`PROSE_PAGES`, `STANDALONE_META` ou `API_PAGES` (`docs/site/build_site.py`). Le
+rang `nav_order` est **global, non par genre** : le gabarit aplatit les genres
+dans l'ordre de `NAV_GROUPS` pour en tirer la navigation précédent/suivant, qui
+**traverse donc les onglets** — l'ordre de lecture proposé reste continu d'un
+bout à l'autre du site. Ajouter un genre demande une ligne dans `NAV_GROUPS` et
+sa clé sur les pages concernées ; un genre vide n'est pas dessiné.
+
+**Sommaire du genre en arbre.** Toutes les pages, et pas seulement les deux
 autonomes, sont des rubriques dépliables sur leurs titres de second niveau. Les
 sections sont relevées à la mise en scène par `collect_sections`, qui applique la
 **fonction `slugify` de l'extension `toc`** — celle-là même que Markdown emploie
@@ -135,21 +180,24 @@ comportements, sans dépendance ni étape de construction :
 
 | Fonction | Détail |
 | :--- | :--- |
-| Sommaire du site rétractable | Bouton du bandeau ; préférence conservée sous la clé `amu.nav`. Sous 56 rem, le sommaire devient un tiroir refermé par défaut, par le voile ou par la touche Échap |
-| Groupes du sommaire rétractables | Chaque groupe se replie d'un bloc, pour que le reste de l'arbre reste visible. « Référence d'API » s'ouvre replié — cinq pages qui chasseraient le reste — les autres ouverts. Le groupe de la page courante est ouvert d'office ; les autres suivent le dernier choix du lecteur, dans les deux sens (clé `amu.group.groupe-<clé du groupe>`) |
+| Hauteur du bandeau | Mesurée et reportée dans `--topbar`, dont tout ce qui colle sous la barre tire sa position. La valeur déclarée dans la feuille est celle d'un bandeau sur une ligne ; sous 56 rem les onglets en prennent une seconde et la barre grandit |
+| Sommaire du genre rétractable | Bouton posé dans la page à l'aplomb du sommaire, collant au défilement ; préférence conservée sous la clé `amu.nav`. Sous 56 rem, le sommaire devient un tiroir refermé par défaut, par le bouton, par le voile ou par la touche Échap |
 | Sommaire de la page | Construit à partir des `h2`/`h3`, rétractable (clé `amu.toc`), avec suivi de la position de lecture. Omis en dessous de trois titres, masqué sous 78 rem. **Un titre qui n'est qu'une signature de fonction en est écarté** : sur une page d'API, les lister toutes reproduirait la page au lieu de la résumer — modules et classes en portent la structure, les fonctions se lisent à l'intérieur |
 | Copie des blocs de code | Bouton révélé au survol de chaque bloc. Hors contexte sécurisé, repli sur `execCommand` |
 | Ancres de titre | Rendues à la construction par l'extension `toc` de Markdown, pas par le script |
 
-Ce qui subsiste sans JavaScript : le sommaire du site déployé, les ancres de
-titre, la navigation précédent/suivant — rendue par le gabarit à partir de
-`nav_order` — et la totalité du texte. Seuls disparaissent le sommaire de page,
-qui n'apparaît alors pas plutôt que d'apparaître vide, et les boutons de copie.
+Ce qui subsiste sans JavaScript : les onglets du bandeau et le sommaire du genre,
+tous deux rendus à la construction, les ancres de titre, la navigation
+précédent/suivant — rendue par le gabarit à partir de `nav_order` — et la
+totalité du texte. Seuls disparaissent le sommaire de page, qui n'apparaît alors
+pas plutôt que d'apparaître vide, et les boutons de copie ; sous 56 rem, le
+tiroir s'ouvre alors quelques pixels trop haut, la hauteur du bandeau n'étant
+plus mesurée.
 
-Le site n'a pas de recherche : il compte onze pages, toutes visibles
-simultanément dans le sommaire.
+Le site n'a pas de recherche : il compte onze pages, dont l'accueil donne le
+tableau complet, et aucun genre n'en dépasse cinq.
 
-**Référence d'API.** Ses cinq rubriques portent **les noms que la page « Organisation du code et
+**Référence d'API.** Ses cinq rubriques portent **les noms que la page « Architecture et
 chaînes de traitement » donne aux cinq ensembles** du dépôt — socle commun, ingestion du corpus,
 recherche des passages, génération de la réponse, interface HTTP. Un lecteur qui
 a vu la carte doit retrouver les mêmes intitulés ici ; renommer d'un côté oblige
@@ -197,7 +245,42 @@ surfaces suppose de reporter le changement sur l'autre.
 | Titres, texte, code | *Sora*, *Public Sans*, *IBM Plex Mono* |
 
 Le bandeau reprend celui des pages autonomes : fond bleu, marque `amU` en pastille
-blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet.
+blanche, filet jaune en fermeture. Le jaune ne sert qu'à ce filet — l'onglet
+ouvert est souligné de blanc, à l'intérieur de la barre. Le bandeau porte le nom
+du site, les onglets de genre, le sous-titre, et la marque GitHub qui renvoie au
+dépôt — seul endroit où le site nomme son source, raison pour laquelle le sommaire
+ne porte plus de rubrique « Dépôt ». La marque garde un `title` et un libellé hors
+écran : une icône seule ne dit rien à un lecteur d'écran.
+
+**Sous 56 rem, le bandeau tient sur deux lignes** : le nom et la marque GitHub,
+puis les onglets, qui défilent latéralement plutôt que de passer à la ligne. Le
+sous-titre est retiré — une troisième ligne de barre prendrait l'écran que le
+texte réclame, et la page dit ce qu'est le site.
+
+**Les icônes sont dessinées, non composées.** Le bouton du sommaire et le chevron
+des trois sommaires — groupe, rubrique, page — sont des `svg` en ligne, tracés en
+`currentColor` : un caractère `▸` ou `☰` serait rendu par la police que le système
+substitue, à une taille et une graisse que la page ne contrôle pas. Le chevron est
+un seul dessin, pointé à droite quand ce qu'il ouvre est replié et tourné d'un
+quart de tour quand il est ouvert.
+
+**Le bouton du sommaire est dans la page, non dans le bandeau.** Il commande la
+surface de lecture ; le bandeau nomme le site et ne le commande pas. Il se tient
+donc dans la gouttière entre l'arbre et le texte, à hauteur de la première ligne,
+et colle au défilement — l'arbre se reprend à n'importe quel endroit d'une page
+longue. Sommaire replié, l'arbre quitte sa colonne et le bouton en prend la place
+au bord gauche, là où le lecteur vient de le voir. Le gabarit l'écrit **avant**
+le sommaire et la feuille de style ordonne les quatre colonnes (`order`) : au
+clavier, on l'atteint sans traverser l'arbre entier.
+
+**Coloration des blocs de code.** L'extension `codehilite` pose les classes de
+Pygments ; la feuille du site n'habille que ce qui porte du sens — commentaire,
+chaîne, mot-clé, littéral — sous quatre variables propres au site : `--code-comment`
+`#6B7290`, `--code-string` `#17624A`, `--code-keyword` `#143b8f`, `--code-literal`
+`#8A4B12`. Ponctuation et noms ordinaires gardent la couleur du texte. La classe
+`err`, que Pygments pose sur ce que son analyseur n'attendait pas — un fragment de
+commande coupé —, est neutralisée : c'est du texte lisible, non une faute à
+signaler.
 
 Les polices sont chargées depuis le même CDN par les deux surfaces, ce qui leur
 fait partager une entrée de cache, avec repli sur la pile système : hors ligne,
@@ -264,8 +347,12 @@ cohérent avec le reste de la page :
 2. **Sidebar** — ajouter `<a href="#sN" data-sec="sN">N · Titre</a>` dans le bon
    groupe. Le surlignage au défilement (scroll-spy) s'en charge automatiquement.
 3. **Glossaire** — si la rubrique introduit un terme, ajouter une entrée dans
-   l'objet `G` ; elle apparaît automatiquement dans la puce du glossaire et dans
-   les renvois « Termes liés ». Chaque fiche se lit en deux temps :
+   l'objet `G`, entre les marqueurs `GLOSSARY`. Elle apparaît d'elle-même dans
+   les renvois « Termes liés » ; **relancer ensuite `python
+   docs/build_glossaire.py`** pour qu'elle rejoigne le nuage de la page de
+   glossaire. La même règle vaut pour un terme qu'introduisent les mesures et
+   non cette page : `G` couvre la rubrique « Comprendre » entière. Chaque fiche
+   se lit en deux temps :
 
    | champ | rôle |
    | --- | --- |
