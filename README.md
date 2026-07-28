@@ -134,7 +134,7 @@ docker compose run --rm api python -m assistant_amu.ingestion index
 ```
 
 Le backend LLM n'est pas conteneurisé : il est soit externe (API Mistral), soit installé sur la machine hôte, que le conteneur atteint par `host.docker.internal` (embarquer Ollama et ses modèles ajouterait plusieurs gigaoctets à l'image). Renseigner `MISTRAL_API_KEY` pour l'API, ou laisser le backend `ollama` par défaut si une instance est active sur l'hôte. L'intégration continue (`.github/workflows/ci.yml`) exécute la suite de tests, construit cette même image et interroge son point de contrôle `/health`.
-
+TROP LONG
 ### Construction du site de documentation
 
 ```bash
@@ -145,7 +145,7 @@ uv run --no-project --with-requirements docs/site/requirements.txt \
 Le site compose les documents existants du dépôt. Procédure détaillée : [`docs/maintenance.md`](docs/maintenance.md).
 
 ---
-
+DOUBLON DOCUMENTATION ?
 ## Contrats d'interface API
 
 | Point d'entrée | Méthode | Description | Réponses / Codes HTTP |
@@ -160,11 +160,13 @@ La recherche multi-tour procède par condensation de requête ; en l'absence d'h
 
 ## Métriques et évaluation
 
-Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équivalent au *context recall* du framework RAGAS) selon trois stratégies de recherche : sémantique, lexicale (BM25) et hybride (RRF). Un rapport Markdown daté est généré dans `eval/reports/` à chaque exécution.
+Le harnais d'évaluation mesure le taux de rappel (**recall@k**, indicateur équivalent au *context recall* du framework RAGAS) selon trois stratégies de recherche : sémantique, lexicale (BM25) et hybride (RRF).
 
-Résultat de référence : **0,86 de rappel sémantique à k = 5**, sur un corpus de 18 documents et 316 fragments interrogé par 50 questions d'évaluation. Cinq études complètent cette référence — courbe recall@k et fusion RRF, comparaison des modèles d'embeddings, contextualisation de l'index, réécriture de requête, sensibilité à la taille du corpus — ainsi que les latences et le taux de refus hors-corpus.
+Résultat de référence : **0,86 de rappel sémantique à k = 5**, sur un corpus de 18 documents et 316 fragments interrogé par 50 questions d'évaluation. 
 
-La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés sans être intégrés au pipeline `/ask`, qui reste purement sémantique.
+Cinq études complètent cette référence — courbe recall@k et fusion RRF, comparaison des modèles d'embeddings, contextualisation de l'index, réécriture de requête, sensibilité à la taille du corpus — ainsi que les latences et le taux de refus hors-corpus.
+
+La fusion RRF, la réécriture de requête et le *Contextual Retrieval* sont mesurés sans être intégrés au pipeline `/ask`.
 
 > Chiffres complets, tables par question, limites et diagnostics : **[`docs/mesures.md`](docs/mesures.md)**. Rapports bruts datés : `eval/reports/`.
 
@@ -187,13 +189,13 @@ Deux travaux comparatifs sont conduits hors de la branche principale ; aucun n'e
 
 ### Portage LangChain — branche `langchain-port`
 
-Réimplémentation du pipeline de requête avec LangChain (LCEL), à des fins d'analyse comparative des abstractions apportées par le framework. `eval/compare_pipelines.py` rejoue le même jeu de questions dans les deux implémentations, à collection ChromaDB, prompt système et backend identiques : **parité des refus de 19/20** (`mistral-small-latest`, k = 5, 20 questions), l'unique divergence venant de la génération et non de l'agencement du pipeline.
+Réimplémentation du pipeline de requête avec LangChain (LCEL), à des fins d'analyse comparative des abstractions apportées par le framework. `eval/compare_pipelines.py` rejoue le même jeu de questions dans les deux implémentations.
 
 Analyse des limites de l'abstraction : README de la branche `langchain-port`.
 
 ### Comparaison avec AnythingLLM — branche `worktree-compare-anythingllm`
 
-Le pipeline est confronté à **AnythingLLM v1.15.0** en déploiement Docker par défaut, à corpus identique et backend LLM constant des deux côtés : **4/4 refus contre 1/4** sur les questions hors-corpus, **14/16 réponses correctes et ancrées contre 0/16** sur les questions répondables (jeu de 20 questions et corpus antérieurs à la référence ci-dessus).
+Le pipeline est confronté à **AnythingLLM v1.15.0** en déploiement Docker par défaut, à corpus et backend LLM identique : **4/4 refus contre 1/4** sur les questions hors-corpus, **14/16 réponses correctes et ancrées contre 0/16** sur les questions répondables (jeu de 20 questions et corpus antérieurs à la référence ci-dessus).
 
 Deux réserves bornent ces chiffres. Les deux réglages par défaut du produit tiers dont la correction a été testée ne comblent pas l'écart. Le workspace du produit tiers contenait chaque source en double — défaut du harnais de ce dépôt — ce qui ramenait sa profondeur de recherche effective de 4 à 2, sans que la mesure ait été rejouée à profondeur corrigée. La mesure porte sur la configuration par défaut du produit, non sur son plafond de capacité.
 
