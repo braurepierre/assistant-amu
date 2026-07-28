@@ -47,8 +47,6 @@ textarea{resize:vertical;line-height:1.55}
 #topbar .repo{margin-left:auto;font-size:12px;color:#B9C6EE}
 .menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font-size:16px;line-height:1;padding:5px 11px;border-radius:7px;cursor:pointer}
 .menu-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
-.logo{background:#fff;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.4px;padding:3px 7px;border-radius:5px}
-.logo b{color:var(--blue)}
 
 /* --- Doc layout : sidebar + content --- */
 .layout{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start}
@@ -275,7 +273,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 <body>
 
 <div id="topbar">
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — glossaire</span>
+  <span class="brand">AssistantAMU — glossaire</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 
@@ -329,7 +327,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
       <div id="dDef"></div>
       <div class="deep" id="dDeep" style="display:none">
         <button class="deep-toggle" onclick="toggleDeep()" aria-expanded="false" aria-controls="dDeepBody">
-          <span class="lead-ic"><span class="fx">ƒ</span> En savoir plus — les maths</span>
+          <span class="lead-ic"><span class="fx">ƒ</span> En savoir plus — approfondissement mathématique</span>
           <span class="chev">▾</span>
         </button>
         <div class="deep-body" id="dDeepBody"><div class="deep-inner" id="dDeepInner"></div></div>
@@ -374,7 +372,7 @@ var G={
    note:"Les vecteurs sont ici normalisés (‖v‖ = 1) : ils se répartissent sur la sphère unité, où la comparaison de deux textes se réduit à un simple produit scalaire.",
    h1:"Exemple chiffré",
    worked:"<span class='cm'># embedding de dimension d = 4 (jouet ; 384 en réalité)</span>\n\"césure\"          → [ 0.82,  0.11, -0.30,  0.45]\n\"année de pause\"  → [ 0.79,  0.15, -0.26,  0.51]  <span class='hl'># très proche</span>\n\"restauration\"    → [-0.12,  0.66,  0.40, -0.08]  <span class='cm'># éloigné</span>",
-   h2:"Pourquoi cela fonctionne",
+   h2:"Fondement de la propriété",
    p2:"Le modèle est entraîné de sorte que des textes apparaissant dans des contextes similaires reçoivent des vecteurs similaires. La distance géométrique reflète alors la parenté de sens, et l'on peut rechercher, classer ou regrouper par de simples opérations vectorielles."},
   impl:["384 dimensions dans ce projet (e5-small). L'ensemble des encodages transite par une classe unique <code>Embedder</code> : questions et passages y sont encodés avec le préfixe approprié, puis normalisés.","La normalisation n'est pas cosmétique : elle rend la similarité cosinus équivalente au produit scalaire et les scores comparables d'une requête à l'autre."],
   r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
@@ -384,7 +382,7 @@ var G={
   r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
  camembert:{t:"CamemBERT et FlauBERT",c:"Modèles d'embedding",
   def:["Les deux principaux modèles de langue entraînés <em>spécifiquement</em> sur le français, là où e5 est multilingue. CamemBERT dérive de l'architecture RoBERTa, FlauBERT de BERT ; tous deux ont été pré-entraînés sur de vastes corpus francophones.","Ils sont employés ici dans leurs variantes affinées pour la <b>similarité de phrases</b> (approche <button class=\"term\" data-term=\"sbert\">SBERT</button>) : <code>sentence-camembert-base</code> et une variante <em>uncased</em> de FlauBERT. Tous deux produisent des vecteurs de 768 dimensions, contre 384 pour e5-small."],
-  impl:["Mesurés face à e5 sur les mêmes fragments et les mêmes questions : CamemBERT fait jeu égal à k = 5 et récupère la totalité des passages attendus à k = 8 ; FlauBERT décroche sur les sigles (CVEC, RSE).","Point d'attention : s'agissant de modèles <b>non-E5</b>, la table par famille ne leur applique <b>aucun préfixe</b> — en ajouter un dégraderait la mesure."],
+  impl:["Mesurés face à e5 sur les mêmes fragments et les mêmes questions. Sur le jeu de 16 questions, CamemBERT faisait jeu égal à k = 5 et récupérait la totalité des passages attendus à k = 8 ; sur le jeu de 50 questions, e5 mène à k = 3 comme à k = 5. FlauBERT décroche sur les sigles (CVEC, RSE).","Point d'attention : s'agissant de modèles <b>non-E5</b>, la table par famille ne leur applique <b>aucun préfixe</b> — en ajouter un dégraderait la mesure."],
   r:["e5","embedding","sbert","recall"],f:"eval/embedder_comparison.py"},
  cosine:{t:"Similarité cosinus",c:"Recherche sémantique",
   def:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, compris entre -1 et 1 ; une valeur proche de 1 traduit une forte proximité de sens. C'est la métrique standard de comparaison des embeddings.","Sa propriété déterminante est l'indifférence à la norme des vecteurs, donc à la longueur des textes comparés : un résumé et le document dont il est tiré demeurent proches."],
@@ -393,7 +391,7 @@ var G={
    note:"Trois valeurs de référence : 1 = même direction, 0 = vecteurs orthogonaux (sans rapport), -1 = directions opposées. Sur des vecteurs normalisés, le dénominateur vaut 1 et la similarité se réduit au seul produit scalaire.",
    h1:"Exemple chiffré",
    worked:"a = [1, 2, 3]     <span class='cm'># « congé maternité »</span>\nb = [2, 4, 6]     <span class='cm'># « droits parentaux »</span>\n\nproduit scalaire  a·b = 1·2 + 2·4 + 3·6 = <span class='hl'>28</span>\nnorme ‖a‖ = √(1+4+9)   = √14 ≈ 3.742\nnorme ‖b‖ = √(4+16+36) = √56 ≈ 7.483\n\ncos θ = 28 / (3.742 × 7.483) = <span class='hl'>1.0</span>\n<span class='cm'># colinéaires → même sens, malgré des valeurs différentes</span>",
-   h2:"Pourquoi le cosinus plutôt que la distance euclidienne",
+   h2:"Cosinus plutôt que distance euclidienne",
    p2:"La distance euclidienne croît avec la norme des vecteurs, elle-même corrélée à la longueur du texte : un fragment long s'en trouverait systématiquement pénalisé. Le cosinus ne considère que la direction, c'est-à-dire le sens."},
   impl:["Contrainte n° 2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>.","Le score exposé à l'utilisateur vaut <code>1 - distance</code>, ramené dans l'intervalle [0, 1]."],
   r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
@@ -408,7 +406,7 @@ var G={
    note:"Cette raréfaction exponentielle est ce qui rend la descente logarithmique : à chaque couche, le nombre de candidats à examiner demeure borné, quel que soit le nombre total de vecteurs.",
    h1:"Coût de la recherche",
    worked:"couche 2   ●───────────────●            <span class='cm'># quelques nœuds — grands sauts</span>\n                 ↓\ncouche 1   ●───●───────●───●            <span class='cm'># raffinement</span>\n                     ↓\ncouche 0   ●─●─●─●─●─●─●─●─●─●          <span class='cm'># tous les vecteurs</span>\n                     <span class='hl'>↑ k voisins retenus</span>\n\ncomplexité ≈ O(log N)  au lieu de O(N) pour un balayage exhaustif",
-   h2:"Ce que l'on perd",
+   h2:"Contrepartie de l'approximation",
    p2:"La recherche est <em>approximative</em> : rien ne garantit que les k voisins retournés soient exactement les k plus proches. Sur un corpus de quelques centaines de fragments l'écart est nul en pratique ; il ne devient un paramètre à surveiller qu'à grande échelle."},
   impl:["C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où la contrainte cosinus / L2.","À l'échelle du corpus, l'index ne constitue pas un enjeu de performance. Il retient l'attention pour une autre raison : sa métrique se déclare à la création de la collection, jamais après."],
   r:["cosine","chromadb"]},
@@ -419,7 +417,7 @@ var G={
    note:"Le pas d'avancement dans le document n'est pas B mais B − O : c'est le prix du chevauchement, qui accroît le nombre de fragments et donc le volume indexé.",
    h1:"Exemple chiffré",
    worked:"B = 500 tokens (préfixe inclus)   O = 50 tokens\n« passage: » ≈ 2 tokens           <span class='cm'># décompté du budget</span>\n\nB_utile = 500 - 2   = <span class='hl'>498</span>\npas     = 498 - 50  = 448 tokens\n\ndocument de 3 000 tokens\n→ ⌈(3000 - 50) / 448⌉ = <span class='hl'>7 fragments</span>\n→ marge conservée sous les 512 tokens du modèle",
-   h2:"Pourquoi 500 et non 512",
+   h2:"Budget de 500 pour un plafond de 512",
    p2:"e5-small tronque silencieusement au-delà de 512 tokens. Le budget est fixé en deçà afin qu'aucun fragment, préfixe compris, n'atteigne ce plafond : la marge est délibérée, et non le produit d'un arrondi."},
   impl:["Implémentation retenue : segmentation sur les frontières de paragraphes puis de phrases, budget strict de <b>500 tokens préfixe inclus</b>, sans jamais couper au milieu d'une phrase (sauf phrase exceptionnellement longue, découpée en dernier recours).","Un <b>chevauchement</b> de 50 tokens reprend la fin d'un fragment au début du suivant afin de ne pas rompre une idée à la jointure. Les blocs partageant le même couple (page, section) sont fusionnés avant découpe."],
   r:["e5","tokenizer","embedding","extract"],f:"ingestion/chunk.py"},
@@ -430,7 +428,7 @@ var G={
    note:"Ordre de grandeur, et non identité : un token vaut environ 3 à 4 caractères en français. Les mots courants comptent pour un seul token, tandis que les sigles et les termes rares se fragmentent davantage.",
    h1:"Exemple chiffré",
    worked:"\"anticonstitutionnellement\"\n→ [anti, constitution, nelle, ment]    <span class='hl'>4 tokens pour 1 mot</span>\n\n\"la césure est un dispositif\"\n→ [la, césure, est, un, dispositif]    <span class='cm'>5 tokens pour 5 mots</span>\n\nfragment de 500 tokens ≈ 385 mots ≈ 1 750 caractères",
-   h2:"Pourquoi mesurer plutôt qu'estimer",
+   h2:"Mesure plutôt qu'estimation",
    p2:"Un budget calculé sur l'approximation ci-dessus dérive sur les documents riches en sigles et en références réglementaires — précisément ceux du corpus. Le dépassement du plafond de 512 tokens étant silencieux, l'erreur ne se verrait pas."},
   impl:["Le découpage en fragments calcule ses budgets à l'aide du <b>véritable</b> tokenizer d'e5-small (via <code>transformers.AutoTokenizer</code>) et non d'une approximation, le modèle tronquant au-delà de 512 tokens."],
   r:["e5","chunking","embedding"],f:"ingestion/chunk.py"},
@@ -457,7 +455,7 @@ var G={
    note:"Le coût en tokens du prompt croît linéairement avec k : k fragments d'au plus B tokens, auxquels s'ajoutent les instructions système et la question.",
    h1:"Exemple chiffré",
    worked:"question : « Comment demander une césure à l'université ? »\n\nrang  score   fragment                                  <span class='cm'># scores illustratifs</span>\n 1    0.89    La césure à AMU                           <span class='hl'>← retenu</span>\n 2    0.71    Charte des étudiants et stagiaires        <span class='hl'>← retenu</span>\n 3    0.41    Guide de l'inscription en ligne           <span class='hl'>← retenu</span>\n 4    0.34    Régime spécial d'études (RSE)             <span class='hl'>← retenu</span>\n 5    0.31    Droit — Régimes spéciaux d'études         <span class='hl'>← retenu</span>\n─────────────────────────────────────────────  k = 5\n 6    0.28    Droits d'inscription et aides financières   <span class='cm'>écarté</span>",
-   h2:"Choisir k par la mesure",
+   h2:"Choix de k par la mesure",
    p2:"Le réglage adéquat ne se devine pas : il se lit sur la courbe du taux de rappel en fonction de k. Un plateau signale que les fragments supplémentaires n'apportent plus rien — au-delà, on ne gagne que du coût et du bruit."},
   impl:["<b>k = 5 par défaut</b> dans ce projet.","Sous Ollama, une valeur élevée dépasse la fenêtre num_ctx. Le réglage s'établit par l'évaluation : la courbe du taux de rappel présente un plateau dès k = 3."],
   r:["cosine","recall","numctx","prompt"]},
@@ -492,7 +490,7 @@ var G={
    note:"La réponse à produire est décomptée du même budget : la fenêtre est partagée entre ce que l'on donne au modèle et ce qu'il doit écrire.",
    h1:"Exemple chiffré",
    worked:"prompt système        ≈   320 tokens\nk = 5 fragments × 500 = 2 500 tokens\nquestion              ≈    30 tokens\nréponse attendue      ≈   400 tokens\n                        ──────────────\n                        <span class='hl'>3 250 tokens</span>\n\nnum_ctx = 2048  → <span class='cm'>tronqué en silence : deux sources perdues</span>\nnum_ctx = 4096  → tient, avec k = 3 en repli\nnum_ctx = 8192  → <span class='hl'>confortable — valeur retenue</span>",
-   h2:"Pourquoi le repli à k = 3",
+   h2:"Le repli à k = 3",
    p2:"Sur CPU, le temps de génération croît avec la taille du contexte à traiter. Ramener k de 5 à 3 réduit d'autant le contexte, pour une perte de rappel nulle sur le corpus mesuré — le plateau étant atteint dès k = 3."},
   impl:["Conséquence pour l'architecture RAG : k et la taille des fragments doivent tenir dans num_ctx. D'où le repli documenté (num_ctx 4096, k = 3) lorsque le CPU s'avère trop lent à 8192."],
   r:["ollama","topk","chunking"]},
@@ -505,7 +503,7 @@ var G={
    worked:"16 questions annotées, k = 5\n\nsémantique : 15 questions sur 16 → 15/16 = <span class='hl'>0,94</span>\nBM25       : 13 questions sur 16 → 13/16 = 0,81\nRRF        : 14 questions sur 16 → 14/16 = 0,88\n\n<span class='cm'># une seule question manquée par le sémantique (q04, logement)</span>",
    h2:"Un proxy du context recall",
    p2:"La formulation reprend le <em>context recall</em> du référentiel RAGAS — le contexte fourni au modèle contient-il de quoi répondre ? Le projet en mesure la version annotée à la main, sur un jeu restreint mais entièrement vérifiable."},
-  impl:["La valeur est moyennée sur 16 questions annotées. Mesure de référence à k = 5 : sémantique 0,94, BM25 0,81, RRF 0,88.","La <b>récupération</b> est mesurée indépendamment de la <b>génération</b> : c'est ce qui permet d'attribuer une régression à la bonne étape."],
+  impl:["La valeur est moyennée sur un jeu de questions annotées. Sur le jeu de 16 questions, à k = 5 : sémantique 0,94, BM25 0,81, RRF 0,88.","La <b>récupération</b> est mesurée indépendamment de la <b>génération</b> : c'est ce qui permet d'attribuer une régression à la bonne étape."],
   r:["ragas","bm25","rrf","harness","topk"],f:"evaluation.py · eval/evaluate.py"},
  ragas:{t:"RAGAS (vocabulaire)",c:"Évaluation",
   def:["Cadre d'évaluation des systèmes RAG. Il distingue ce qui relève de la récupération (<em>context recall</em> : le contexte contient-il la réponse ?) de ce qui relève de la génération (<em>faithfulness</em> : la réponse est-elle fidèle au contexte ?).","Ses métriques automatisées reposent sur un modèle juge, ce qui suppose d'accepter un coût supplémentaire et une part d'incertitude dans la mesure elle-même."],
@@ -529,9 +527,9 @@ var G={
    note:"La constante k = 60 amortit l'écart entre les premiers rangs : sans elle, le premier résultat écraserait tous les autres. C'est la valeur usuelle de la littérature, reprise telle quelle.",
    h1:"Exemple chiffré",
    worked:"document A : rang 1 (sémantique), rang 9 (BM25)\ndocument B : rang 3 (sémantique), rang 2 (BM25)\n\nRRF(A) = 1/(60+1) + 1/(60+9) = 0,0164 + 0,0145 = <span class='hl'>0,0309</span>\nRRF(B) = 1/(60+3) + 1/(60+2) = 0,0159 + 0,0161 = <span class='hl'>0,0320</span>\n\n<span class='cm'># B passe devant A : bien classé partout l'emporte sur premier quelque part</span>",
-   h2:"Ce que la fusion apporte",
+   h2:"Apport de la fusion",
    p2:"Un document bien classé par les deux méthodes remonte ; un document isolément premier chez l'une demeure dépendant de son rang chez l'autre. La fusion privilégie donc l'accord entre les deux signaux."},
-  impl:["Mesurée (taux de rappel à 5 : 0,88), elle n'est <b>pas intégrée</b> à /ask, la recherche sémantique la dépassant ici (0,94).","Elle rattrape toutefois l'unique question manquée par le sémantique (q04, logement) : argument conservé en vue d'une bascule hybride si les mesures venaient à la justifier."],
+  impl:["Mesurée sur le jeu de 16 questions (taux de rappel à 5 : 0,88, contre 0,94 pour la recherche sémantique), elle n'est <b>pas intégrée</b> à /ask.","Elle rattrape toutefois l'unique question manquée par le sémantique (q04, logement) : argument conservé en vue d'une bascule hybride si les mesures venaient à la justifier."],
   r:["bm25","recall","cosine"],f:"evaluation.py"},
  harness:{t:"Harnais d'évaluation",c:"Évaluation",
   def:["Script rejouant un jeu de questions annotées et produisant un rapport daté. Il substitue une mesure reproductible à l'appréciation subjective d'une amélioration.","Sa valeur tient à la stabilité du jeu de questions : ce sont les écarts entre deux exécutions qui font sens, non la valeur absolue d'une exécution isolée."],
@@ -543,7 +541,7 @@ var G={
   r:["strip","topk","harness","condensation"],f:"generation/rewrite.py"},
  strip:{t:"Stratégie strip",c:"Requête",
   def:["Réécriture déterministe : suppression par expression régulière de l'ouverture impérative ou conversationnelle (« parle-moi de », « je voudrais des infos sur »…) ainsi que de l'article qui la suit, la partie informative étant conservée.","L'intérêt d'une heuristique au regard d'un appel au modèle : elle est instantanée, gratuite, et son comportement demeure entièrement prévisible — donc testable cas par cas."],
-  impl:["« Parle-moi des régimes spéciaux » devient « régimes spéciaux ». Déterministe, sans appel à un modèle, et sans effet destructeur sur une question définitionnelle.","Résultat mesuré sur le jeu de formulations difficiles : taux de rappel à 5 de 0,62 à 0,88, sans régression par ailleurs."],
+  impl:["« Parle-moi des régimes spéciaux » devient « régimes spéciaux ». Déterministe, sans appel à un modèle, et sans effet destructeur sur une question définitionnelle.","Résultat mesuré sur le jeu de 25 formulations difficiles : taux de rappel à 5 de 0,72 à 0,88, sans régression par ailleurs."],
   r:["rewrite","recall"],f:"generation/rewrite.py"},
  condensation:{t:"Condensation (V2)",c:"Requête",
   def:["Reformulation d'une question de suivi en question <b>autonome</b> à partir de l'historique, <em>préalablement</em> à la recherche : « Et comment la demander ? » devient « Comment demander une césure ? ».","L'étape est rendue nécessaire par la nature même de la recherche vectorielle : un tour elliptique ne porte, à lui seul, aucun des termes qui permettraient de le retrouver. Sans condensation, son vecteur ne retrouverait rien."],

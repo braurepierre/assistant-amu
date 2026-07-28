@@ -95,7 +95,7 @@ PAGE = """<!DOCTYPE html>
 <body>
 
 <div id="topbar">
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — glossaire</span>
+  <span class="brand">AssistantAMU — glossaire</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssistantAMU — architecture et chaînes de traitement</title>
+<title>AssistantAMU — architecture du système</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
 <!-- Cytoscape : rendu et disposition des schémas. Hors ligne, chaque schéma
@@ -28,7 +28,6 @@ a{color:var(--blue-2)}
 #topbar .brand{font-family:"Sora",sans-serif;font-weight:600;font-size:14px;display:flex;align-items:center;gap:9px}
 #topbar .repo{margin-left:auto;font-size:12px;color:#B9C6EE}
 .menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font-size:16px;line-height:1;padding:5px 11px;border-radius:7px;cursor:pointer}
-.logo{background:#fff;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.4px;padding:3px 7px;border-radius:5px}
 
 .layout{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start}
 .sidebar{position:sticky;top:50px;align-self:flex-start;width:262px;min-width:262px;max-height:calc(100vh - 50px);overflow-y:auto;padding:26px 12px 48px 22px;border-right:1px solid var(--line)}
@@ -106,14 +105,14 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
 <div id="topbar">
   <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — architecture et traitements</span>
+  <span class="brand">AssistantAMU — architecture du système</span>
   <span class="repo mono">assistant-amu · src/assistant_amu</span>
 </div>
 
 <header class="hero">
   <div class="in">
     <p class="eyebrow">Assistant documentaire RAG · corpus public d'Aix-Marseille Université</p>
-    <h1>Architecture et chaînes de traitement</h1>
+    <h1>Architecture du système</h1>
     <p class="sub">Cette page présente l'organisation du dépôt et les deux chaînes de traitement qui le font fonctionner : celle qui transforme des documents en index, et celle qui transforme une question en réponse sourcée. Les concepts du RAG eux-mêmes sont traités par la page pédagogique. Survoler une étape d'un schéma en donne le détail.</p>
   </div>
 </header>
@@ -217,7 +216,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </div>
 
 <footer>
-  AssistantAMU — organisation du code et chaînes de traitement. Les concepts du RAG sont traités par
+  AssistantAMU — architecture du système. Les concepts du RAG sont traités par
   <a href="concepts-assistant-amu.html">la page pédagogique</a>, les chiffres par <code>docs/mesures.md</code>.
 </footer>
 
@@ -394,7 +393,7 @@ decoupage: { title: "Découpage en fragments", file: 'ingestion/chunk.py', eleme
 vectorisation: { title: "Vectorisation", file: 'retrieval/embedder.py', elements: [
   { data: { id: 'v0', kind: 'src', label: 'Textes à encoder', file: 'Embedder.embed_passages() · embed_queries()', note: "Des fragments à l'indexation, une question à la recherche. Deux méthodes distinctes, parce que le préfixe n'est pas le même." }, position: { x: 220, y: 0 } },
   { data: { id: 'v1', kind: 'test', label: 'Famille du modèle', file: 'prefixes_for(model_name)', note: "Une table associe chaque famille d'encodeur à ses préfixes, à partir du nom du modèle. C'est le seul endroit du code qui en décide." }, position: { x: 220, y: 110 } },
-  { data: { id: 'v2', kind: 'step', label: 'Préfixe ajouté', file: '_E5_PREFIXES = ("query: ", "passage: ")', note: "Les modèles de la famille E5 attendent « query: » devant une question et « passage: » devant un fragment. Sans ces préfixes, la qualité se dégrade sans qu'aucune erreur ne le signale — c'est le piège n°1 du projet." }, position: { x: 20, y: 235 } },
+  { data: { id: 'v2', kind: 'step', label: 'Préfixe ajouté', file: '_E5_PREFIXES = ("query: ", "passage: ")', note: "Les modèles de la famille E5 attendent « query: » devant une question et « passage: » devant un fragment. Sans ces préfixes, la qualité se dégrade sans qu'aucune erreur ne le signale — c'est la contrainte n° 1 du projet." }, position: { x: 20, y: 235 } },
   { data: { id: 'v3', kind: 'step', label: 'Aucun préfixe', file: '_NO_PREFIXES = ("", "")', note: "CamemBERT, FlauBERT et les autres n'en attendent pas. Leur en ajouter dégraderait le résultat tout autant." }, position: { x: 420, y: 235 } },
   { data: { id: 'v4', kind: 'step', label: 'Chargement du modèle', file: 'Embedder.model — chargement différé', note: "Le modèle n'est chargé qu'au premier appel réel. Les tests s'exécutent donc sans jamais télécharger les centaines de mégaoctets qu'il pèse, et un encodeur de substitution peut lui être injecté." }, position: { x: 220, y: 355 } },
   { data: { id: 'v5', kind: 'step', label: 'Encodage et normalisation', file: '_encode(normalize_embeddings=True)', note: "Les vecteurs sont ramenés à une longueur de 1, ce qui rend la comparaison par angle équivalente au produit scalaire — et cohérente avec la distance cosinus employée par la base." }, position: { x: 220, y: 470 } },

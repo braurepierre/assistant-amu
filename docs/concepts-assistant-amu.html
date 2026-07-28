@@ -44,8 +44,6 @@ textarea{resize:vertical;line-height:1.55}
 #topbar .repo{margin-left:auto;font-size:12px;color:#B9C6EE}
 .menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;font-size:16px;line-height:1;padding:5px 11px;border-radius:7px;cursor:pointer}
 .menu-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
-.logo{background:#fff;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.4px;padding:3px 7px;border-radius:5px}
-.logo b{color:var(--blue)}
 
 /* --- Doc layout : sidebar + content --- */
 .layout{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start}
@@ -258,7 +256,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
 <div id="topbar">
   <button id="menuBtn" class="menu-btn" aria-label="Ouvrir le sommaire">☰</button>
-  <span class="brand"><span class="logo">am<b>U</b></span> AssistantAMU — architecture d'un système RAG</span>
+  <span class="brand">AssistantAMU — architecture d'un système RAG</span>
   <span class="repo mono">assistant-amu · pipeline RAG</span>
 </div>
 
@@ -281,7 +279,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <a href="#s2" data-sec="s2">Indexation</a>
     <a href="#s3" data-sec="s3">Pipeline de requête</a>
     <div class="grp">Évaluation et qualité</div>
-    <a href="#s4" data-sec="s4">Évaluation</a>
+    <a href="#s4" data-sec="s4">Évaluation de la récupération</a>
     <a href="#s5" data-sec="s5">Réécriture de requête</a>
     <a href="#s6" data-sec="s6">Comparaison des encodeurs</a>
     <a href="#s7" data-sec="s7">Contextualisation des fragments</a>
@@ -375,20 +373,20 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 </section>
 
 <section id="s4">
-  <div class="sec-head"><h2>Évaluation : mesurer plutôt que présumer</h2></div>
-  <p class="lead">Comment établir la qualité de la récupération ? Un <button class="term" data-term="harness">harnais d'évaluation reproductible</button> mesure le <button class="term" data-term="recall">taux de rappel à k</button> (<em>recall@k</em>, proxy du <em>context recall</em> au sens du référentiel <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">50</span> questions annotées, et produit un rapport Markdown daté.</p>
+  <div class="sec-head"><h2>Évaluation de la récupération</h2></div>
+  <p class="lead">Un <button class="term" data-term="harness">harnais d'évaluation reproductible</button> mesure le <button class="term" data-term="recall">taux de rappel à k</button> (<em>recall@k</em>, proxy du <em>context recall</em> au sens du référentiel <button class="term" data-term="ragas">RAGAS</button>) pour trois méthodes, sur <span data-stat="eval_questions">50</span> questions annotées, et produit un rapport Markdown daté.</p>
   <div class="card">
     <div class="evalrow"><span class="lbl">sémantique</span><div class="track"><div class="fill f-sem" data-w="86">0,86</div></div></div>
     <div class="evalrow"><span class="lbl"><button class="term" data-term="bm25">BM25</button></span><div class="track"><div class="fill f-bm" data-w="84">0,84</div></div></div>
     <div class="evalrow"><span class="lbl"><button class="term" data-term="rrf">RRF</button></span><div class="track"><div class="fill f-rrf" data-w="86">0,86</div></div></div>
-    <p class="hint" style="margin-top:14px">Mesure de référence (corpus de <span data-stat="corpus.docs">18</span> documents / <span data-stat="corpus.chunks">316</span> fragments, k = <span data-stat="k_default">5</span>), sur le jeu porté de 16 à <span data-stat="eval_questions">50</span> questions le 26 juillet. La recherche sémantique reste <b>en tête à k = 5</b> : le pipeline <span class="mono">/ask</span> demeure <b>strictement sémantique</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, non intégrées</b> — au même titre que la <button class="term" data-term="rewrite">réécriture de requête</button> présentée ci‑dessous.</p>
+    <p class="hint" style="margin-top:14px">Mesure de référence (corpus de <span data-stat="corpus.docs">18</span> documents / <span data-stat="corpus.chunks">316</span> fragments, k = <span data-stat="k_default">5</span>), sur le jeu porté de 16 à <span data-stat="eval_questions">50</span> questions. La recherche sémantique reste <b>en tête à k = 5</b> : le pipeline <span class="mono">/ask</span> demeure <b>strictement sémantique</b> en V1. La <button class="term" data-term="rrf">fusion RRF</button> et <button class="term" data-term="bm25">BM25</button> sont <b>mesurées, non intégrées</b> — au même titre que la <button class="term" data-term="rewrite">réécriture de requête</button> présentée ci‑dessous.</p>
   </div>
 
   <div class="card" style="margin-top:16px">
     <p style="margin:0 0 4px;font-weight:600;font-size:15px">Sensibilité à k : justification du choix k = 5<span class="tag">eval/reports · recall_sensitivity_k</span></p>
     <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-soft)">Le <button class="term" data-term="recall">taux de rappel</button> de chaque méthode en fonction du nombre de passages récupérés. Le compromis se lit directement sur la courbe.</p>
     <div id="recallChart" class="recall-chart" role="img" aria-label="Courbe du taux de rappel : sémantique 0,80→0,86, RRF 0,74→0,92, BM25 0,70→0,88, pour k de 2 à 8"></div>
-    <p class="hint" style="margin-top:4px"><b>À k = 8, la fusion RRF dépasse le sémantique pur</b> (0,92 contre 0,86, soit 3 questions sur 50 — un écart significatif). Sur l'ancien jeu de 16 questions, les deux plafonnaient à égalité (0,88) : un jeu trop petit ne pouvait pas voir cet écart. En V1, <span class="mono">/ask</span> reste à <b>k = 5</b> (où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF si k était relevé en production.</p>
+    <p class="hint" style="margin-top:4px"><b>À k = 8, la fusion RRF dépasse le sémantique pur</b> (0,92 contre 0,86, soit 3 questions sur 50 — un écart significatif). Sur le jeu de 16 questions, les deux plafonnaient à égalité (0,88) : un jeu trop petit ne pouvait pas faire apparaître cet écart. En V1, <span class="mono">/ask</span> reste à <b>k = 5</b> (où RRF et sémantique sont encore à égalité) ; ce résultat renforce, sans la trancher, la piste d'une bascule vers RRF si k était relevé en production.</p>
 
     <p style="margin:20px 0 6px;font-weight:600;font-size:15px">Divergences entre méthodes : sémantique ↔ BM25 ↔ RRF</p>
     <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Les questions pour lesquelles une seule méthode remonte le fragment attendu : c'est précisément là que se joue l'arbitrage en faveur d'une approche hybride. Quatre parmi les neuf désaccords mesurés à k = 5.</p>
@@ -400,7 +398,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     </div>
     <p class="hint" style="margin-top:10px">Le mécanisme est stable : une question <em>reformulée</em> sans le vocabulaire du corpus (« interrompre mes études » au lieu de « césure ») ne se retrouve que par le <button class="term" data-term="cosine">sens</button> ; un terme rare ou composé (« pièces justificatives », « se signaler ») ne se retrouve que par la recherche lexicale (<button class="term" data-term="bm25">BM25</button>). Ni l'une ni l'autre méthode ne domine partout, ce qui justifie de <b>conserver la RRF disponible</b> en vue d'une éventuelle bascule hybride.</p>
   </div>
-  <p class="hint">Transparence des mesures : le résultat du 23 juillet (0,81 → 0,94 sur 16 questions) procédait d'un raffinement <em>diagnostiqué</em> — correction d'une annotation trop stricte (q03), comblement d'une lacune documentaire (ajout des PDF « Cadrage M3C »). Celui-ci (0,86 sur 50 questions) n'est pas un recul : c'est un jeu d'évaluation trois fois plus grand, couvrant des documents et des tournures que l'ancien ne testait pas.</p>
+  <p class="hint">Transparence des mesures : le résultat antérieur (0,81 → 0,94 sur 16 questions) procédait d'un raffinement <em>diagnostiqué</em> — correction d'une annotation trop stricte (q03), comblement d'une lacune documentaire (ajout des PDF « Cadrage M3C »). Celui-ci (0,86 sur 50 questions) n'est pas un recul : c'est un jeu d'évaluation trois fois plus grand, couvrant des documents et des tournures que l'ancien ne testait pas.</p>
 </section>
 
 <section id="s5">
@@ -422,7 +420,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     </div>
     <p class="hint" id="stripNote" style="margin-top:12px"></p>
   </div>
-  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,72</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence (désormais 50 questions). La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,84 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — et son solde sur le jeu facile est proche de zéro (5 questions cassées à k = 3, dont « Comment demander une césure ? », compensées à k = 5). Mais elle reste <b>non déterministe</b> et coûte <b>un appel au backend par requête</b>, là où <span class="mono">strip</span> est gratuite et reproductible : l'arbitrage se joue sur ce que doit coûter une requête, pas seulement sur le rappel. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
+  <p class="hint">Résultat mesuré sur un jeu de <span data-stat="hard_questions">25</span> formulations difficiles : taux de rappel à 5 de <b><span data-stat="rewrite_hard_recall5.raw">0,72</span> → <span data-stat="rewrite_hard_recall5.strip">0,88</span></b> avec <span class="mono">strip</span>, <b>sans</b> régression sur le jeu de référence (50 questions). La variante <span class="mono">llm</span> (réécriture confiée à Mistral) fait <em>mieux</em> sur les formulations difficiles (0,84 contre 0,72 à k = 3) — elle traite les tournures que l'heuristique ne sait pas retirer, comme « Je suis en licence et… » — et son solde sur le jeu facile est proche de zéro (5 questions cassées à k = 3, dont « Comment demander une césure ? », compensées à k = 5). Mais elle reste <b>non déterministe</b> et coûte <b>un appel au backend par requête</b>, là où <span class="mono">strip</span> est gratuite et reproductible : l'arbitrage se joue sur ce que doit coûter une requête, pas seulement sur le rappel. Comme la fusion RRF, la réécriture est mesurée puis exposée en option de <span class="mono">/ask</span>, le comportement V1 restant le défaut.</p>
 </section>
 
 <section id="s6">
@@ -437,7 +435,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
   <div class="card" style="margin-top:16px">
     <p style="margin:0 0 4px;font-weight:600;font-size:15px">Un résultat corrigé par l'élargissement du jeu de test</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Sur 16 questions (23 juillet), CamemBERT affichait 1,00 à k = 8 contre 0,94 pour e5 — de quoi le croire supérieur en apparence.</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Sur 16 questions, CamemBERT affichait 1,00 à k = 8 contre 0,94 pour e5 — un avantage apparent.</p>
     <div class="disagree">
       <div class="dis"><div class="dq">Jeu de 16 questions, k = 8</div><span class="mtag rrf">CamemBERT 1,00 vs e5 0,94</span></div>
       <div class="dis"><div class="dq">Jeu de 50 questions, k = 8</div><span class="mtag sem">e5 et CamemBERT à égalité, 0,86</span></div>
@@ -446,7 +444,7 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
     <p class="hint" style="margin-top:10px">L'écart de 1,00 contre 0,94 tenait à <b>une seule question sur seize</b> — exactement la granularité du jeu (1/16 ≈ 0,06), le plancher de bruit de la mesure. En le portant à 50 questions (granularité 1/50 = 0,02), l'écart s'inverse : e5 domine largement à k = 3 et k = 5, et les modèles ne se rejoignent qu'à k = 8, où CamemBERT compense sa faiblesse initiale plutôt qu'il ne dépasse e5. FlauBERT décroche pour sa part sur les <b>sigles</b> (LANSAD, FOAD) autant que sur les questions paraphrasées.</p>
   </div>
 
-  <p class="hint"><b>Décision : e5 est conservé — avec une confirmation, pas seulement une intuition.</b> À rappel équivalent ou supérieur, le modèle est deux fois plus compact (384 dimensions contre 768), donc plus rapide sur CPU, et déjà déployé. La mesure initiale semblait indiquer qu'un élargissement de k rendrait CamemBERT préférable ; la mesure élargie montre que ce n'était pas le cas — un jeu de 16 questions ne pouvait tout simplement pas trancher. Contrainte technique rencontrée : la variante <em>cased</em> de référence de FlauBERT ne se charge pas sous sentence-transformers 5.6.1, son tokenizer Moses n'exposant pas <code>basic_tokenizer</code> ; la mesure porte donc sur la variante <em>uncased</em>.</p>
+  <p class="hint"><b>Décision : e5 est conservé — choix confirmé par la mesure.</b> À rappel équivalent ou supérieur, le modèle est deux fois plus compact (384 dimensions contre 768), donc plus rapide sur CPU, et déjà déployé. La mesure sur 16 questions indiquait qu'un élargissement de k rendrait CamemBERT préférable ; la mesure sur 50 questions l'infirme — un jeu de 16 questions ne pouvait pas trancher. Contrainte technique rencontrée : la variante <em>cased</em> de référence de FlauBERT ne se charge pas sous sentence-transformers 5.6.1, son tokenizer Moses n'exposant pas <code>basic_tokenizer</code> ; la mesure porte donc sur la variante <em>uncased</em>.</p>
 </section>
 
 <section id="s7">
@@ -470,13 +468,13 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
   <p class="hint">À 500 tokens, la contextualisation <b>améliore</b> la recherche : son meilleur gain est de <b>8 questions</b> sur les formulations conversationnelles en recherche sémantique à k = 3 — le mode d'échec qu'elle vise — et sa pire perte, <b>2 questions</b> sur les formulations définitionnelles à k = 5, reste sous le seuil de signification de 3 questions. Ces deux chiffres sont des <em>extrema</em> tirés de configurations différentes, non un solde : sur les douze cellules mesurées, la somme des écarts vaut <b>+18 questions</b>, huit cellules gagnent, trois perdent. Le préfixe rapproche le vecteur du fragment du sujet de son <em>document</em>, ce qui sert les requêtes vagues et dessert les requêtes précises. <b>La fusion RRF ne perd rien</b> : sur le jeu facile élargi à 50 questions, elle gagne <b>4 questions</b> à k = 5 — la composante BM25 compense ce que le sémantique seul cède.</p>
 
   <div class="card" style="margin-top:16px">
-    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions, sans lesquelles ces chiffres ne vaudraient rien</p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Ce sont elles, plus que le résultat, qui font l'intérêt de l'expérience.</p>
-    <p class="hint" style="margin-top:0"><b>Le comptage ne doit pas se donner raison tout seul.</b> L'évaluation exige la présence de mots-clés <em>dans le fragment récupéré</em>, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe : compter sur le texte contextualisé validerait « la phrase de contexte dit <em>césure</em> » comme une réussite de recherche. Le texte d'origine est donc conservé puis restauré après classement — le contexte sert à <b>trouver</b> le fragment, jamais à <b>prouver</b> qu'on l'a trouvé.</p>
-    <p class="hint"><b>Le préfixe consomme le budget de tokens — et la troncature n'est pas toute l'histoire.</b> Le découpage vise 500 tokens par fragment contre une fenêtre d'encodeur de 512 : <span data-stat="contextual.over_window">23</span> fragments sortaient de cette fenêtre après contextualisation, contre aucun avant. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où plus rien ne déborde. Le gain sémantique <b>résiste</b> (jeu dur à k=3 : +4 questions, contre +8 à 500 tokens — même sens, ampleur moindre). Mais élargir le jeu facile a révélé autre chose : <b>la réponse de BM25 à la contextualisation dépend du budget de découpage</b> — quasi neutre à 500 tokens, elle se dégrade nettement à 440 sur le jeu dur (−4 questions à k=3). Ce n'est plus un artefact de troncature à écarter : c'est un comportement de BM25 qui reste à comprendre.</p>
+    <p style="margin:0 0 4px;font-weight:600;font-size:15px">Deux précautions méthodologiques</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">La validité des chiffres ci-dessus en dépend.</p>
+    <p class="hint" style="margin-top:0"><b>Le comptage ne doit pas se valider lui-même.</b> L'évaluation exige la présence de mots-clés <em>dans le fragment récupéré</em>, or un contexte généré nomme presque toujours le sujet du fragment qu'il préfixe : compter sur le texte contextualisé validerait « la phrase de contexte dit <em>césure</em> » comme une réussite de recherche. Le texte d'origine est donc conservé puis restauré après classement — le contexte sert à <b>trouver</b> le fragment, jamais à <b>prouver</b> qu'on l'a trouvé.</p>
+    <p class="hint"><b>Le préfixe consomme le budget de tokens — et la troncature n'explique pas tout.</b> Le découpage vise 500 tokens par fragment contre une fenêtre d'encodeur de 512 : <span data-stat="contextual.over_window">23</span> fragments sortaient de cette fenêtre après contextualisation, contre aucun avant. L'expérience a été rejouée sur un corpus redécoupé à 440 tokens, où plus rien ne déborde. Le gain sémantique <b>résiste</b> (jeu dur à k=3 : +4 questions, contre +8 à 500 tokens — même sens, ampleur moindre). Mais élargir le jeu facile a révélé autre chose : <b>la réponse de BM25 à la contextualisation dépend du budget de découpage</b> — quasi neutre à 500 tokens, elle se dégrade nettement à 440 sur le jeu dur (−4 questions à k=3). Ce n'est plus un artefact de troncature à écarter : c'est un comportement de BM25 qui reste à comprendre.</p>
   </div>
 
-  <p class="hint"><b>Décision : à ce stade, <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée et documentée avant d'être branchée. Reste à trancher laquelle des populations de requêtes doit être servie en priorité, à comprendre la sensibilité de BM25 au découpage, et si une contextualisation <em>sélective</em>, limitée aux fragments réellement décontextualisés, ne prendrait pas le meilleur des deux mondes. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : 25 et 50 questions ne sauraient les confirmer ni les infirmer.</p>
+  <p class="hint"><b>Décision : à ce stade, <span class="mono">/ask</span> conserve la collection de production</b> — comme la fusion RRF et la réécriture, la méthode est mesurée et documentée avant d'être branchée. Reste à trancher laquelle des populations de requêtes doit être servie en priorité, à comprendre la sensibilité de BM25 au découpage, et si une contextualisation <em>sélective</em>, limitée aux fragments réellement décontextualisés, ne réunirait pas les avantages des deux approches. Les chiffres publiés par Anthropic (−49 % d'échecs de recherche) portent sur des corpus de plusieurs milliers de fragments : 25 et 50 questions ne sauraient les confirmer ni les infirmer.</p>
 </section>
 
 <section id="s8">
@@ -511,11 +509,11 @@ footer{border-top:1px solid var(--line);margin-top:64px;padding:20px 24px 40px;t
 
   <div class="card" style="margin-top:16px">
     <p style="margin:0 0 4px;font-weight:600;font-size:15px">Enseignements de l'évaluation conversationnelle <span class="tag">eval · mode conversation</span></p>
-    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesure établie sur <span data-stat="conversation.scenarios">3</span> scénarios et <span data-stat="conversation.turns">6</span> tours : taux de rappel de <b><span data-stat="conversation.recall">3/6</span></b>. Une valeur basse, et l'observation la plus instructive de cette page — à condition d'identifier précisément ce qu'elle mesure.</p>
+    <p style="margin:0 0 10px;font-size:13.5px;color:var(--ink-soft)">Mesure établie sur <span data-stat="conversation.scenarios">3</span> scénarios et <span data-stat="conversation.turns">6</span> tours : taux de rappel de <b><span data-stat="conversation.recall">3/6</span></b>. Une valeur basse, dont l'interprétation exige d'identifier précisément ce qu'elle mesure.</p>
     <p class="hint" style="margin-top:0">La condensation, quant à elle, <b>fonctionne</b> : le dialogue ci‑dessus est authentique. Le résultat de 3/6 provient de deux causes distinctes, qu'il convient de séparer.</p>
     <p class="hint" style="margin-top:8px"><b>1 · Une faiblesse réelle de la récupération.</b> Sur la requête relative aux modalités de la césure, les <span data-stat="k_default">5</span> passages remontés proviennent <em>tous</em> de la page d'une seule composante (l'IUT), tandis que la page institutionnelle « La césure à AMU » — celle qui porte la réponse — demeure hors du top‑k. Cause aggravante mesurée : <b><span data-stat="chunk_hygiene.under50_pct">11,7</span> %</b> des entrées de l'index comptent moins de 50 caractères (« FAQ », « Césure », « Bonus » — des fragments de navigation devenus unités indexées), pour une médiane de <span data-stat="chunk_hygiene.median_chars">786</span> caractères. Or un fragment très court, quasi identique à une requête brève, obtient une <button class="term" data-term="cosine">similarité</button> élevée : il occupe une position du top‑k sans apporter d'information.</p>
     <p class="hint" style="margin-top:8px"><b>2 · Un artefact de la métrique.</b> Un tour annoté comme « répondable » <b>refuse à juste titre</b> — le corpus ne comporte aucune règle de césure propre à la composante Droit — mais un <button class="term" data-term="refus">refus</button> vide les sources par conception. Il est donc comptabilisé mécaniquement comme un échec de rappel, alors qu'il correspond au comportement <em>attendu</em>.</p>
-    <p class="hint" style="margin-top:8px">Le diagnostic initial — « les annotations sont trop strictes » — s'est révélé <b>erroné</b> après examen du contenu réel des fragments. Il est consigné comme tel dans le journal du projet : un jeu de scénarios encore à l'état d'ébauche, et un résultat que l'on choisit d'expliquer plutôt que de dissimuler.</p>
+    <p class="hint" style="margin-top:8px">L'examen du contenu réel des fragments écarte l'hypothèse d'annotations trop strictes : la faiblesse de récupération est réelle. Le jeu de scénarios reste à l'état d'ébauche ; le résultat est publié avec son explication.</p>
   </div>
 </section>
 
@@ -564,7 +562,7 @@ res  = pipe.answer(<span class="s">"Quelles sont les modalités de la césure ?"
       <div id="dDef"></div>
       <div class="deep" id="dDeep" style="display:none">
         <button class="deep-toggle" onclick="toggleDeep()" aria-expanded="false" aria-controls="dDeepBody">
-          <span class="lead-ic"><span class="fx">ƒ</span> En savoir plus — les maths</span>
+          <span class="lead-ic"><span class="fx">ƒ</span> En savoir plus — approfondissement mathématique</span>
           <span class="chev">▾</span>
         </button>
         <div class="deep-body" id="dDeepBody"><div class="deep-inner" id="dDeepInner"></div></div>
@@ -733,7 +731,7 @@ var G={
    note:"Les vecteurs sont ici normalisés (‖v‖ = 1) : ils se répartissent sur la sphère unité, où la comparaison de deux textes se réduit à un simple produit scalaire.",
    h1:"Exemple chiffré",
    worked:"<span class='cm'># embedding de dimension d = 4 (jouet ; 384 en réalité)</span>\n\"césure\"          → [ 0.82,  0.11, -0.30,  0.45]\n\"année de pause\"  → [ 0.79,  0.15, -0.26,  0.51]  <span class='hl'># très proche</span>\n\"restauration\"    → [-0.12,  0.66,  0.40, -0.08]  <span class='cm'># éloigné</span>",
-   h2:"Pourquoi cela fonctionne",
+   h2:"Fondement de la propriété",
    p2:"Le modèle est entraîné de sorte que des textes apparaissant dans des contextes similaires reçoivent des vecteurs similaires. La distance géométrique reflète alors la parenté de sens, et l'on peut rechercher, classer ou regrouper par de simples opérations vectorielles."},
   impl:["384 dimensions dans ce projet (e5-small). L'ensemble des encodages transite par une classe unique <code>Embedder</code> : questions et passages y sont encodés avec le préfixe approprié, puis normalisés.","La normalisation n'est pas cosmétique : elle rend la similarité cosinus équivalente au produit scalaire et les scores comparables d'une requête à l'autre."],
   r:["e5","cosine","chromadb"],f:"retrieval/embedder.py"},
@@ -743,7 +741,7 @@ var G={
   r:["embedding","tokenizer","chunking"],f:"retrieval/embedder.py",x:["e5-small sur Hugging Face","https://huggingface.co/intfloat/multilingual-e5-small"]},
  camembert:{t:"CamemBERT et FlauBERT",c:"Modèles d'embedding",
   def:["Les deux principaux modèles de langue entraînés <em>spécifiquement</em> sur le français, là où e5 est multilingue. CamemBERT dérive de l'architecture RoBERTa, FlauBERT de BERT ; tous deux ont été pré-entraînés sur de vastes corpus francophones.","Ils sont employés ici dans leurs variantes affinées pour la <b>similarité de phrases</b> (approche <button class=\"term\" data-term=\"sbert\">SBERT</button>) : <code>sentence-camembert-base</code> et une variante <em>uncased</em> de FlauBERT. Tous deux produisent des vecteurs de 768 dimensions, contre 384 pour e5-small."],
-  impl:["Mesurés face à e5 sur les mêmes fragments et les mêmes questions : CamemBERT fait jeu égal à k = 5 et récupère la totalité des passages attendus à k = 8 ; FlauBERT décroche sur les sigles (CVEC, RSE).","Point d'attention : s'agissant de modèles <b>non-E5</b>, la table par famille ne leur applique <b>aucun préfixe</b> — en ajouter un dégraderait la mesure."],
+  impl:["Mesurés face à e5 sur les mêmes fragments et les mêmes questions. Sur le jeu de 16 questions, CamemBERT faisait jeu égal à k = 5 et récupérait la totalité des passages attendus à k = 8 ; sur le jeu de 50 questions, e5 mène à k = 3 comme à k = 5. FlauBERT décroche sur les sigles (CVEC, RSE).","Point d'attention : s'agissant de modèles <b>non-E5</b>, la table par famille ne leur applique <b>aucun préfixe</b> — en ajouter un dégraderait la mesure."],
   r:["e5","embedding","sbert","recall"],f:"eval/embedder_comparison.py"},
  cosine:{t:"Similarité cosinus",c:"Recherche sémantique",
   def:["Mesure de proximité entre deux vecteurs : le cosinus de l'angle qui les sépare, compris entre -1 et 1 ; une valeur proche de 1 traduit une forte proximité de sens. C'est la métrique standard de comparaison des embeddings.","Sa propriété déterminante est l'indifférence à la norme des vecteurs, donc à la longueur des textes comparés : un résumé et le document dont il est tiré demeurent proches."],
@@ -752,7 +750,7 @@ var G={
    note:"Trois valeurs de référence : 1 = même direction, 0 = vecteurs orthogonaux (sans rapport), -1 = directions opposées. Sur des vecteurs normalisés, le dénominateur vaut 1 et la similarité se réduit au seul produit scalaire.",
    h1:"Exemple chiffré",
    worked:"a = [1, 2, 3]     <span class='cm'># « congé maternité »</span>\nb = [2, 4, 6]     <span class='cm'># « droits parentaux »</span>\n\nproduit scalaire  a·b = 1·2 + 2·4 + 3·6 = <span class='hl'>28</span>\nnorme ‖a‖ = √(1+4+9)   = √14 ≈ 3.742\nnorme ‖b‖ = √(4+16+36) = √56 ≈ 7.483\n\ncos θ = 28 / (3.742 × 7.483) = <span class='hl'>1.0</span>\n<span class='cm'># colinéaires → même sens, malgré des valeurs différentes</span>",
-   h2:"Pourquoi le cosinus plutôt que la distance euclidienne",
+   h2:"Cosinus plutôt que distance euclidienne",
    p2:"La distance euclidienne croît avec la norme des vecteurs, elle-même corrélée à la longueur du texte : un fragment long s'en trouverait systématiquement pénalisé. Le cosinus ne considère que la direction, c'est-à-dire le sens."},
   impl:["Contrainte n° 2 : ChromaDB indexe en distance L2 <b>par défaut</b>. La collection est donc créée explicitement avec <code>metadata={\"hnsw:space\":\"cosine\"}</code>.","Le score exposé à l'utilisateur vaut <code>1 - distance</code>, ramené dans l'intervalle [0, 1]."],
   r:["embedding","chromadb","hnsw","topk"],f:"retrieval/vector_store.py"},
@@ -767,7 +765,7 @@ var G={
    note:"Cette raréfaction exponentielle est ce qui rend la descente logarithmique : à chaque couche, le nombre de candidats à examiner demeure borné, quel que soit le nombre total de vecteurs.",
    h1:"Coût de la recherche",
    worked:"couche 2   ●───────────────●            <span class='cm'># quelques nœuds — grands sauts</span>\n                 ↓\ncouche 1   ●───●───────●───●            <span class='cm'># raffinement</span>\n                     ↓\ncouche 0   ●─●─●─●─●─●─●─●─●─●          <span class='cm'># tous les vecteurs</span>\n                     <span class='hl'>↑ k voisins retenus</span>\n\ncomplexité ≈ O(log N)  au lieu de O(N) pour un balayage exhaustif",
-   h2:"Ce que l'on perd",
+   h2:"Contrepartie de l'approximation",
    p2:"La recherche est <em>approximative</em> : rien ne garantit que les k voisins retournés soient exactement les k plus proches. Sur un corpus de quelques centaines de fragments l'écart est nul en pratique ; il ne devient un paramètre à surveiller qu'à grande échelle."},
   impl:["C'est le paramètre <code>hnsw:space</code> qui fixe la métrique de distance de cet index — d'où la contrainte cosinus / L2.","À l'échelle du corpus, l'index ne constitue pas un enjeu de performance. Il retient l'attention pour une autre raison : sa métrique se déclare à la création de la collection, jamais après."],
   r:["cosine","chromadb"]},
@@ -778,7 +776,7 @@ var G={
    note:"Le pas d'avancement dans le document n'est pas B mais B − O : c'est le prix du chevauchement, qui accroît le nombre de fragments et donc le volume indexé.",
    h1:"Exemple chiffré",
    worked:"B = 500 tokens (préfixe inclus)   O = 50 tokens\n« passage: » ≈ 2 tokens           <span class='cm'># décompté du budget</span>\n\nB_utile = 500 - 2   = <span class='hl'>498</span>\npas     = 498 - 50  = 448 tokens\n\ndocument de 3 000 tokens\n→ ⌈(3000 - 50) / 448⌉ = <span class='hl'>7 fragments</span>\n→ marge conservée sous les 512 tokens du modèle",
-   h2:"Pourquoi 500 et non 512",
+   h2:"Budget de 500 pour un plafond de 512",
    p2:"e5-small tronque silencieusement au-delà de 512 tokens. Le budget est fixé en deçà afin qu'aucun fragment, préfixe compris, n'atteigne ce plafond : la marge est délibérée, et non le produit d'un arrondi."},
   impl:["Implémentation retenue : segmentation sur les frontières de paragraphes puis de phrases, budget strict de <b>500 tokens préfixe inclus</b>, sans jamais couper au milieu d'une phrase (sauf phrase exceptionnellement longue, découpée en dernier recours).","Un <b>chevauchement</b> de 50 tokens reprend la fin d'un fragment au début du suivant afin de ne pas rompre une idée à la jointure. Les blocs partageant le même couple (page, section) sont fusionnés avant découpe."],
   r:["e5","tokenizer","embedding","extract"],f:"ingestion/chunk.py"},
@@ -789,7 +787,7 @@ var G={
    note:"Ordre de grandeur, et non identité : un token vaut environ 3 à 4 caractères en français. Les mots courants comptent pour un seul token, tandis que les sigles et les termes rares se fragmentent davantage.",
    h1:"Exemple chiffré",
    worked:"\"anticonstitutionnellement\"\n→ [anti, constitution, nelle, ment]    <span class='hl'>4 tokens pour 1 mot</span>\n\n\"la césure est un dispositif\"\n→ [la, césure, est, un, dispositif]    <span class='cm'>5 tokens pour 5 mots</span>\n\nfragment de 500 tokens ≈ 385 mots ≈ 1 750 caractères",
-   h2:"Pourquoi mesurer plutôt qu'estimer",
+   h2:"Mesure plutôt qu'estimation",
    p2:"Un budget calculé sur l'approximation ci-dessus dérive sur les documents riches en sigles et en références réglementaires — précisément ceux du corpus. Le dépassement du plafond de 512 tokens étant silencieux, l'erreur ne se verrait pas."},
   impl:["Le découpage en fragments calcule ses budgets à l'aide du <b>véritable</b> tokenizer d'e5-small (via <code>transformers.AutoTokenizer</code>) et non d'une approximation, le modèle tronquant au-delà de 512 tokens."],
   r:["e5","chunking","embedding"],f:"ingestion/chunk.py"},
@@ -816,7 +814,7 @@ var G={
    note:"Le coût en tokens du prompt croît linéairement avec k : k fragments d'au plus B tokens, auxquels s'ajoutent les instructions système et la question.",
    h1:"Exemple chiffré",
    worked:"question : « Comment demander une césure à l'université ? »\n\nrang  score   fragment                                  <span class='cm'># scores illustratifs</span>\n 1    0.89    La césure à AMU                           <span class='hl'>← retenu</span>\n 2    0.71    Charte des étudiants et stagiaires        <span class='hl'>← retenu</span>\n 3    0.41    Guide de l'inscription en ligne           <span class='hl'>← retenu</span>\n 4    0.34    Régime spécial d'études (RSE)             <span class='hl'>← retenu</span>\n 5    0.31    Droit — Régimes spéciaux d'études         <span class='hl'>← retenu</span>\n─────────────────────────────────────────────  k = 5\n 6    0.28    Droits d'inscription et aides financières   <span class='cm'>écarté</span>",
-   h2:"Choisir k par la mesure",
+   h2:"Choix de k par la mesure",
    p2:"Le réglage adéquat ne se devine pas : il se lit sur la courbe du taux de rappel en fonction de k. Un plateau signale que les fragments supplémentaires n'apportent plus rien — au-delà, on ne gagne que du coût et du bruit."},
   impl:["<b>k = 5 par défaut</b> dans ce projet.","Sous Ollama, une valeur élevée dépasse la fenêtre num_ctx. Le réglage s'établit par l'évaluation : la courbe du taux de rappel présente un plateau dès k = 3."],
   r:["cosine","recall","numctx","prompt"]},
@@ -851,7 +849,7 @@ var G={
    note:"La réponse à produire est décomptée du même budget : la fenêtre est partagée entre ce que l'on donne au modèle et ce qu'il doit écrire.",
    h1:"Exemple chiffré",
    worked:"prompt système        ≈   320 tokens\nk = 5 fragments × 500 = 2 500 tokens\nquestion              ≈    30 tokens\nréponse attendue      ≈   400 tokens\n                        ──────────────\n                        <span class='hl'>3 250 tokens</span>\n\nnum_ctx = 2048  → <span class='cm'>tronqué en silence : deux sources perdues</span>\nnum_ctx = 4096  → tient, avec k = 3 en repli\nnum_ctx = 8192  → <span class='hl'>confortable — valeur retenue</span>",
-   h2:"Pourquoi le repli à k = 3",
+   h2:"Le repli à k = 3",
    p2:"Sur CPU, le temps de génération croît avec la taille du contexte à traiter. Ramener k de 5 à 3 réduit d'autant le contexte, pour une perte de rappel nulle sur le corpus mesuré — le plateau étant atteint dès k = 3."},
   impl:["Conséquence pour l'architecture RAG : k et la taille des fragments doivent tenir dans num_ctx. D'où le repli documenté (num_ctx 4096, k = 3) lorsque le CPU s'avère trop lent à 8192."],
   r:["ollama","topk","chunking"]},
@@ -864,7 +862,7 @@ var G={
    worked:"16 questions annotées, k = 5\n\nsémantique : 15 questions sur 16 → 15/16 = <span class='hl'>0,94</span>\nBM25       : 13 questions sur 16 → 13/16 = 0,81\nRRF        : 14 questions sur 16 → 14/16 = 0,88\n\n<span class='cm'># une seule question manquée par le sémantique (q04, logement)</span>",
    h2:"Un proxy du context recall",
    p2:"La formulation reprend le <em>context recall</em> du référentiel RAGAS — le contexte fourni au modèle contient-il de quoi répondre ? Le projet en mesure la version annotée à la main, sur un jeu restreint mais entièrement vérifiable."},
-  impl:["La valeur est moyennée sur 16 questions annotées. Mesure de référence à k = 5 : sémantique 0,94, BM25 0,81, RRF 0,88.","La <b>récupération</b> est mesurée indépendamment de la <b>génération</b> : c'est ce qui permet d'attribuer une régression à la bonne étape."],
+  impl:["La valeur est moyennée sur un jeu de questions annotées. Sur le jeu de 16 questions, à k = 5 : sémantique 0,94, BM25 0,81, RRF 0,88.","La <b>récupération</b> est mesurée indépendamment de la <b>génération</b> : c'est ce qui permet d'attribuer une régression à la bonne étape."],
   r:["ragas","bm25","rrf","harness","topk"],f:"evaluation.py · eval/evaluate.py"},
  ragas:{t:"RAGAS (vocabulaire)",c:"Évaluation",
   def:["Cadre d'évaluation des systèmes RAG. Il distingue ce qui relève de la récupération (<em>context recall</em> : le contexte contient-il la réponse ?) de ce qui relève de la génération (<em>faithfulness</em> : la réponse est-elle fidèle au contexte ?).","Ses métriques automatisées reposent sur un modèle juge, ce qui suppose d'accepter un coût supplémentaire et une part d'incertitude dans la mesure elle-même."],
@@ -888,9 +886,9 @@ var G={
    note:"La constante k = 60 amortit l'écart entre les premiers rangs : sans elle, le premier résultat écraserait tous les autres. C'est la valeur usuelle de la littérature, reprise telle quelle.",
    h1:"Exemple chiffré",
    worked:"document A : rang 1 (sémantique), rang 9 (BM25)\ndocument B : rang 3 (sémantique), rang 2 (BM25)\n\nRRF(A) = 1/(60+1) + 1/(60+9) = 0,0164 + 0,0145 = <span class='hl'>0,0309</span>\nRRF(B) = 1/(60+3) + 1/(60+2) = 0,0159 + 0,0161 = <span class='hl'>0,0320</span>\n\n<span class='cm'># B passe devant A : bien classé partout l'emporte sur premier quelque part</span>",
-   h2:"Ce que la fusion apporte",
+   h2:"Apport de la fusion",
    p2:"Un document bien classé par les deux méthodes remonte ; un document isolément premier chez l'une demeure dépendant de son rang chez l'autre. La fusion privilégie donc l'accord entre les deux signaux."},
-  impl:["Mesurée (taux de rappel à 5 : 0,88), elle n'est <b>pas intégrée</b> à /ask, la recherche sémantique la dépassant ici (0,94).","Elle rattrape toutefois l'unique question manquée par le sémantique (q04, logement) : argument conservé en vue d'une bascule hybride si les mesures venaient à la justifier."],
+  impl:["Mesurée sur le jeu de 16 questions (taux de rappel à 5 : 0,88, contre 0,94 pour la recherche sémantique), elle n'est <b>pas intégrée</b> à /ask.","Elle rattrape toutefois l'unique question manquée par le sémantique (q04, logement) : argument conservé en vue d'une bascule hybride si les mesures venaient à la justifier."],
   r:["bm25","recall","cosine"],f:"evaluation.py"},
  harness:{t:"Harnais d'évaluation",c:"Évaluation",
   def:["Script rejouant un jeu de questions annotées et produisant un rapport daté. Il substitue une mesure reproductible à l'appréciation subjective d'une amélioration.","Sa valeur tient à la stabilité du jeu de questions : ce sont les écarts entre deux exécutions qui font sens, non la valeur absolue d'une exécution isolée."],
@@ -902,7 +900,7 @@ var G={
   r:["strip","topk","harness","condensation"],f:"generation/rewrite.py"},
  strip:{t:"Stratégie strip",c:"Requête",
   def:["Réécriture déterministe : suppression par expression régulière de l'ouverture impérative ou conversationnelle (« parle-moi de », « je voudrais des infos sur »…) ainsi que de l'article qui la suit, la partie informative étant conservée.","L'intérêt d'une heuristique au regard d'un appel au modèle : elle est instantanée, gratuite, et son comportement demeure entièrement prévisible — donc testable cas par cas."],
-  impl:["« Parle-moi des régimes spéciaux » devient « régimes spéciaux ». Déterministe, sans appel à un modèle, et sans effet destructeur sur une question définitionnelle.","Résultat mesuré sur le jeu de formulations difficiles : taux de rappel à 5 de 0,62 à 0,88, sans régression par ailleurs."],
+  impl:["« Parle-moi des régimes spéciaux » devient « régimes spéciaux ». Déterministe, sans appel à un modèle, et sans effet destructeur sur une question définitionnelle.","Résultat mesuré sur le jeu de 25 formulations difficiles : taux de rappel à 5 de 0,72 à 0,88, sans régression par ailleurs."],
   r:["rewrite","recall"],f:"generation/rewrite.py"},
  condensation:{t:"Condensation (V2)",c:"Requête",
   def:["Reformulation d'une question de suivi en question <b>autonome</b> à partir de l'historique, <em>préalablement</em> à la recherche : « Et comment la demander ? » devient « Comment demander une césure ? ».","L'étape est rendue nécessaire par la nature même de la recherche vectorielle : un tour elliptique ne porte, à lui seul, aucun des termes qui permettraient de le retrouver. Sans condensation, son vecteur ne retrouverait rien."],

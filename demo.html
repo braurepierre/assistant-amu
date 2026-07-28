@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AssistantAMU — démo</title>
+<title>AssistantAMU — démonstration</title>
 <style>
   :root {
-    --amu-blue: #143b8f;      /* bleu AMU */
+    --amu-blue: #143b8f;      /* AMU blue */
     --amu-blue-2: #2c6ecb;
-    --amu-yellow: #f6e400;    /* jaune AMU */
+    --amu-yellow: #f6e400;    /* AMU yellow */
     --bg: #eef1f6;
     --bot: #ffffff;
     --ink: #1f2430;
@@ -89,7 +89,7 @@
     <div class="logo">am<b>U</b></div>
     <div>
       <div class="title">AssistantAMU</div>
-      <div class="sub">Démo — RAG sur les documents publics d'Aix-Marseille Université</div>
+      <div class="sub">Démonstration — RAG sur les documents publics d'Aix-Marseille Université</div>
     </div>
   </header>
 
@@ -117,7 +117,7 @@
   const kSel = document.getElementById("k");
   const rwSel = document.getElementById("rw");
   const sendBtn = document.getElementById("send");
-  const history = [];              // {role, content} — envoyé à /ask pour la V2
+  const history = [];              // {role, content} — sent to /ask for V2
 
   const esc = s => s.replace(/[&<>]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]));
   const fmt = s => esc(s)
@@ -215,7 +215,7 @@
       history.push({ role: "user", content: question });
       history.push({ role: "assistant", content: data.answer });
     } catch (e) {
-      bot.innerHTML = "⚠️ " + esc(e.message) + " — l'API est-elle lancée ?";
+      bot.innerHTML = "⚠️ " + esc(e.message) + " — vérifier que l'API est lancée.";
     } finally {
       sendBtn.disabled = false; input.focus(); chat.scrollTop = chat.scrollHeight;
     }
