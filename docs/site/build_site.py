@@ -37,6 +37,11 @@ from markdown.extensions.toc import slugify
 SITE_DIR = Path(__file__).resolve().parent
 DOCS_DIR = SITE_DIR.parent
 ROOT = DOCS_DIR.parent
+
+# docs/ holds build_glossaire.py, whose marker extraction is reused to package
+# the glossary drawer for the prose pages (see stage_glossary_drawer).
+sys.path.insert(0, str(DOCS_DIR))
+import build_glossaire  # noqa: E402
 SRC_DIR = ROOT / "src"
 CONTENT_DIR = SITE_DIR / "content"
 PAGES_DIR = CONTENT_DIR / "pages"
@@ -127,8 +132,8 @@ API_PAGES = [
 
 # Where the reader situates the set they are reading about.
 API_MAP_LINK = (
-    "Place de cet ensemble dans le dépôt : [Architecture et chaînes de "
-    "traitement](architecture-assistant-amu.html)."
+    "Place de cet ensemble dans le dépôt : [Architecture du "
+    "système](architecture-assistant-amu.html)."
 )
 
 # Standalone pages: they carry their own styles and scripts and must not go
@@ -152,13 +157,13 @@ STANDALONE_META = {
         "understand",
         "40",
     ),
-    # "Organisation du code" named only half of what the page shows, and read as
-    # a matter of file layout. "Architecture du système" would have collided with
-    # the section of that name inside the presentation, which the tree lists too.
+    # The name became available when the presentation dropped its section of the
+    # same name: the ASCII schema left the README for this page, which now
+    # carries the architecture alone.
     "architecture-assistant-amu.html": (
         "architecture-assistant-amu",
-        "Architecture et chaînes de traitement",
-        "Architecture et traitements",
+        "Architecture du système",
+        "Architecture du système",
         "understand",
         "50",
     ),
@@ -184,12 +189,82 @@ LINK_MAP = {
     "DEMO.md": "demonstration.html",
     "README.md": "presentation.html",
     "docs/maintenance.md": f"{BLOB_URL}/docs/maintenance.md",
-    "prompts/CHANGELOG.md": f"{BLOB_URL}/prompts/CHANGELOG.md",
     "eval/reports/": f"{REPO_URL}/tree/main/eval/reports",
 }
 
 _LINK = re.compile(r"\]\((?P<target>[^)#]+)(?P<anchor>#[^)]*)?\)")
 _FIRST_H1 = re.compile(r"\A\s*#\s+[^\n]*\n+", re.MULTILINE)
+
+# A glossary term cited in the prose, as mesures.md writes it: a link to the
+# sheet's address on the glossary page. On the site the sheet opens in place
+# instead — the drawer of the pedagogical page is packaged as one static script
+# (stage_glossary_drawer) and the link is given the class and attribute its
+# delegated listener reacts to. Without JavaScript the link keeps navigating to
+# the glossary page, whose own script opens the sheet from the hash.
+_TERM_LINK = re.compile(
+    r"\[(?P<label>[^\]]+)\]\(glossaire-assistant-amu\.html#(?P<key>[^)]+)\)"
+)
+GLOSSARY_SOURCE = DOCS_DIR / "concepts-assistant-amu.html"
+DRAWER_SCRIPT = "glossary_drawer.js"
+
+
+def upgrade_term_links(body: str) -> str:
+    """Let a glossary term open its sheet in place, keeping the link as fallback."""
+
+    def replace(match: re.Match[str]) -> str:
+        key = match.group("key")
+        return (
+            f'<a class="term" data-term="{key}" '
+            f'href="glossaire-assistant-amu.html#{key}">{match.group("label")}</a>'
+        )
+
+    return _TERM_LINK.sub(replace, body)
+
+
+def stage_glossary_drawer() -> None:
+    """Package the glossary drawer as a script a prose page can load.
+
+    The three verbatim regions of the pedagogical page — the sheets (``G``),
+    the drawer markup and the drawer script — travel with their stylesheet,
+    confined under ``.embed`` exactly as :mod:`embed` confines the standalone
+    pages. Everything is injected at run time, so a page whose JavaScript never
+    runs keeps plain links and today's behaviour.
+    """
+    regions = build_glossaire.extract(GLOSSARY_SOURCE.read_text(encoding="utf-8"))
+    sheet = regions["style"][len("<style>") : -len("</style>")]
+    css = embed.scope_css(sheet, ".embed") + (
+        # The wrapper only hosts the two fixed elements of the drawer; the page
+        # frame the scoped sheet gives .embed would otherwise paint an empty
+        # band at the foot of the page.
+        "\n#glossary-embed{margin:0;padding:0;background:none}"
+        # The look of a term in the prose. Applied by the same injected sheet,
+        # so an unscripted page shows ordinary links.
+        "\n.content a.term{color:var(--blue-2);text-decoration:none;"
+        "border-bottom:1.5px dotted var(--blue-2)}"
+    )
+    markup = f'<div class="embed" id="glossary-embed">{regions["drawer_markup"]}</div>'
+    bootstrap = (
+        "(function () {\n"
+        '  var style = document.createElement("style");\n'
+        f"  style.textContent = {json.dumps(css)};\n"
+        "  document.head.appendChild(style);\n"
+        f'  document.body.insertAdjacentHTML("beforeend", {json.dumps(markup)});\n'
+        "  /* The drawer script owns the delegated listener that opens the\n"
+        "     sheet; this one only keeps the browser on the page, and only when\n"
+        "     the sheet exists — an unknown key falls back on the glossary\n"
+        "     page. */\n"
+        '  document.addEventListener("click", function (event) {\n'
+        '    var link = event.target.closest ? event.target.closest("a.term[data-term]") : null;\n'
+        '    if (link && G[link.getAttribute("data-term")]) event.preventDefault();\n'
+        "  });\n"
+        "})();"
+    )
+    script = (
+        "/* Built by build_site.py from the marked regions of "
+        f"{GLOSSARY_SOURCE.name} — do not edit. */\n"
+        f"{regions['terms']}\n\n{bootstrap}\n\n{regions['drawer_script']}\n"
+    )
+    (STATIC_DIR / DRAWER_SCRIPT).write_text(script, encoding="utf-8")
 
 # Second-level headings, outside fenced code blocks — a "## " inside a shell
 # sample is a comment, not a section.
@@ -259,6 +334,7 @@ def stage_prose() -> None:
     for source, slug, title, nav_label, nav_group, nav_order in PROSE_PAGES:
         body = source.read_text(encoding="utf-8")
         body = _FIRST_H1.sub("", body, count=1)
+        linked = upgrade_term_links(body)
         page = front_matter(
             title=title,
             slug=slug,
@@ -266,7 +342,9 @@ def stage_prose() -> None:
             nav_group=nav_group,
             nav_order=nav_order,
         )
-        page += "\n" + rewrite_links(body)
+        page += "\n" + rewrite_links(linked)
+        if linked != body:
+            page += f'\n\n<script src="static/{DRAWER_SCRIPT}" defer></script>\n'
         (PAGES_DIR / f"{slug}.md").write_text(page, encoding="utf-8")
         NAV_SECTIONS[slug] = collect_sections(body)
 
@@ -329,6 +407,7 @@ def stage() -> None:
     PAGES_DIR.mkdir(parents=True)
     STATIC_DIR.mkdir(parents=True)
     NAV_SECTIONS.clear()
+    stage_glossary_drawer()
     stage_prose()
     stage_api_reference()
     stage_standalone_pages()
