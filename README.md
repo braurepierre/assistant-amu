@@ -4,9 +4,11 @@
 
 Le système est indépendant du modèle de langage utilisé (commutation par variable d'environnement entre un backend local sous Ollama et l'API Mistral) et intègre un harnais d'évaluation reproductible comparant la recherche sémantique, l'approche lexicale BM25 et leur fusion par classement réciproque (*Reciprocal Rank Fusion* — RRF).
 
+**Documentation en ligne : [assistant-amu.readthedocs.io](https://assistant-amu.readthedocs.io)** — présentation, démonstration, page pédagogique, architecture, mesures et référence d'API, en site consultable.
+
 ## Documentation du projet
 
-L'ensemble de ces documents est également publié sous forme de site, construit par Pelican depuis les fichiers du dépôt (`docs/site/`, publication Read the Docs).
+Le site qui réunit ces documents est construit par Pelican depuis les fichiers du dépôt (`docs/site/`) et publié sur Read the Docs.
 
 | Document | Objet |
 | :--- | :--- |
