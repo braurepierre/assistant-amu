@@ -778,7 +778,13 @@ body.nav-closed .content,
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 60;
+  /* Au-dessus des couches du site — le bandeau est à 30 — et au-dessus de ce
+     que l'hébergeur injecte : Read the Docs pose son sélecteur de version en
+     bas à droite, fixé à 3000, exactement où se trouve le bouton d'envoi, qui
+     devenait inatteignable. Le panneau fermé est `visibility: hidden` et ne
+     masque donc rien ; ouvert, il recouvre le sélecteur le temps de la
+     conversation. */
+  z-index: 3100;
   display: flex;
   flex-direction: column;
   width: min(100vw, 39rem);
